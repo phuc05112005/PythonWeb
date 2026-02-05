@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clothing Store | Thời Trang Cao Cấp</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f8f9fa; }
+        .navbar { background-color: #ffffff; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .hero-section {
+            background: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), 
+                        url('https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=1350&q=80');
+            background-size: cover;
+            background-position: center;
+            color: white;
+            padding: 100px 0;
+            margin-bottom: 50px;
+        }
+        .product-card {
+            border: none;
+            transition: transform 0.3s, box-shadow 0.3s;
+            border-radius: 15px;
+            overflow: hidden;
+        }
+        .product-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.15);
+        }
+        .card-img-top {
+            height: 350px;
+            object-fit: cover;
+        }
+        .btn-primary { background-color: #000; border: none; padding: 10px 25px; border-radius: 50px; }
+        .btn-primary:hover { background-color: #333; }
+        .price-tag { font-size: 1.25rem; color: #dc3545; font-weight: 700; }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar navbar-expand-lg navbar-light sticky-top">
+        <div class="container">
+            <a class="navbar-brand fw-bold fs-3" href="#">Thời Trang<span class="text-primary">.</span></a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item"><a class="nav-link active" href="#">Trang chủ</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#">Sản phẩm</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#">Bộ sưu tập</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#">Liên hệ</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <header class="hero-section text-center">
+        <div class="container">
+            <h1 class="display-3 fw-bold">BỘ SƯU TẬP MỚI 2026</h1>
+            <p class="lead mb-4">Khám phá phong cách riêng của bạn với những thiết kế mới nhất.</p>
+            <a href="#shop-now" class="btn btn-primary btn-lg">Mua Sắm Ngay</a>
+        </div>
+    </header>
+
+    <main class="container" id="shop-now">
+        <div class="d-flex justify-content-between align-items-center mb-5">
+            <h2 class="fw-bold">Sản Phẩm Mới Nhất</h2>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-0">
+                    <li class="breadcrumb-item"><a href="#">Tất cả</a></li>
+                    <li class="breadcrumb-item active">Mới nhất</li>
+                </ol>
+            </nav>
+        </div>
+
+        <div class="row">
+            {% for product in sanpham %}
+            <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
+                <div class="card h-100 product-card shadow-sm">
+                    {% if product.hinh %}
+                        <img src="{{ product.hinh.url }}" class="card-img-top" alt="{{ product.ten }}">
+                    {% else %}
+                        <img src="https://via.placeholder.com/350x450?text=No+Image" class="card-img-top" alt="No Image">
+                    {% endif %}
+                    
+                    <div class="card-body d-flex flex-column text-center">
+                        <small class="text-muted text-uppercase">{{ product.loaisp.loai }}</small>
+                        <h5 class="card-title fw-bold my-2">{{ product.ten }}</h5>
+                        <p class="price-tag mt-auto">{{ product.gia }} VNĐ</p>
+                        <a href="#" class="btn btn-outline-dark btn-sm rounded-pill mt-2">Xem chi tiết</a>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-12 text-center my-5">
+                <p class="text-muted">Chưa có sản phẩm nào được đăng bán.</p>
+            </div>
+            {% endfor %}
+        </div>
+    </main>
+
+    <footer class="bg-dark text-white pt-5 pb-4 mt-5">
+        <div class="container text-center text-md-left">
+            <div class="row text-center text-md-left">
+                <div class="col-md-3 col-lg-3 col-xl-3 mx-auto mt-3">
+                    <h5 class="text-uppercase mb-4 font-weight-bold text-primary">Fashion Store</h5>
+                    <p>Cung cấp những xu hướng thời trang mới nhất, chất lượng cao cấp.</p>
+                </div>
+                <div class="col-md-4 col-lg-3 col-xl-3 mx-auto mt-3">
+                    <h5 class="text-uppercase mb-4 font-weight-bold">Liên hệ</h5>
+                    <p>Địa chỉ: TP. Hồ Chí Minh, Việt Nam</p>
+                    <p>Email: info@fashionstore.com</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

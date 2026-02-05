@@ -37,7 +37,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'products',
+    'home',
 ]
 
 MIDDLEWARE = [
@@ -75,8 +75,12 @@ WSGI_APPLICATION = 'clothing_store.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'shopthoitrang',        # Tên bạn vừa tạo trong pgAdmin
+        'USER': 'postgres',             # Username mặc định
+        'PASSWORD': '123',  # Thay bằng mật khẩu lúc bạn cài Postgres
+        'HOST': '127.0.0.1',            # Chạy trên máy cá nhân
+        'PORT': '5432',                 # Cổng mặc định của Postgres
     }
 }
 
@@ -116,3 +120,6 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
 STATIC_URL = 'static/'
+import os
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
