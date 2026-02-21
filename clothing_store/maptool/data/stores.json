@@ -1,0 +1,52 @@
+[
+  {"id":1,"name":"Adidas Vincom Đồng Khởi","lat":10.777593,"lng":106.701444,"district":"Quận 1","address":"B1-56, Vincom, Đồng Khởi, Bến Nghé, Quận 1, Thành phố Hồ Chí Minh, Việt Nam"},
+  {"id":2,"name":"Adidas Hai Bà Trưng","lat":10.786555,"lng":106.693488,"district":"Quận 3","address":"205 Hai Bà Trưng, Phường 6, Quận 3, Thành phố Hồ Chí Minh, Việt Nam"},
+  {"id":3,"name":"Adidas Võ Văn Ngân","lat":10.850495,"lng":106.765274,"district":"Thủ Đức","address":"Vincom Đ. Võ Văn Ngân, Bình Thọ, Thủ Đức, Thành phố Hồ Chí Minh, Việt Nam"},
+  {"id":4,"name":"Adidas Gigamall","lat":10.828161,"lng":106.721601,"district":"Thủ Đức","address":"242 Kha Vạn Cân, Hiệp Bình Chánh, Thủ Đức, Thành phố Hồ Chí Minh, Việt Nam"},
+  {"id":5,"name":"Adidas Phan Văn Trị","lat":10.826693,"lng":106.688953,"district":"Gò Vấp","address":"12 Đ. Phan Văn Trị, Phường 7, Gò Vấp, Thành phố Hồ Chí Minh, Việt Nam"},
+  {"id":6,"name":"Adidas Cộng Hòa","lat":10.802255,"lng":106.644579,"district":"Tân Bình","address":"368 Cộng Hòa, Phường Tân Bình, Tân Bình, Thành phố Hồ Chí Minh, Việt Nam"},
+  {"id":8,"name":"Adidas Trần Hưng Đạo","lat":10.760000,"lng":106.680000,"district":"Quận 5","address":"55 Trần Hưng Đạo, Quận 5, TP.HCM"},
+  {"id":9,"name":"Adidas Vạn Hạnh Mall","lat":10.770386,"lng":106.670234,"district":"Quận 10","address":"711 Sư Vạn Hạnh, Phường Hoà Hưng, Quận 10, Thành phố Hồ Chí Minh, Việt Nam"},
+  {"id":10,"name":"Adidas Nguyễn Thị Thập","lat":10.730000,"lng":106.700000,"district":"Quận 7","address":"12 Nguyễn Thị Thập, Quận 7, TP.HCM"},
+  {
+  "id":11,
+  "name":"Adidas Crescent Mall",
+  "lat":10.733172,
+  "lng":106.700981,
+  "district":"Quận 7",
+  "address":"101 Tôn Dật Tiên, Phường Tân Phú, Quận 7, Thành phố Hồ Chí Minh, Việt Nam"
+},
+{
+  "id":12,
+  "name":"Adidas SC VivoCity",
+  "lat":10.732570,
+  "lng":106.704348,
+  "district":"Quận 7",
+  "address":"1058 Nguyễn Văn Linh, Tân Phong, Quận 7, Thành phố Hồ Chí Minh, Việt Nam"
+},
+{
+  "id":13,
+  "name":"Adidas Landmark 81",
+  "lat":10.795585,
+  "lng":106.721926,
+  "district":"Bình Thạnh",
+  "address":"Vinhomes Central Park, 772 Điện Biên Phủ,, Phường 22, Bình Thạnh, Thành phố Hồ Chí Minh, Việt Nam"
+},
+{
+  "id":14,
+  "name":"Adidas Saigon Centre",
+  "lat":10.772851,
+  "lng":106.698637,
+  "district":"Quận 1",
+  "address":"65 Lê Lợi, Bến Nghé, Quận 1, Thành phố Hồ Chí Minh, Việt Nam"
+},
+{
+  "id":15,
+  "name":"Adidas NowZone",
+  "lat":10.762622,
+  "lng":106.682500,
+  "district":"Quận 1",
+  "address":"235 Nguyễn Thái Bình, Bến Nghé, Quận 1, Thành phố Hồ Chí Minh, Việt Nam"
+},
+  {"id":16,"name":"Adidas Lê Văn Sỹ","lat":10.791458,"lng":106.672141,"district":"Phú Nhuận","address":"106 Lê Văn Sỹ, Phú Nhuận, Thành phố Hồ Chí Minh, Việt Nam"}
+]

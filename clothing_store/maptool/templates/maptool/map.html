@@ -1,0 +1,158 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Adidas Store Locator | GIS System</title>
+
+    <!-- Leaflet -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+    <!-- Google Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html, body {
+            height: 100%;
+            margin: 0;
+            font-family: 'Inter', sans-serif;
+            background: #f3f4f6;
+        }
+
+        /* ===== HEADER TOOLBAR ===== */
+        #toolbar {
+            height: 70px;
+            background: linear-gradient(90deg, #000000, #1c1c1c);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 25px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.25);
+            position: relative;
+            z-index: 1000;
+        }
+
+        .toolbar-left {
+            font-size: 20px;
+            font-weight: 700;
+            letter-spacing: 1px;
+        }
+
+        .toolbar-right {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        /* ===== MAP ===== */
+        #map {
+            width: 100%;
+            height: calc(100vh - 70px);
+        }
+
+        /* ===== BUTTON STYLE ===== */
+        button {
+            padding: 8px 16px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.25s ease;
+            background: white;
+            color: black;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            background: #e5e7eb;
+        }
+
+        button.primary {
+            background: #2563eb;
+            color: white;
+        }
+
+        button.primary:hover {
+            background: #1d4ed8;
+        }
+
+        button.success {
+            background: #16a34a;
+            color: white;
+        }
+
+        button.success:hover {
+            background: #15803d;
+        }
+
+        /* ===== SELECT ===== */
+        select {
+            padding: 8px 14px;
+            border-radius: 8px;
+            border: none;
+            background: white;
+            cursor: pointer;
+            font-weight: 500;
+        }
+
+        select:focus {
+            outline: none;
+        }
+
+        /* ===== Leaflet popup override ===== */
+        .leaflet-popup-content-wrapper {
+            border-radius: 12px;
+            padding: 8px;
+        }
+
+        .leaflet-popup-content {
+            margin: 10px 14px;
+            font-size: 14px;
+        }
+
+    </style>
+</head>
+
+<body>
+
+<div id="toolbar">
+    <div class="toolbar-left">
+        Adidas Store Locator
+    </div>
+
+    <div class="toolbar-right">
+
+        <select id="districtSelect" onchange="filterDistrict()">
+            <option value="">Filter District</option>
+            <option value="Quận 1">Quận 1</option>
+            <option value="Quận 3">Quận 3</option>
+            <option value="Quận 5">Quận 5</option>
+            <option value="Quận 7">Quận 7</option>
+            <option value="Thủ Đức">Thủ Đức</option>
+            <option value="Bình Thạnh">Bình Thạnh</option>
+            <option value="Tân Bình">Tân Bình</option>
+            <option value="Gò Vấp">Gò Vấp</option>
+            <option value="Phú Nhuận">Phú Nhuận</option>
+        </select>
+
+        <button onclick="loadStores()">All Stores</button>
+        <button onclick="showNearbyShops(3)">Nearby 3km</button>
+        <button onclick="showNearbyShops(5)">Nearby 5km</button>
+        <button class="primary" onclick="getCurrentLocation()">My Location</button>
+
+    </div>
+</div>
+
+<div id="map"></div>
+
+<script src="{% static 'maptool/map.js' %}"></script>
+
+</body>
+</html>
