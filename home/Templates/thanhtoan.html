@@ -1,0 +1,208 @@
+{% extends "layout.html" %}
+{% load static %}
+
+{% block main-content %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<style>
+    #map { 
+        height: 350px; 
+        width: 100%; 
+        border: none; 
+        z-index: 1; /* Tránh đè lên các popup khác */
+    }
+    /* Style input chuẩn Minimalist */
+    .form-control {
+        padding: 0.75rem 1.25rem;
+    }
+</style>
+
+<div class="container mt-4 mb-5 min-vh-100">
+    <form method="post">
+        {% csrf_token %}
+        <div class="row g-5">
+            
+            <div class="col-lg-7">
+                <h3 class="fw-bolder text-uppercase mb-4" style="letter-spacing: 1px;">Thông tin giao hàng</h3>
+                
+                <div class="bg-white p-4 p-md-5 rounded-4 shadow-sm border-0 mb-4">
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold small text-secondary text-uppercase">Họ và tên</label>
+                            <input type="text" name="ten" class="form-control rounded-pill bg-light border-0 shadow-none" value="{{ tenkh|default:'' }}" placeholder="Nhập họ tên...">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold small text-secondary text-uppercase">Số điện thoại</label>
+                            <input type="number" name="sdt" class="form-control rounded-pill bg-light border-0 shadow-none" value="{{ sdtkh|default:'' }}" placeholder="Nhập số điện thoại...">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-bold small text-secondary text-uppercase">Địa chỉ cụ thể</label>
+                            <div class="input-group">
+                                <input type="text" name="diachi" id="diachi" class="form-control bg-light border-0 shadow-none" style="border-top-left-radius: 50rem; border-bottom-left-radius: 50rem;" value="{{ diachikh|default:'' }}" placeholder="Số nhà, tên đường, phường/xã...">
+                                <button type="button" class="btn btn-dark px-4" style="border-top-right-radius: 50rem; border-bottom-right-radius: 50rem;" onclick="searchAddress()">
+                                    Tìm vị trí
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <input type="hidden" name="lat" id="lat">
+                    <input type="hidden" name="lon" id="lon">
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small text-secondary text-uppercase">Hoặc ghim vị trí trên bản đồ</label>
+                        <div class="overflow-hidden rounded-4 shadow-sm border border-2 border-light">
+                            <div id="map"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex justify-content-end">
+                        <button type="submit" name="action" value="tinhship" class="btn btn-outline-secondary rounded-pill fw-bold text-uppercase btn-sm px-4 d-none">
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-5">
+                <div class="bg-white p-4 p-md-5 rounded-4 shadow-sm border-0 sticky-top" style="top: 30px;">
+                    <h4 class="fw-bolder text-uppercase mb-4" style="letter-spacing: 1px;">Đơn hàng</h4>
+                    
+                    <div class="mb-4">
+                        {% for sp in sanpham %}
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="position-relative">
+                                <img src="{{ sp.sanpham.hinhurl }}" alt="{{ sp.sanpham.ten }}" class="rounded-3 shadow-sm" style="width: 60px; height: 60px; object-fit: cover;">
+                                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-dark border border-white">
+                                    {{ sp.soluong }}
+                                </span>
+                            </div>
+                            <div class="ms-3 flex-grow-1">
+                                <h6 class="mb-1 fw-bold text-truncate" style="max-width: 150px;">{{ sp.sanpham.ten }}</h6>
+                                <small class="text-secondary">{{ sp.sanpham.gia }} đ</small>
+                            </div>
+                            <div class="fw-bold text-end">
+                                {% widthratio sp.soluong 1 sp.sanpham.gia %} đ
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <hr class="opacity-25 mb-4">
+
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-secondary fw-medium">Tạm tính:</span>
+                        <span class="fw-bold">{{ tongtiendonhang }} đ</span>
+                    </div>
+
+                    {% if tienship %}
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-secondary fw-medium">Khoảng cách:</span>
+                        <span class="fw-bold">{{ km }} km</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-3">
+                        <span class="text-secondary fw-medium">Phí giao hàng:</span>
+                        <span class="fw-bold text-warning">{{ tienship }} đ</span>
+                    </div>
+                    {% else %}
+                    <div class="alert alert-light text-center border border-warning-subtle text-warning small fw-bold mb-3 rounded-3">
+                        Vui lòng nhập địa chỉ để tính phí giao hàng
+                    </div>
+                    {% endif %}
+
+                    <hr class="opacity-25 my-4">
+
+                    <div class="d-flex justify-content-between mb-4 align-items-center">
+                        <span class="fw-bold text-uppercase" style="font-size: 1.1rem;">Tổng thanh toán:</span>
+                        <span class="fw-bolder text-danger fs-3">{{ tongtien }} đ</span>
+                    </div>
+
+                    <button type="submit" name="action" value="thanhtoan" class="btn btn-dark w-100 rounded-pill fw-bold text-uppercase py-3 shadow-sm transition-hover" style="letter-spacing: 1px;" {% if not tienship %}disabled{% endif %}>
+                        Xác nhận đặt hàng
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    </form>
+</div>
+
+<script>
+    var map = L.map('map').setView([10.762622, 106.660172], 13);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap'
+    }).addTo(map);
+
+    var marker;
+
+    function searchAddress() {
+        var address = document.getElementById('diachi').value;
+        if (!address) return alert("Vui lòng nhập địa chỉ!");
+
+        // Đổi chữ nút thành "Đang tính..." để khách biết web đang chạy (tùy chọn nhưng rất xịn)
+        var btnTim = document.querySelector("button[onclick='searchAddress()']");
+        var textGoc = btnTim.innerHTML;
+        btnTim.innerHTML = "Đang tính...";
+
+        fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address + ", Vietnam")}`)
+            .then(res => res.json())
+            .then(data => {
+                if (data.length > 0) {
+                    var lat = data[0].lat;
+                    var lon = data[0].lon;
+                    updateMap(lat, lon);
+                    
+                    // DÒNG QUYỀN LỰC: Tự động giả lập cú click vào nút "Tính ship"
+                    document.querySelector("button[value='tinhship']").click();
+                } else {
+                    alert("Không tìm thấy tọa độ cho địa chỉ này! Vui lòng nhập chi tiết hơn.");
+                    btnTim.innerHTML = textGoc; // Trả lại chữ cũ nếu tìm thất bại
+                }
+            })
+            .catch(err => {
+                alert("Lỗi kết nối mạng, vui lòng thử lại!");
+                btnTim.innerHTML = textGoc;
+            });
+    }
+
+    function updateMap(lat, lon) {
+        document.getElementById('lat').value = lat;
+        document.getElementById('lon').value = lon;
+        map.setView([lat, lon], 16);
+        
+        if (marker) map.removeLayer(marker);
+        marker = L.marker([lat, lon], {draggable: true}).addTo(map);
+
+        marker.on('dragend', function(e) {
+            var newPos = marker.getLatLng();
+            document.getElementById('lat').value = newPos.lat;
+            document.getElementById('lon').value = newPos.lng;
+            document.querySelector("button[value='tinhship']").click();
+        });
+    }
+
+    map.on('click', function(e) {
+        updateMap(e.latlng.lat, e.latlng.lng);
+        document.querySelector("button[value='tinhship']").click();
+    });
+
+    window.onload = function() {
+        var savedLat = "{{ latkh|default:'' }}";
+        var savedLon = "{{ lonkh|default:'' }}";
+        if (savedLat !== "" && savedLon !== "") {
+            updateMap(parseFloat(savedLat), parseFloat(savedLon));
+        }
+    };
+</script>
+
+<style>
+    /* Hiệu ứng nổi lên mượt mà cho nút bấm */
+    .transition-hover {
+        transition: all 0.3s ease;
+    }
+    .transition-hover:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 .5rem 1rem rgba(0,0,0,.15)!important;
+    }
+</style>
+{% endblock main-content %}

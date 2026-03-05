@@ -1,0 +1,102 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+    <link href="{% static "/css/bootstrap.min.css" %}" rel="stylesheet"/>
+    <script src="{% static "/js/bootstrap.bundle.min.js" %}"> </script>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Jost:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <title>Cửa Hàng</title>
+    <meta name="description" content="" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="" />
+    
+    <style>
+      /* Thêm nền sáng mờ và áp dụng font chữ mới */
+      body { font-family: 'Jost', sans-serif; background-color: #fcfcfc; }
+    </style>
+  </head>
+  
+  <body>
+    <nav class="navbar navbar-expand-lg bg-white sticky-top shadow-sm py-2">
+      <div class="container-fluid">
+        <a class="navbar-brand fw-bold" style="letter-spacing: 1px;" href="#">FASHION</a>
+        
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation"><span class="navbar-toggler-icon"></span></button>
+        
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+          <ul class="navbar-nav me-auto mb-2 mb-lg-0 align-items-lg-center">
+            <li class="nav-item">
+              <a class="nav-link active" aria-current="page" href="{% url "home" %}">Home</a>
+            </li>
+            {% if request.user.is_superuser %}
+            <li class="nav-item">
+              <a class="nav-link fw-semibold" href="{% url 'quantri' %}">
+                Bảng điều khiển
+              </a>
+            </li>
+            {% endif %}
+            <li class="nav-item">
+              <a class="nav-link" href="{% url 'map' %}">
+                Bản đồ cửa hàng
+              </a>
+            </li>
+            <li class="nav-item d-flex align-items-center ms-lg-3 mt-2 mt-lg-0">
+              {% if request.user.is_authenticated %}
+                <span style="font-weight: 500; margin-right: 15px;">
+                  Xin chào, {{ request.user.username }}!
+                </span>
+                <form action="{% url "dangxuat" %}" method="post" class="m-0">
+                  {% csrf_token %}
+                  <button type="submit" class="btn btn-outline-dark btn-sm rounded-pill px-3 fw-bold">
+                    Đăng xuất
+                  </button>
+                </form>
+              {% else %}
+                <a class="btn btn-outline-dark rounded-pill px-4 fw-bold btn-sm" href="{% url 'dangnhap' %}">Đăng Nhập</a>
+              {% endif %}
+            </li>
+          </ul>
+          
+          <a href="{% url 'giohang' %}" class="btn btn-dark rounded-pill px-4 fw-bold shadow-sm me-3 position-relative">
+              🛒 Giỏ hàng
+              {% if count > 0 %}
+                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger border border-light">
+                  {{ count }}
+                </span>
+              {% endif %}
+          </a>
+          
+          <form class="d-flex" role="search" method="post" action="{% url "timkiem" %}">
+            {% csrf_token %}
+            <input class="form-control me-2 rounded-pill bg-light border-0" type="search" placeholder="Search" aria-label="Search" name="search" style="box-shadow: none;"/>
+            <button class="btn btn-outline-dark rounded-pill px-4" type="submit">Search</button>
+          </form>
+        </div>
+      </div>
+    </nav>
+    
+    <div>
+      <div class="container mt-3">
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show shadow-sm border-0 rounded-4" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+      </div>
+      
+      {% block main-content %}
+      {% endblock main-content %}
+    </div>
+  </body>
+</html>

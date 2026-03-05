@@ -1,0 +1,135 @@
+{% extends 'layoutadmin.html' %}
+{% load static %}
+
+{% block main-content %}
+<div class="container-fluid mt-5 mb-5 px-4">
+    
+    <div class="d-flex justify-content-between align-items-end mb-5">
+        <div>
+            <h2 class="fw-bold text-uppercase m-0">Quản lý Đơn hàng</h2>
+            <div style="width: 60px; height: 4px; background: #000; margin-top: 10px;"></div>
+        </div>
+        <a href="{% url 'quantri' %}" class="text-decoration-none text-dark fw-bold text-uppercase">
+            Quay về
+        </a>
+    </div>
+
+    <div class="mb-5">
+        <div class="d-flex align-items-center mb-3">
+            <h4 class="fw-bold m-0 text-primary text-uppercase " style="letter-spacing: 1px;">Đơn hàng mới nhận</h4>
+            <span class="ms-3 badge rounded-0 bg-primary px-3 py-2">{{ donhang1|length }} đơn</span>
+        </div>
+        
+        <div class="card border-0 shadow-sm rounded-0">
+            <div class="table-responsive">
+                <table class="table align-middle mb-0">
+                    <thead class="bg-primary text-white">
+                        <tr class="small text-uppercase">
+                            <th class="ps-4 py-3 border-0">Mã đơn</th>
+                            <th class="py-3 border-0">Khách hàng</th>
+                            <th class="py-3 border-0">Số điện thoại</th>
+                            <th class="py-3 border-0">Tổng tiền</th>
+                            <th class="py-3 border-0">Ngày đặt</th>
+                            <th class="pe-4 py-3 border-0 text-end">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for dh in donhang1 %}
+                        <tr class="bg-white border-bottom">
+                            <td class="ps-4 fw-bold">#{{ dh.id }}</td>
+                            <td>{{ dh.ten }}</td>
+                            <td>{{ dh.sdt }}</td>
+                            <td class="fw-bold text-danger">{{ dh.tongtien }} đ</td>
+                            <td class="text-muted small">{{ dh.ngaydat|date:"d/m/Y H:i" }}</td>
+                            <td class="pe-4 text-end">
+                                <div class="d-flex justify-content-end gap-2">
+                                    <a href="{% url 'chitietdonhang' dh.id %}" class="btn btn-outline-dark btn-sm rounded-0 px-3 fw-bold small text-uppercase">
+                                        Chi tiết
+                                    </a>
+                                    <form action="{% url 'duyetdonhang' dh.id %}" method="post" class="m-0">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-primary btn-sm rounded-0 px-4 fw-bold small text-uppercase">
+                                            Duyệt đơn
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="text-center py-5 text-muted">Không có đơn hàng mới nào cần xử lý.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div>
+        <div class="d-flex align-items-center mb-3">
+            <h4 class="fw-bold m-0 text-secondary text-uppercase small" style="letter-spacing: 1px;">Lịch sử đơn đã duyệt</h4>
+        </div>
+        
+        <div class="card border-0 shadow-sm rounded-0">
+            <div class="table-responsive">
+                <table class="table align-middle mb-0">
+                    <thead class="bg-light">
+                        <tr class="small text-uppercase text-secondary">
+                            <th class="ps-4 py-3 border-0">Mã đơn</th>
+                            <th class="py-3 border-0">Khách hàng</th>
+                            <th class="py-3 border-0">Địa chỉ giao hàng</th>
+                            <th class="py-3 border-0">Tổng tiền</th>
+                            <th class="py-3 border-0">Ngày đặt</th>
+                            <th class="pe-4 py-3 border-0 text-end">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for dh in donhang2 %}
+                        <tr class="border-bottom text-muted">
+                            <td class="ps-4">#{{ dh.id }}</td>
+                            <td class="fw-bold text-dark">{{ dh.ten }}</td>
+                            <td class="small">{{ dh.diachi }}</td>
+                            <td class="fw-bold">{{ dh.tongtien }} đ</td>
+                            <td class="small">{{ dh.ngaydat|date:"d/m/Y" }}</td>
+                            <td class="pe-4 text-end">
+                                <a href="{% url 'chitietdonhang' dh.id %}" class="btn btn-light btn-sm rounded-0 px-3 fw-bold small text-uppercase border">
+                                    Xem chi tiết
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="text-center py-4 text-muted small">Chưa có đơn hàng nào đã duyệt.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<style>
+    /* Loại bỏ bo góc mặc định của Bootstrap cho phong cách Minimalist */
+    .card, .btn, .table, .badge {
+        border-radius: 0 !important;
+    }
+    
+    /* Hiệu ứng hover cho dòng trong bảng */
+    .table tbody tr {
+        transition: background-color 0.2s;
+    }
+    
+    .table tbody tr:hover {
+        background-color: #fcfcfc !important;
+    }
+
+    /* Định dạng cột tiêu đề bảng */
+    thead th {
+        font-weight: 700;
+        letter-spacing: 0.5px;
+    }
+</style>
+{% endblock main-content %}

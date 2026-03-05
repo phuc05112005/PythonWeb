@@ -1,0 +1,36 @@
+from django.contrib import admin
+from django.urls import path
+from django.contrib.auth import views as dangnhap
+from home import views
+urlpatterns = [
+    path('', views.home, name="home"),
+    path('loai/<int:loai_id>/', views.home, name="loai"),
+    path('chitietsp/<int:sanpham_id>/', views.chitietsp, name="chitiet"),
+    path('dangnhap/', views.dangnhap, name="dangnhap"),
+    path('dangky/', views.dangky, name="dangky"),
+    path('dangxuat/', dangnhap.LogoutView.as_view(next_page='home'), name="dangxuat"),
+    path('themgiohang/<int:sanpham_id>/', views.themgiohang, name="themgiohang"),
+    path('suagiohang/<int:sanpham_id>/', views.suagiohang, name="suagiohang"),
+    path('xoagiohang/<int:sanpham_id>/', views.xoagiohang, name="xoagiohang"),
+    path('giohang/', views.giohang, name="giohang"),
+    path('thanhtoan/', views.thanhtoan, name="thanhtoan"),
+    path('camon/', views.thanhtoan, name="camon"),
+    path('quantri/', views.quantri, name="quantri"),
+    path('quantri/sanpham/', views.quanlysanpham, name="quanlysanpham"),
+    path('quantri/sanpham/xoa/<int:sanpham_id>/', views.xoasanpham, name="xoasanpham"),
+    path('quantri/sanpham/sua/<int:sanpham_id>/', views.suasanpham, name="suasanpham"),
+    path('quantri/sanpham/them/', views.themsanpham, name="themsanpham"),
+    path('quantri/donhang/', views.quanlydonhang, name="quanlydonhang"),
+    path('quantri/donhang/<int:donhang_id>/', views.duyetdonhang, name="duyetdonhang"),
+    path('quantri/donhang/chitietdonhang/<int:donhang_id>/', views.chitietdonhang, name="chitietdonhang"),
+    path('quantri/loai/', views.quanlyloai, name="quanlyloai"),
+    path('quantri/loai/them/', views.themloai, name="themloai"),
+    path('quantri/loai/xoa/<int:loai_id>/', views.xoaloai, name="xoaloai"),
+    path('quantri/loai/sua/<int:loai_id>/', views.sualoai, name="sualoai"),
+    path('search/', views.timkiem, name="timkiem"),
+    path('quantri/cuahang/', views.quanlycuahang, name="quanlycuahang"),
+    path('quantri/cuahang/them/', views.themcuahang, name="themcuahang"),
+    path('quantri/cuahang/sua/<int:cuahang_id>/', views.suacuahang, name="suacuahang"),
+    path('quantri/cuahang/xoa/<int:cuahang_id>/', views.xoacuahang, name="xoacuahang"),
+    path('map/', views.map_view, name="map"),
+]

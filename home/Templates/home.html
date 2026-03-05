@@ -1,0 +1,114 @@
+{% extends 'layout.html' %}
+{% load static %}
+{% block main-content %}
+
+<div class="container mt-4 pb-5">
+    <div class="row">
+
+        <div class="col-md-3 mb-4">
+            <div class="bg-white p-4 shadow-sm rounded-4 border-0"> 
+                <div class="border-bottom pb-2 mb-3">
+                    <h5 class="fw-bold text-uppercase m-0" style="letter-spacing: 1px;">Danh Mục</h5>
+                </div>
+                <div>
+                    <div class="mb-2">
+                        <a href="{% url 'home' %}" class="category-item text-decoration-none d-block p-2 rounded-3 transition-hover {% if not loai_id %}active-category{% else %}text-dark{% endif %}">
+                            <h6 class="m-0 fw-semibold">Tất cả sản phẩm</h6>
+                        </a>
+                    </div>
+
+                    {% for item in loai %}
+                    <div class="mb-2">
+                        <a href="{% url 'loai' item.id %}" 
+                           class="category-item text-decoration-none d-block p-2 rounded-3 transition-hover 
+                           {% if item.id == loai_id %}active-category{% else %}text-dark{% endif %}">
+                            <h6 class="m-0 fw-semibold">{{item.loai}}</h6>
+                        </a>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-9">
+            <div class="rounded-4 mb-5 text-center shadow-sm position-relative overflow-hidden" style="background: url('https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?auto=format&fit=crop&w=1350&q=80') no-repeat center center; background-size: cover; min-height: 350px;">
+                <div class="position-absolute top-0 start-0 w-100 h-100" style="background-color: rgba(0, 0, 0, 0.4);"></div>
+                <div class="container h-100 d-flex flex-column justify-content-center align-items-center position-relative py-5" style="color: white; z-index: 1;">
+                    <h1 class="display-4 fw-bolder mb-3" style="letter-spacing: 2px;">BỘ SƯU TẬP 2026</h1>
+                    <p class="lead mb-4 fw-light">Cập nhật những xu hướng thời trang hiện đại và phong cách nhất.</p>
+                    <a class="btn btn-light btn-lg mt-2 rounded-pill px-5 fw-bold text-uppercase shadow transition-hover" href="#san-pham" role="button">Mua sắm ngay</a>
+                </div>
+            </div>
+
+            <div class="row row-cols-1 row-cols-md-3 g-4" id="san-pham">
+                {% for sp in sanpham %}
+                <div class="col">
+                    <a href="{% url 'chitiet' sp.id %}" class="text-decoration-none text-dark">
+                        <div class="card h-100 shadow-sm border-0 rounded-4 transition-hover overflow-hidden product-card">
+                            <img src="{{sp.hinhurl}}" alt="{{sp.ten}}" class="card-img-top w-100" style="height: 280px; object-fit: cover;">
+                            <div class="p-3 text-center bg-white">
+                                <h6 class="mt-2 mb-2 fw-bold text-uppercase text-truncate text-secondary">{{sp.ten}}</h6>
+                                <h5 class="fw-bold text-danger mb-2">{{sp.gia}} VNĐ</h5>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="mt-5 w-100">
+            <nav aria-label="Page navigation">
+                <ul class="pagination justify-content-center custom-pagination">
+                    {% if sanpham.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link shadow-sm border-0 rounded-start-pill" href="?page=1{% if loai_id %}&loai_id={{loai_id}}{% endif %}">&laquo; Đầu</a>
+                        </li>
+                    {% endif %}
+                    <li class="page-item active">
+                        <span class="page-link shadow-sm border-0 bg-dark border-dark text-white">Trang {{ sanpham.number }} / {{ sanpham.paginator.num_pages }}</span>
+                    </li>
+                    {% if sanpham.has_next %}
+                        <li class="page-item">
+                            <a class="page-link shadow-sm border-0 rounded-end-pill" href="?page={{ sanpham.next_page_number }}{% if loai_id %}&loai_id={{loai_id}}{% endif %}">Sau &raquo;</a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </div>
+        
+    </div>
+</div>
+
+<style>
+    .transition-hover { 
+        transition: all 0.3s ease; 
+    }
+    .transition-hover:hover { 
+        transform: translateY(-5px); 
+    }
+    .category-item {
+        background-color: transparent;
+        border: 1px solid transparent;
+        transition: all 0.2s ease;
+    }
+    /* Class khi được chọn (Active) */
+    .active-category {
+        background-color: #000 !important;
+        color: #fff !important;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    }
+    .category-item:hover:not(.active-category) {
+        background-color: #f8f9fa;
+        color: #000 !important;
+        padding-left: 15px !important;
+    }
+    .product-card:hover {
+        box-shadow: 0 .5rem 1rem rgba(0,0,0,.15)!important;
+    }
+    .custom-pagination .page-link {
+        color: #333;
+        margin: 0 3px;
+    }
+</style>
+{% endblock main-content %}

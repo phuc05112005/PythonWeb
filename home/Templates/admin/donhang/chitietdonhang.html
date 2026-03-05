@@ -1,0 +1,71 @@
+{% extends 'layoutadmin.html' %}
+{% load static %}
+
+{% block main-content %}
+<div class="container-fluid mt-5 mb-5 px-4">
+    
+    <div class="d-flex justify-content-between align-items-end mb-4 mx-auto" style="max-width: 900px;">
+        <div>
+            <h2 class="fw-bold text-uppercase m-0">Chi Tiết Đơn Hàng</h2>
+            <p class="text-muted small m-0 mt-1">Mã đơn hàng: #{{ chitiet.0.donhang.id }}</p>
+            <div style="width: 40px; height: 3px; background: #000; margin-top: 10px;"></div>
+        </div>
+        <a href="{% url 'quanlydonhang' %}" class="text-decoration-none text-dark fw-bold small text-uppercase">
+            Quay về danh sách
+        </a>
+    </div>
+
+    <div class="card border-0 shadow-sm rounded-0 mx-auto" style="max-width: 900px;">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table align-middle mb-0">
+                    <thead class="bg-light">
+                        <tr class="small text-uppercase text-secondary">
+                            <th class="ps-4 py-3 border-0">Sản phẩm</th>
+                            <th class="py-3 border-0">Hình ảnh</th>
+                            <th class="py-3 border-0 text-center">Số lượng</th>
+                            <th class="pe-4 py-3 border-0 text-end">Đơn giá</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for ct in chitiet %}
+                        <tr class="border-bottom">
+                            <td class="ps-4 py-3">
+                                <span class="fw-bold text-dark">{{ ct.sanpham.ten }}</span>
+                            </td>
+                            <td>
+                                <img src="{{ ct.sanpham.hinhurl }}" alt="{{ ct.sanpham.ten }}" 
+                                     class="border p-1 rounded-0" 
+                                     style="width: 60px; height: 60px; object-fit: cover;">
+                            </td>
+                            <td class="text-center">x {{ ct.soluong }}</td>
+                            <td class="pe-4 text-end fw-bold">{{ ct.dongia }} đ</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            
+        </div>
+    </div>
+
+</div>
+
+<style>
+    /* Đồng bộ góc vuông cho phong cách Minimalist */
+    .card, .table, img {
+        border-radius: 0 !important;
+    }
+
+    /* Hiệu ứng khi di chuột qua dòng */
+    .table tbody tr:hover {
+        background-color: #fafafa;
+    }
+
+    /* Tinh chỉnh tiêu đề bảng */
+    thead th {
+        letter-spacing: 1px;
+        font-weight: 700;
+    }
+</style>
+{% endblock main-content %}

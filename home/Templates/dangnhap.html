@@ -1,0 +1,63 @@
+{% extends 'layout.html' %}
+{% load static %}
+
+{% block main-content %}
+<div class="container d-flex justify-content-center align-items-center py-5" style="min-height: 70vh;">
+    <div class="bg-white p-5 rounded-4 shadow-sm border-0 w-100" style="max-width: 450px;">
+        
+        <div class="text-center mb-4">
+            <h3 class="fw-bolder text-uppercase mb-2" style="letter-spacing: 2px;">Đăng Nhập</h3>
+        </div>
+
+        <form method="post">
+            {% csrf_token %}
+            
+            <div class="mb-3">
+                <label class="form-label fw-bold small text-secondary text-uppercase">Tên đăng nhập</label>
+                <input type="text" name="username" class="form-control bg-light border-0 shadow-none px-4 py-3 rounded-3" placeholder="Nhập tên đăng nhập..." required>
+            </div>
+
+            <div class="mb-4">
+                <label class="form-label fw-bold small text-secondary text-uppercase">Mật khẩu</label>
+                <input type="password" name="password" class="form-control bg-light border-0 shadow-none px-4 py-3 rounded-3" placeholder="••••••••" required>
+            </div>
+
+            {% if form.errors %}
+                <div class="alert alert-danger border-0 rounded-3 small py-2 text-center mb-4">
+                    <i class="fw-bold">Sai tên đăng nhập hoặc mật khẩu!</i>
+                </div>
+            {% endif %}
+
+            <div class="mb-4 mt-2">
+                <button type="submit" class="btn btn-dark w-100 py-3 rounded-pill fw-bold text-uppercase transition-hover" style="letter-spacing: 1px;">
+                    Đăng Nhập
+                </button>
+            </div>
+        </form>
+
+        <div class="text-center mt-3">
+            <span class="text-secondary small">Chưa có tài khoản? </span>
+            <a href="{% url 'dangky' %}" class="text-dark fw-bold text-decoration-none transition-hover d-inline-block pb-1" style="border-bottom: 2px solid #000;">
+                Đăng ký ngay
+            </a>
+        </div>
+        
+    </div>
+</div>
+
+<style>
+    .transition-hover {
+        transition: all 0.3s ease;
+    }
+    .transition-hover:hover {
+        transform: translateY(-3px);
+        opacity: 0.85;
+    }
+    /* Đổi màu viền nhẹ khi click vào ô input */
+    .form-control:focus {
+        background-color: #fff !important;
+        border: 1px solid #000 !important;
+        box-shadow: none !important;
+    }
+</style>
+{% endblock main-content %}

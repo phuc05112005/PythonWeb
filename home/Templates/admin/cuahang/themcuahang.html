@@ -1,0 +1,119 @@
+{% extends 'layoutadmin.html' %}
+{% load static %}
+
+{% block main-content %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<div class="container-fluid mt-5 mb-5 px-4">
+    
+    <div class="d-flex justify-content-between align-items-end mb-4 mx-auto" style="max-width: 900px;">
+        <div>
+            <h2 class="fw-bold text-uppercase m-0">Thêm Cửa Hàng</h2>
+            <div style="width: 40px; height: 3px; background: #000; margin-top: 10px;"></div>
+        </div>
+        <a href="{% url 'quanlycuahang' %}" class="text-decoration-none text-dark fw-bold small text-uppercase">
+            Quay lại danh sách
+        </a>
+    </div>
+
+    <div class="card border-0 shadow-sm rounded-0 mx-auto" style="max-width: 900px;">
+        <div class="card-body p-4 p-md-5">
+            <form method="post">
+                {% csrf_token %}
+                
+                <div class="mb-4">
+                    <label class="form-label fw-bold small text-uppercase text-secondary">Tên cửa hàng</label>
+                    <input type="text" name="ten" value="{{tench|default:''}}" 
+                           class="form-control rounded-0 border-0 bg-light px-3 py-3 shadow-none" 
+                           placeholder="Nhập tên cửa hàng..." required>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label fw-bold small text-uppercase text-secondary">Địa chỉ chi tiết</label>
+                    <div class="input-group">
+                        <textarea name="diachi" id="diachi" 
+                                  class="form-control rounded-0 border-0 bg-light px-3 py-3 shadow-none" 
+                                  style="height: 100px;" placeholder="Nhập địa chỉ để tìm vị trí...">{{diachich|default:''}}</textarea>
+                        <button type="button" class="btn btn-dark rounded-0 px-4 fw-bold small text-uppercase" onclick="searchAddress()">
+                            Tìm vị trí
+                        </button>
+                    </div>
+                </div>
+
+                <input type="hidden" name="lat" id="lat">
+                <input type="hidden" name="lon" id="lon">
+
+                <div class="mb-5">
+                    <label class="form-label fw-bold small text-uppercase text-secondary d-block mb-3">Vị trí trên bản đồ</label>
+                    <div id="map" style="height: 400px; width: 100%; border: 1px solid #eee;"></div>
+                    <p class="small text-muted mt-2 text-end italic">Bạn có thể kéo thả dấu chấm để chọn vị trí chính xác.</p>
+                </div>
+
+                <div class="d-grid">
+                    <button type="submit" class="btn btn-dark rounded-0 py-3 fw-bold text-uppercase" style="letter-spacing: 2px;">
+                        Xác nhận thêm cửa hàng
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    var map = L.map('map').setView([10.762622, 106.660172], 13);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap'
+    }).addTo(map);
+
+    var marker;
+
+    function searchAddress() {
+        var address = document.getElementById('diachi').value;
+        if (!address) return alert("Vui lòng nhập địa chỉ!");
+
+        fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address + ", Vietnam")}`)
+            .then(res => res.json())
+            .then(data => {
+                if (data.length > 0) {
+                    updateMap(data[0].lat, data[0].lon);
+                } else {
+                    alert("Không tìm thấy tọa độ cho địa chỉ này!");
+                }
+            });
+    }
+
+    function updateMap(lat, lon) {
+        document.getElementById('lat').value = lat;
+        document.getElementById('lon').value = lon;
+        map.setView([lat, lon], 16);
+        if (marker) map.removeLayer(marker);
+        marker = L.marker([lat, lon], {draggable: true}).addTo(map);
+        
+        marker.on('dragend', function(e) {
+            var newPos = marker.getLatLng();
+            document.getElementById('lat').value = newPos.lat;
+            document.getElementById('lon').value = newPos.lng;
+        });
+    }
+
+    map.on('click', function(e) {
+        updateMap(e.latlng.lat, e.latlng.lng);
+    });
+</script>
+
+<style>
+    .card, .form-control, .btn, #map {
+        border-radius: 0 !important;
+    }
+    .form-control:focus {
+        background-color: #e9ecef !important;
+        border: none !important;
+        box-shadow: none !important;
+    }
+    /* Đảm bảo bản đồ hiển thị tốt trên nền tối giản */
+    .leaflet-container {
+        font-family: inherit;
+    }
+</style>
+{% endblock main-content %}

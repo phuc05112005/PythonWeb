@@ -1,0 +1,83 @@
+{% extends 'layoutadmin.html' %}
+{% load static %}
+
+{% block main-content %}
+<div class="container-fluid mt-5 mb-5 px-4">
+    
+    <div class="d-flex justify-content-between align-items-end mb-4 mx-auto" style="max-width: 900px;">
+        <div>
+            <h2 class="fw-bold text-uppercase m-0">Quản Lý Cửa Hàng</h2>
+            <div style="width: 50px; height: 3px; background: #000; margin-top: 10px;"></div>
+        </div>
+        <div class="d-flex gap-4">
+            <a href="{% url 'quantri' %}" class="text-decoration-none text-muted fw-bold small text-uppercase">
+                Quay về
+            </a>
+            <a href="{% url 'themcuahang' %}" class="text-decoration-none text-dark fw-bold small text-uppercase border-bottom border-dark">
+                Thêm cửa hàng mới
+            </a>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm rounded-0 mx-auto" style="max-width: 900px;">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table align-middle mb-0">
+                    <thead class="bg-light">
+                        <tr class="small text-uppercase text-secondary">
+                            <th class="ps-4 py-3 border-0" style="width: 100px;">ID</th>
+                            <th class="py-3 border-0">Tên cửa hàng</th>
+                            <th class="py-3 border-0">Địa chỉ</th>
+                            <th class="pe-4 py-3 border-0 text-end">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for ch in cuahang %}
+                        <tr class="border-bottom">
+                            <td class="ps-4 py-3 text-muted">#{{ ch.id }}</td>
+                            <td class="fw-bold text-dark text-uppercase small">{{ ch.ten }}</td>
+                            <td class="text-secondary small">{{ ch.diachi }}</td>
+                            <td class="pe-4 text-end">
+                                <div class="d-flex justify-content-end gap-3 align-items-center">
+                                    <a href="{% url 'suacuahang' ch.id %}" class="text-decoration-none text-primary fw-bold small text-uppercase">
+                                        Sửa
+                                    </a>
+                                    <form action="{% url 'xoacuahang' ch.id %}" method="post" class="m-0">
+                                        {% csrf_token %}
+                                        <button type="submit" 
+                                                class="border-0 bg-transparent text-danger fw-bold small text-uppercase p-0"
+                                                onclick="return confirm('Bạn có chắc muốn xóa cửa hàng ({{ ch.ten }}) không?')">
+                                            Xóa
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="4" class="text-center py-5 text-muted small text-uppercase">Chưa có thông tin cửa hàng.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .card, .table {
+        border-radius: 0 !important;
+    }
+    .table tbody tr:hover {
+        background-color: #fafafa;
+    }
+    thead th {
+        letter-spacing: 1px;
+        font-weight: 700;
+    }
+    button:focus {
+        outline: none;
+    }
+</style>
+{% endblock main-content %}

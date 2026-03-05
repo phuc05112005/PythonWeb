@@ -1,0 +1,44 @@
+{% extends "layout.html" %}
+{% load static %}
+
+{% block main-content %}
+<div class="container mt-5 mb-5 min-vh-100 d-flex align-items-center justify-content-center">
+    <div class="text-center bg-white p-5 rounded-4 shadow-sm border-0" style="max-width: 600px;">
+        <div class="mb-4">
+            <div class="display-1 text-success">
+                <i class="bi bi-check-circle-fill"></i> <span style="font-size: 80px;">✔</span>
+            </div>
+        </div>
+
+        <h2 class="fw-bolder text-uppercase mb-3" style="letter-spacing: 2px;">Đặt hàng thành công!</h2>
+        <p class="text-secondary mb-4 fs-5">
+            Cảm ơn bạn đã tin tưởng lựa chọn sản phẩm của chúng tôi. <br>
+        </p>
+
+        <div class="alert alert-light border-0 bg-light rounded-4 p-4 mb-4 text-start">
+            <h6 class="fw-bold text-uppercase small mb-3">Dự kiến giao hàng:</h6>
+            <p class="mb-0 text-secondary small">
+                Đơn hàng sẽ được xử lý và giao đến bạn trong vòng 2-4 ngày tới. 
+                Chúng tôi sẽ liên hệ với bạn qua số điện thoại trước khi giao.
+            </p>
+        </div>
+
+        <div class="d-grid gap-3 d-sm-flex justify-content-sm-center">
+            <a href="{% url 'home' %}" class="btn btn-dark rounded-pill px-5 py-3 fw-bold text-uppercase transition-hover shadow-sm" style="letter-spacing: 1px;">
+                Tiếp tục mua sắm
+            </a>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Hiệu ứng nổi lên mượt mà cho nút bấm */
+    .transition-hover {
+        transition: all 0.3s ease;
+    }
+    .transition-hover:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 .5rem 1rem rgba(0,0,0,.15)!important;
+    }
+</style>
+{% endblock main-content %}

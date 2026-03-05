@@ -1,0 +1,148 @@
+{% extends 'layoutadmin.html' %}
+{% load static %}
+
+{% block main-content %}
+<div class="container-fluid mt-4 mb-5">
+    <div class="row g-4">
+        
+        <div class="col-lg-3 col-md-4">
+            <div class="bg-white rounded-4 shadow-sm border-0 overflow-hidden sticky-top" style="top: 80px z-index: 1;">
+                <div class="p-3 border-bottom bg-light text-center">
+                    <h6 class="m-0 fw-bold text-uppercase text-secondary" style="letter-spacing: 1px;">Menu Quản Trị</h6>
+                </div>
+                <div class="list-group list-group-flush admin-sidebar">
+                    <a href="{% url 'quantri' %}" class="list-group-item list-group-item-action active fw-bold py-3 px-4 border-0">
+                        <i class="bi bi-pie-chart-fill me-2"></i> Tổng quan (Dashboard)
+                    </a>
+                    <a href="{% url 'quanlysanpham' %}" class="list-group-item list-group-item-action py-3 px-4 border-0 fw-semibold text-secondary">
+                        <i class="bi bi-box-seam me-2"></i> Quản lý Sản phẩm
+                    </a>
+                    <a href="{% url 'quanlydonhang' %}" class="list-group-item list-group-item-action py-3 px-4 border-0 fw-semibold text-secondary">
+                        <i class="bi bi-cart-check me-2"></i> Quản lý Đơn hàng
+                    </a>
+                    <a href="{% url 'quanlyloai' %}" class="list-group-item list-group-item-action py-3 px-4 border-0 fw-semibold text-secondary">
+                        <i class="bi bi-tags me-2"></i> Quản lý Danh mục
+                    </a>
+                    <a href="{% url 'quanlycuahang' %}" class="list-group-item list-group-item-action py-3 px-4 border-0 fw-semibold text-secondary">
+                        <i class="bi bi-shop-window me-2"></i> Quản lý Cửa hàng
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-9 col-md-8">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h3 class="fw-bolder m-0" style="letter-spacing: 1px;">TỔNG QUAN HỆ THỐNG</h3>
+                <div class="text-muted small">
+                    <i class="bi bi-calendar3 me-1"></i> Hôm nay: {% now "d/m/Y" %}
+                </div>
+            </div>
+
+            <div class="row g-3 mb-3">
+                
+                <div class="col-md-4">
+                    <div class="card h-100 border-0 shadow-sm rounded-4 stat-card">
+                        <div class="card-body p-4 d-flex align-items-center">
+                            <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-flex justify-content-center align-items-center me-3" style="width: 60px; height: 60px;">
+                                <i class="bi bi-box2 fs-3"></i>
+                            </div>
+                            <div>
+                                <h6 class="text-muted mb-1 text-uppercase small fw-bold">Tổng Sản Phẩm</h6>
+                                <h2 class="m-0 fw-bolder text-dark">{{ tongsp }}</h2>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="card h-100 border-0 shadow-sm rounded-4 stat-card">
+                        <div class="card-body p-4 d-flex align-items-center">
+                            <div class="bg-warning bg-opacity-10 text-warning rounded-circle d-flex justify-content-center align-items-center me-3" style="width: 60px; height: 60px;">
+                                <i class="bi bi-hourglass-split fs-3"></i>
+                            </div>
+                            <div>
+                                <h6 class="text-muted mb-1 text-uppercase small fw-bold">Đơn Chờ Duyệt</h6>
+                                <h2 class="m-0 fw-bolder text-dark">{{ tongdh1 }}</h2>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="card h-100 border-0 shadow-sm rounded-4 stat-card">
+                        <div class="card-body p-4 d-flex align-items-center">
+                            <div class="bg-success bg-opacity-10 text-success rounded-circle d-flex justify-content-center align-items-center me-3" style="width: 60px; height: 60px;">
+                                <i class="bi bi-check2-circle fs-3"></i>
+                            </div>
+                            <div>
+                                <h6 class="text-muted mb-1 text-uppercase small fw-bold">Đơn Đã Duyệt</h6>
+                                <h2 class="m-0 fw-bolder text-dark">{{ tongdh2 }}</h2>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row g-3">
+                
+                <div class="col-md-4">
+                    <div class="card h-100 border-0 shadow-sm rounded-4 stat-card">
+                        <div class="card-body p-4 d-flex align-items-center">
+                            <div class="bg-info bg-opacity-10 text-info rounded-circle d-flex justify-content-center align-items-center me-3" style="width: 60px; height: 60px;">
+                                <i class="bi bi-shop fs-3"></i>
+                            </div>
+                            <div>
+                                <h6 class="text-muted mb-1 text-uppercase small fw-bold">Tổng Cửa Hàng</h6>
+                                <h2 class="m-0 fw-bolder text-dark">{{ tongcuahang }}</h2>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-8">
+                    <div class="card h-100 border-0 shadow-sm rounded-4 stat-card bg-dark text-white" style="background: linear-gradient(135deg, #212529 0%, #434c55 100%);">
+                        <div class="card-body p-4 d-flex align-items-center justify-content-between">
+                            <div class="d-flex align-items-center">
+                                <div class="bg-white bg-opacity-25 text-white rounded-circle d-flex justify-content-center align-items-center me-4" style="width: 70px; height: 70px;">
+                                    <i class="bi bi-cash-coin fs-1"></i>
+                                </div>
+                                <div>
+                                    <h6 class="text-white-50 mb-1 text-uppercase fw-bold" style="letter-spacing: 1px;">Tổng Doanh Thu</h6>
+                                    <h1 class="m-0 fw-bolder">{{ tongtien|floatformat:0 }} <span class="fs-4 fw-normal text-white-50">VNĐ</span></h1>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* CSS cho Sidebar Menu */
+    .admin-sidebar .list-group-item {
+        transition: all 0.2s ease;
+    }
+    .admin-sidebar .list-group-item:hover:not(.active) {
+        background-color: #f8f9fa;
+        color: #000 !important;
+        padding-left: 25px !important; /* Hiệu ứng thụt lề khi hover */
+    }
+    .admin-sidebar .list-group-item.active {
+        background-color: #212529; /* Màu tối chuẩn Minimalist Bold */
+        color: #fff;
+        border-radius: 0;
+    }
+
+    /* Hiệu ứng nẩy lên cho các thẻ thống kê */
+    .stat-card {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important;
+    }
+</style>
+{% endblock main-content %}

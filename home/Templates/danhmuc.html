@@ -1,0 +1,55 @@
+{% extends 'layout.html' %}
+{% load static %}
+{% block main-content %}
+
+<div class="container mt-4">
+    <div class="row">
+
+        <div class="col-md-3">
+            <div class="bg-white p-3 shadow-sm rounded border"> <div class="border-bottom pb-2 mb-3">
+                    <h5 class="fw-bold text-uppercase m-0">Danh Mục</h5>
+                </div>
+                <div>
+                    {%for item in loai%}
+                    <div class="mb-2">
+                        <a href="{% url 'loai' item.id %}" class="text-decoration-none text-dark d-block p-2 rounded bg-light border">
+                            <h5 class="m-0 fs-6">{{item.loai}}</h5>
+                        </a>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-9">
+            <div class="bg-light p-5 rounded-lg mb-4 text-center shadow-sm" style="background: url('https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?auto=format&fit=crop&w=1350&q=80') no-repeat center center; background-size: cover; color: white;">
+                <div class="container py-5" style="background-color: rgba(0, 0, 0, 0.5); border-radius: 15px;">
+                    <h1 class="display-4 fw-bold">BỘ SƯU TẬP MỚI 2026</h1>
+                    <p class="lead">Cập nhật những xu hướng thời trang hiện đại và phong cách nhất.</p>
+                    <a class="btn btn-primary btn-lg mt-3" href="#san-pham" role="button">Mua sắm ngay</a>
+                </div>
+            </div>
+
+            <div class="row row-cols-1 row-cols-md-3 g-4" id="san-pham">
+                {%for sp in sanpham%}
+                <div class="col">
+                    <a href="{% url 'chitiet' sp.id %}" class="text-decoration-none text-dark">
+                        <div class="card h-100 shadow-sm border-0 transition-hover">
+                            <img src="{{sp.hinhurl}}" alt="{{sp.ten}}" class="card-img-top w-100" style="height: 250px; object-fit: cover;">
+                            <h5 class="text-center mt-3 mb-3 fw-bold">{{sp.ten}}</h5>
+                            <h5>{{sp.gia}} VNĐ</h5>
+                        </div>
+                    </a>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<style>
+    .transition-hover { transition: transform 0.2s; }
+    .transition-hover:hover { transform: translateY(-5px); }
+</style>
+{% endblock main-content %}

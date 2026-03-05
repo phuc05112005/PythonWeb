@@ -1,0 +1,98 @@
+{% extends 'layout.html' %}
+{% load static %}
+{% load humanize %} {% block main-content %}
+<div class="container mt-4 pb-5">
+    <div class="mb-3">
+        <a href="{% url 'home' %}" class="text-decoration-none text-muted small fw-bold text-uppercase">
+            &larr; Quay về trang chủ
+        </a>
+    </div>
+
+    <div class="row">
+        <div class="col-md-3 mb-4">
+            <div class="bg-white p-4 shadow-sm rounded-4 border-0 sticky-top" style="top: 90px;"> 
+                <div class="border-bottom pb-2 mb-3">
+                    <h5 class="fw-bold text-uppercase m-0" style="letter-spacing: 1px;">Danh Mục</h5>
+                </div>
+                <div>
+                    <div class="mb-2">
+                        <a href="{% url 'home' %}" class="category-item text-decoration-none d-block p-2 rounded-3 transition-hover text-dark">
+                            <h6 class="m-0 fw-semibold">Tất cả sản phẩm</h6>
+                        </a>
+                    </div>
+                    {% for item in loai %}
+                    <div class="mb-2">
+                        <a href="{% url 'loai' item.id %}" class="category-item text-decoration-none d-block p-2 rounded-3 transition-hover text-dark">
+                            <h6 class="m-0 fw-semibold">{{item.loai}}</h6>
+                        </a>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-9">
+            <div class="mb-4">
+                <h6 class="text-secondary text-uppercase fw-bold mb-1">Kết quả tìm kiếm cho:</h6>
+                <h2 class="fw-bolder">"{{ search }}"</h2>
+                <hr class="w-25 opacity-100" style="height: 3px; background: black;">
+            </div>
+
+            <div class="row row-cols-1 row-cols-md-3 g-4" id="san-pham">
+                {% for sp in kq %} <div class="col">
+                    <a href="{% url 'chitiet' sp.id %}" class="text-decoration-none text-dark">
+                        <div class="card h-100 shadow-sm border-0 rounded-4 transition-hover overflow-hidden product-card">
+                            <img src="{{sp.hinhurl}}" alt="{{sp.ten}}" class="card-img-top w-100" style="height: 280px; object-fit: cover;">
+                            <div class="p-3 text-center bg-white">
+                                <h6 class="mt-2 mb-2 fw-bold text-uppercase text-truncate text-secondary">{{sp.ten}}</h6>
+                                <h5 class="fw-bold text-danger mb-2">{{sp.gia|intcomma}} đ</h5>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+                {% empty %}
+                <div class="col-12 text-center py-5">
+                    <p class="text-muted">Không tìm thấy sản phẩm nào khớp với từ khóa của bạn.</p>
+                </div>
+                {% endfor %}
+            </div>
+
+            {% if kq.has_other_pages %}
+            <div class="mt-5">
+                <nav aria-label="Page navigation">
+                    <ul class="pagination justify-content-center custom-pagination">
+                        {% if kq.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link shadow-sm border-0 rounded-start-pill" href="?page={{ kq.previous_page_number }}{% if search %}&search={{search}}{% endif %}">&laquo; Trước</a>
+                            </li>
+                        {% endif %}
+
+                        <li class="page-item active">
+                            <span class="page-link shadow-sm border-0 bg-dark text-white">Trang {{ kq.number }} / {{ kq.paginator.num_pages }}</span>
+                        </li>
+
+                        {% if kq.has_next %}
+                            <li class="page-item">
+                                <a class="page-link shadow-sm border-0 rounded-end-pill" href="?page={{ kq.next_page_number }}{% if search %}&search={{search}}{% endif %}">Sau &raquo;</a>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+    .transition-hover { transition: all 0.3s ease; }
+    .transition-hover:hover { transform: translateY(-5px); }
+    .category-item:hover {
+        background-color: #f8f9fa;
+        padding-left: 15px !important;
+    }
+    .product-card:hover {
+        box-shadow: 0 .5rem 1rem rgba(0,0,0,.15)!important;
+    }
+</style>
+{% endblock main-content %}

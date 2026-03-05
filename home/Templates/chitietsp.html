@@ -1,0 +1,66 @@
+{% extends 'layout.html' %}
+{% load static %}
+
+{% block main-content %}
+<div class="container mt-5 mb-5 pb-5">
+    <div class="row bg-white p-4 p-md-5 shadow-sm rounded-4 border-0">
+        
+        <div class="col-md-5 mb-4 mb-md-0">
+            <div class="overflow-hidden rounded-4 shadow-sm h-100 d-flex align-items-center justify-content-center bg-light">
+                <img src="{{ sanpham.hinhurl }}" alt="{{ sanpham.ten }}" class="img-fluid w-100 transition-hover-img" style="object-fit: cover; min-height: 400px;">
+            </div>
+        </div>
+
+        <div class="col-md-7 d-flex flex-column justify-content-center ps-md-5">
+            <h2 class="fw-bolder text-uppercase mb-2" style="letter-spacing: 1px;">{{ sanpham.ten }}</h2>
+            <h3 class="text-danger fw-bold mb-4">{{ sanpham.gia }} VNĐ</h3>
+            
+            <hr class="mb-4 opacity-25">
+            
+            <div class="mb-4">
+                <span class="badge bg-light text-dark border border-secondary-subtle px-3 py-2 rounded-pill fs-6 fw-medium">
+                    Kho: Còn {{ sanpham.soluong }} sản phẩm
+                </span>
+            </div>
+
+            <form action="{% url 'themgiohang' sanpham.id %}" method="post" class="mt-auto">
+                {% csrf_token %}
+                <div class="d-flex align-items-end gap-3 mb-3">
+                    <div>
+                        <label class="form-label fw-bold small text-uppercase text-secondary ms-2">Số lượng</label>
+                        <input type="number" name="soluong" class="form-control text-center rounded-pill border-2 bg-light shadow-none" value="1" min="1" max="{{ sanpham.soluong }}" style="width: 100px; height: 50px; font-weight: bold; font-size: 1.1rem;">
+                    </div>
+                    
+                    <button type="submit" class="btn btn-dark rounded-pill px-4 fw-bold text-uppercase shadow-sm transition-hover" style="height: 50px; flex-grow: 1; letter-spacing: 1px;">
+                        Thêm vào giỏ hàng
+                    </button>
+                </div>
+            </form>
+            
+            <a href="{% url 'home' %}" class="btn btn-outline-secondary rounded-pill fw-bold text-uppercase mt-2 w-100 transition-hover" style="height: 50px; display: flex; align-items: center; justify-content: center; letter-spacing: 1px;">
+                &larr; Tiếp tục mua sắm
+            </a>
+            
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Hiệu ứng nổi lên mượt mà cho nút bấm */
+    .transition-hover { 
+        transition: all 0.3s ease; 
+    }
+    .transition-hover:hover { 
+        transform: translateY(-3px); 
+        box-shadow: 0 .5rem 1rem rgba(0,0,0,.15)!important; 
+    }
+
+    /* Hiệu ứng zoom nhẹ hình ảnh khi trỏ chuột vào (tạo cảm giác cao cấp) */
+    .transition-hover-img {
+        transition: transform 0.5s ease;
+    }
+    .overflow-hidden:hover .transition-hover-img {
+        transform: scale(1.05);
+    }
+</style>
+{% endblock main-content %}

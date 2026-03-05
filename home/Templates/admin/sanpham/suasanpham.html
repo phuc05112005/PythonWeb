@@ -1,0 +1,98 @@
+{% extends 'layoutadmin.html' %}
+{% load static %}
+
+{% block main-content %}
+<div class="container-fluid mt-5 mb-5">
+    
+    <div class="d-flex justify-content-between align-items-end mb-4 mx-auto" style="max-width: 800px;">
+        <div>
+            <h2 class="fw-bold text-uppercase m-0">Sửa Sản Phẩm</h2>
+            <div style="width: 50px; height: 3px; background: #000; margin-top: 8px;"></div>
+        </div>
+        <a href="{% url 'quanlysanpham' %}" class="text-decoration-none text-dark fw-bold small text-uppercase">
+             Hủy thay đổi
+        </a>
+    </div>
+
+    <div class="card border-0 shadow-sm rounded-0 mx-auto" style="max-width: 800px;">
+        <div class="card-body p-4 p-md-5">
+            
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                
+                <div class="mb-4">
+                    <label class="form-label fw-bold small text-uppercase text-secondary">Tên sản phẩm</label>
+                    <input type="text" name="ten" value="{{sanpham.ten}}" class="form-control rounded-0 border-0 bg-light px-3 py-3 shadow-none" required>
+                </div>
+
+                <div class="row mb-4">
+                    <div class="col-md-6 mb-4 mb-md-0">
+                        <label class="form-label fw-bold small text-uppercase text-secondary">Loại sản phẩm</label>
+                        <select name="loai" class="form-select rounded-0 border-0 bg-light px-3 py-3 shadow-none" required>
+                            <option disabled>Chọn loại sản phẩm</option>
+                            {% for loai in dsloai %}
+                                <option value="{{loai.id}}" {% if sanpham.loaisp.id == loai.id %}selected{% endif %}>
+                                    {{loai.loai}}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold small text-uppercase text-secondary">Giá bán (VNĐ)</label>
+                        <input type="number" name="gia" value="{{sanpham.gia}}" class="form-control rounded-0 border-0 bg-light px-3 py-3 shadow-none" min="0" required>
+                    </div>
+                </div>
+
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold small text-uppercase text-secondary">Số lượng tồn kho</label>
+                        <input type="number" name="soluong" value="{{sanpham.soluong}}" class="form-control rounded-0 border-0 bg-light px-3 py-3 shadow-none" min="0" required>
+                    </div>
+                </div>
+
+                <div class="mb-5 p-4 border rounded-0 bg-white">
+                    <label class="form-label fw-bold small text-uppercase text-secondary d-block mb-3">Hình ảnh sản phẩm</label>
+                    <div class="row align-items-center">
+                        {% if sanpham.hinh %}
+                        <div class="col-auto">
+                            <p class="small text-muted mb-2">Ảnh hiện tại:</p>
+                            <img src="{{sanpham.hinhurl}}" alt="Current Image" class="border p-1 shadow-sm" style="width: 100px; height: 100px; object-fit: cover;">
+                        </div>
+                        {% endif %}
+                        <div class="col mt-3 mt-md-0">
+                            <p class="small text-muted mb-2">Thay đổi hình ảnh mới:</p>
+                            <input type="file" name="hinh" class="form-control rounded-0 border-0 bg-light px-3 py-2 shadow-none" accept="image/*">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-grid pt-3">
+                    <button type="submit" class="btn btn-dark rounded-0 py-3 fw-bold text-uppercase" style="letter-spacing: 2px;">
+                        Lưu thay đổi
+                    </button>
+                </div>
+                
+            </form>
+            
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Focus state cho các ô nhập liệu */
+    .form-control:focus, .form-select:focus {
+        background-color: #e9ecef !important;
+        border: none !important;
+        box-shadow: none !important;
+    }
+
+    /* Hiệu ứng hover cho nút Lưu */
+    .btn-dark {
+        transition: background-color 0.3s ease;
+    }
+    .btn-dark:hover {
+        background-color: #1a1a1a;
+    }
+</style>
+{% endblock main-content %}
