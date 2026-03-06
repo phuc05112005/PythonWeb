@@ -52,6 +52,14 @@
                                             Duyệt đơn
                                         </button>
                                     </form>
+                                    <form action="{% url "xoadonhang" dh.id%}" method="post">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-sm btn-outline-danger rounded-circle action-btn" 
+                                            onclick="return confirm('Bạn có chắc chắn muốn xóa đơn hàng này không? Hành động này không thể hoàn tác!')" 
+                                            title="Xóa">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </form>
                                 </div>
                             </td>
                         </tr>

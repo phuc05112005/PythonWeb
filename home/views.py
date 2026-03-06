@@ -6,7 +6,7 @@ from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth import authenticate, login
 from django.contrib import messages
 from django.core.paginator import Paginator
-from .tool import toado, cuahanggannhat
+from .tool import cuahanggannhat
 import os
 import json
 from django.core.serializers.json import DjangoJSONEncoder
@@ -18,7 +18,7 @@ def home(request, loai_id = None):
         sanpham = SANPHAM.objects.all()
     else: 
         sanpham = SANPHAM.objects.filter(loaisp_id = loai_id)
-    page = Paginator(sanpham, 3)
+    page = Paginator(sanpham, 9)
     page_number = request.GET.get('page')
     sanphamphantrang = page.get_page(page_number)
     context = {'sanpham': sanphamphantrang, 'loai': loai, 'loai_id': loai_id}
@@ -264,6 +264,14 @@ def chitietdonhang(request, donhang_id):
     return render(request, 'admin/donhang/chitietdonhang.html', context)
 
 @staff_member_required(login_url='dangnhap')
+def xoadonhang(request, donhang_id):
+    if request.method == 'POST':
+        donhang = DONHANG.objects.get(id = donhang_id)
+        donhang.delete()
+        messages.success(request, "Xóa thành công")
+    return redirect('quanlydonhang')
+
+@staff_member_required(login_url='dangnhap')
 def quanlyloai(request):
     loai = LOAI.objects.all()
     context = {'loai': loai}
@@ -305,7 +313,7 @@ def timkiem(request):
     if request.method == 'POST':
         search = request.POST.get('search')
         kq = SANPHAM.objects.filter(ten__unaccent__icontains = search)
-    page = Paginator(kq, 3)
+    page = Paginator(kq, 9)
     page_number = request.GET.get('page')
     sanphamphantrang = page.get_page(page_number)
     context = {'kq': sanphamphantrang, 'search':search, 'loai': loai}
@@ -351,7 +359,7 @@ def suacuahang(request, cuahang_id):
         return redirect('quanlycuahang')
     context = {'cuahang': cuahang}
     return render(request, 'admin/cuahang/suacuahang.html', context)
-    
+
 @staff_member_required(login_url='dangnhap')
 def xoacuahang(request, cuahang_id):
     cuahang = CUAHANG.objects.get(id = cuahang_id)

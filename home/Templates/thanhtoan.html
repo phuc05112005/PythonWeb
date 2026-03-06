@@ -10,9 +10,9 @@
         height: 350px; 
         width: 100%; 
         border: none; 
-        z-index: 1; /* Tránh đè lên các popup khác */
+        z-index: 1;
     }
-    /* Style input chuẩn Minimalist */
+
     .form-control {
         padding: 0.75rem 1.25rem;
     }
@@ -139,7 +139,7 @@
         var address = document.getElementById('diachi').value;
         if (!address) return alert("Vui lòng nhập địa chỉ!");
 
-        // Đổi chữ nút thành "Đang tính..." để khách biết web đang chạy (tùy chọn nhưng rất xịn)
+
         var btnTim = document.querySelector("button[onclick='searchAddress()']");
         var textGoc = btnTim.innerHTML;
         btnTim.innerHTML = "Đang tính...";
@@ -152,11 +152,10 @@
                     var lon = data[0].lon;
                     updateMap(lat, lon);
                     
-                    // DÒNG QUYỀN LỰC: Tự động giả lập cú click vào nút "Tính ship"
                     document.querySelector("button[value='tinhship']").click();
                 } else {
                     alert("Không tìm thấy tọa độ cho địa chỉ này! Vui lòng nhập chi tiết hơn.");
-                    btnTim.innerHTML = textGoc; // Trả lại chữ cũ nếu tìm thất bại
+                    btnTim.innerHTML = textGoc;
                 }
             })
             .catch(err => {
@@ -196,7 +195,7 @@
 </script>
 
 <style>
-    /* Hiệu ứng nổi lên mượt mà cho nút bấm */
+
     .transition-hover {
         transition: all 0.3s ease;
     }

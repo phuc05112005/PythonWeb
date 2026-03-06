@@ -1,15 +1,4 @@
 import math
-import requests
-
-def toado(diachi):
-    url = f"https://nominatim.openstreetmap.org/search?format=json&q={diachi}, Vietnam"
-    headers = {'User-Agent': 'MyDjangoApp/1.0'}
-    response = requests.get(url, headers=headers).json()
-    if response:
-        lat = float(response[0]['lat'])
-        lon = float(response[0]['lon'])
-        return lat, lon
-    return None, None
 
     
 

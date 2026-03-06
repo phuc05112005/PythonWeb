@@ -1,6 +1,6 @@
 {% extends 'layoutadmin.html' %}
 {% load static %}
-
+{% load l10n %}
 {% block main-content %}
 <div class="container-fluid mt-5 mb-5">
     
@@ -40,7 +40,7 @@
 
                     <div class="col-md-6">
                         <label class="form-label fw-bold small text-uppercase text-secondary">Giá bán (VNĐ)</label>
-                        <input type="number" name="gia" value="{{sanpham.gia}}" class="form-control rounded-0 border-0 bg-light px-3 py-3 shadow-none" min="0" required>
+                        <input type="number" name="gia" value="{{sanpham.gia|unlocalize}}" class="form-control rounded-0 border-0 bg-light px-3 py-3 shadow-none" min="0" required>
                     </div>
                 </div>
 
