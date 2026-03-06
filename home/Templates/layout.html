@@ -34,7 +34,9 @@
         <div class="collapse navbar-collapse" id="navbarSupportedContent">
           <ul class="navbar-nav me-auto mb-2 mb-lg-0 align-items-lg-center">
             <li class="nav-item">
-              <a class="nav-link active" aria-current="page" href="{% url "home" %}">Home</a>
+              <a class="nav-link fw-semibold" href="{% url "home" %}">
+                Trang chủ
+              </a>
             </li>
             {% if request.user.is_superuser %}
             <li class="nav-item">
@@ -44,14 +46,14 @@
             </li>
             {% endif %}
             <li class="nav-item">
-              <a class="nav-link" href="{% url 'map' %}">
-                Bản đồ cửa hàng
+              <a class="nav-link fw-semibold" href="{% url 'map' %}">
+                Hệ thống cửa hàng
               </a>
             </li>
             <li class="nav-item d-flex align-items-center ms-lg-3 mt-2 mt-lg-0">
               {% if request.user.is_authenticated %}
                 <span style="font-weight: 500; margin-right: 15px;">
-                  Xin chào, {{ request.user.username }}!
+                  Xin chào {{ request.user.username }}!
                 </span>
                 <form action="{% url "dangxuat" %}" method="post" class="m-0">
                   {% csrf_token %}
@@ -76,8 +78,8 @@
           
           <form class="d-flex" role="search" method="post" action="{% url "timkiem" %}">
             {% csrf_token %}
-            <input class="form-control me-2 rounded-pill bg-light border-0" type="search" placeholder="Search" aria-label="Search" name="search" style="box-shadow: none;"/>
-            <button class="btn btn-outline-dark rounded-pill px-4" type="submit">Search</button>
+            <input class="form-control me-2 rounded-pill bg-light border-0" type="search" placeholder="Tìm sản phẩm.." aria-label="Search" name="search" style="box-shadow: none;"/>
+            <button class="btn btn-outline-dark rounded-pill px-4" type="submit">Tìm</button>
           </form>
         </div>
       </div>
