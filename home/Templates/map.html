@@ -1,139 +1,140 @@
-<!DOCTYPE html>
-<html>
-<head>
-<title>Bản đồ cửa hàng</title>
+{% extends "layout.html" %}
+{% load static %}
+
+{% block main-content %}
 
 <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
 
 <style>
-*{
-box-sizing:border-box;
-}
 
-body{
-margin:0;
-font-family: "Segoe UI", Roboto, sans-serif;
-background:#eef2f8;
-color:#2c2c2c;
-}
-
-/* LAYOUT */
-
-.container{
+.map-wrapper{
 display:flex;
-height:100vh;
-}
-
-/* MAP */
-
-#map{
-flex:3;
+height:calc(100vh - 75px);
 }
 
 /* SIDEBAR */
 
 .sidebar{
-flex:1;
+width:360px;
 background:#ffffff;
-padding:22px;
+padding:20px;
 overflow-y:auto;
-border-right:1px solid #e4e8f1;
+border-right:1px solid #e6e9f2;
 }
 
 .sidebar h3{
-margin-top:0;
 font-size:20px;
 font-weight:700;
-color:#2f3a4f;
-margin-bottom:12px;
+margin-bottom:15px;
 }
 
 /* SEARCH */
 
 .searchBox{
 width:100%;
-padding:11px 14px;
+padding:10px 14px;
 border-radius:10px;
 border:1px solid #dfe3eb;
+margin-bottom:12px;
 font-size:14px;
-outline:none;
-transition:0.2s;
-margin-bottom:14px;
 }
 
 .searchBox:focus{
+outline:none;
 border-color:#4a8cff;
 box-shadow:0 0 0 3px rgba(74,140,255,0.15);
 }
 
-/* BUTTONS */
+/* BUTTON BASE */
 
-.btn{
-padding:10px 16px;
+.btn-map{
+padding:9px 16px;
 border:none;
-border-radius:10px;
-cursor:pointer;
-margin:5px 4px;
-font-size:14px;
+border-radius:12px;
+font-size:13px;
 font-weight:600;
-transition:0.25s;
+cursor:pointer;
+margin:4px 3px;
+transition:all 0.25s ease;
 display:inline-block;
+letter-spacing:0.3px;
 }
 
+/* NÚT CHÍNH (3km, 5km, Chỉ đường) – TÍM GRADIENT */
+
 .btn-blue{
-background:linear-gradient(135deg,#4a8cff,#2f6de1);
+background:linear-gradient(135deg,#1a56fc,#02a68b);
 color:white;
-box-shadow:0 3px 8px rgba(74,140,255,0.3);
+box-shadow:0 6px 14px rgba(0, 152, 147, 0.35);
 }
 
 .btn-blue:hover{
-transform:translateY(-1px);
-box-shadow:0 5px 14px rgba(74,140,255,0.35);
+transform:translateY(-2px);
+box-shadow:0 10px 22px rgba(1, 139, 144, 0.45);
 }
 
+.btn-blue:active{
+transform:scale(0.95);
+}
+
+/* NÚT VỊ TRÍ – CAM GRADIENT */
+
 .btn-green{
-background:linear-gradient(135deg,#2ecc71,#27ae60);
+background:linear-gradient(135deg,#4382ff,#18dcff);
 color:white;
-box-shadow:0 3px 8px rgba(46,204,113,0.35);
+box-shadow:0 6px 14px rgba(3, 18, 186, 0.35);
 }
 
 .btn-green:hover{
-transform:translateY(-1px);
-box-shadow:0 5px 14px rgba(46,204,113,0.35);
+transform:translateY(-2px);
+box-shadow:0 10px 22px rgba(2, 18, 186, 0.45);
 }
 
+.btn-green:active{
+transform:scale(0.95);
+}
+
+/* NÚT RESET – HỒNG NHẠT CHỮ ĐỎ */
+
 .btn-gray{
-background:#e6e9ef;
-color:#555;
+background:#ffe4ea;
+color:#d62839;
+border:1px solid #ffc2cc;
+box-shadow:0 4px 10px rgba(255,120,140,0.25);
 }
 
 .btn-gray:hover{
-background:#d4d9e3;
+background:#ffd3dc;
+transform:translateY(-1px);
+box-shadow:0 8px 18px rgba(255,120,140,0.35);
+}
+
+.btn-gray:active{
+transform:scale(0.95);
+}
+
+/* MAP */
+
+#map{
+flex:1;
 }
 
 /* SHOP LIST */
 
-#shopList{
-margin-top:10px;
-}
-
-/* SHOP BOX */
-
 .shop-box{
 background:white;
+border:1px solid #e8ecf5;
 border-radius:12px;
-padding:14px;
-margin-bottom:12px;
-border:1px solid #e7eaf2;
+padding:12px;
+margin-bottom:10px;
 cursor:pointer;
-transition:0.25s;
+transition:0.2s;
 }
 
 .shop-box:hover{
 background:#f4f7ff;
 border-color:#cfd8ff;
-transform:translateY(-2px);
-box-shadow:0 5px 14px rgba(0,0,0,0.06);
+transform:translateY(-1px);
 }
 
 .shop-active{
@@ -141,100 +142,58 @@ border:2px solid #4a8cff;
 background:#f4f7ff;
 }
 
-/* SHOP TEXT */
-
 .shop-name{
 font-weight:700;
 font-size:15px;
-margin-bottom:3px;
-color:#2f3a4f;
 }
 
 .shop-address{
 font-size:13px;
 color:#6a7385;
-margin-bottom:4px;
 }
 
 .shop-distance{
 font-size:13px;
-font-weight:600;
 color:#4a8cff;
-}
-
-/* POPUP */
-
-.popupBox{
-font-size:14px;
-line-height:1.5;
-}
-
-.popupTitle{
-font-size:15px;
-font-weight:700;
-margin-bottom:5px;
-color:#2f3a4f;
+font-weight:600;
 }
 
 /* ROUTE BOX */
 
 .routeBox{
-position:absolute;
-top:18px;
-right:18px;
+position:fixed;
+top:90px;
+right:20px;
 background:white;
-padding:18px;
-width:280px;
+padding:15px;
+width:260px;
+border-radius:12px;
+box-shadow:0 10px 25px rgba(0,0,0,0.15);
 max-height:420px;
 overflow:auto;
-border-radius:14px;
-box-shadow:0 10px 30px rgba(0,0,0,0.15);
-z-index:999;
+z-index:1200;
+}
+
+.leaflet-popup{
+z-index:1000;
 }
 
 .routeInfo{
-font-size:15px;
 font-weight:700;
 margin-bottom:10px;
-color:#2f6de1;
 border-bottom:1px solid #eee;
 padding-bottom:8px;
 }
 
-/* ROUTE STEP */
-
 .route-step{
-padding:8px 0;
 font-size:13px;
+padding:6px 0;
 border-bottom:1px dashed #eee;
-line-height:1.4;
 }
 
-.route-step:last-child{
-border-bottom:none;
-}
-
-/* SCROLLBAR */
-
-.sidebar::-webkit-scrollbar{
-width:6px;
-}
-
-.sidebar::-webkit-scrollbar-thumb{
-background:#d3d8e4;
-border-radius:4px;
-}
-
-.sidebar::-webkit-scrollbar-thumb:hover{
-background:#b9c1d1;
-}
 </style>
 
-</head>
-
-<body>
-
-<div class="container">
+<div class="map-wrapper">
 
 <div class="sidebar">
 
@@ -242,16 +201,15 @@ background:#b9c1d1;
 
 <input id="searchInput" class="searchBox" placeholder="Tìm cửa hàng...">
 
-<button class="btn btn-green" onclick="getUserLocation()">Vị trí của tôi</button>
+<button class="btn-map btn-green" onclick="getUserLocation()">Vị trí của tôi</button>
+<button class="btn-map btn-gray" onclick="resetMap()">Reset</button>
 
 <br>
 
-<button class="btn btn-blue" onclick="filterRadius(3)">3 km</button>
-<button class="btn btn-blue" onclick="filterRadius(5)">5 km</button>
+<button class="btn-map btn-blue" onclick="filterRadius(3)">3 km</button>
+<button class="btn-map btn-blue" onclick="filterRadius(5)">5 km</button>
 
-<button class="btn btn-blue" onclick="nearestStore()">Cửa hàng gần nhất</button>
-
-<button class="btn btn-gray" onclick="resetMap()">Reset</button>
+<button class="btn-map btn-blue" onclick="nearestStore()">Cửa hàng gần nhất</button>
 
 <hr>
 
@@ -281,32 +239,32 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
 attribution:'© OpenStreetMap'
 }).addTo(map)
 
-var userLat=null
-var userLon=null
-var userMarker=null
-
-var routeLayer=null
-var radiusCircle=null
+/* DATA */
 
 var stores=JSON.parse('{{ stores_json|escapejs }}')
 
 var markers=[]
+var userLat=null
+var userLon=null
+var userMarker=null
+var routeLayer=null
+var radiusCircle=null
 
 /* ICON */
 
 var storeIcon=L.icon({
-iconUrl:'https://cdn-icons-png.flaticon.com/512/684/684908.png',
-iconSize:[30,30],
-iconAnchor:[15,30]
+iconUrl:'{% static "icons/store.png" %}',
+iconSize:[28,28],
+iconAnchor:[14,28]
 })
 
 var userIcon=L.icon({
-iconUrl:'https://cdn-icons-png.flaticon.com/512/64/64113.png',
-iconSize:[30,30],
-iconAnchor:[15,30]
+iconUrl:'{% static "icons/user.png" %}',
+iconSize:[28,28],
+iconAnchor:[14,28]
 })
 
-/* MARKERS */
+/* LOAD MARKERS */
 
 function loadMarkers(){
 
@@ -316,29 +274,10 @@ stores.forEach(function(store){
 
 var marker=L.marker([store.lat,store.lon],{icon:storeIcon}).addTo(map)
 
-var distanceText="Chưa xác định"
-
-if(userLat){
-
-let d=map.distance([userLat,userLon],[store.lat,store.lon])/1000
-distanceText=d.toFixed(2)+" km"
-
-}
-
 var popup=`
-<div class="popupBox">
-
-<div class="popupTitle">${store.ten}</div>
-
-Địa chỉ: ${store.diachi}<br>
-Khoảng cách: ${distanceText}<br><br>
-
-<button class="btn btn-blue"
-onclick="routeToStore(${store.lat},${store.lon})">
-Chỉ đường
-</button>
-
-</div>
+<b>${store.ten}</b><br>
+${store.diachi}<br><br>
+<button onclick="routeToStore(${store.lat},${store.lon})" class="btn-map btn-blue">Chỉ đường</button>
 `
 
 marker.bindPopup(popup)
@@ -354,7 +293,7 @@ data:store
 
 loadMarkers()
 
-/* RENDER LIST */
+/* SHOP LIST */
 
 function renderShopList(list){
 
@@ -362,18 +301,16 @@ var html=""
 
 list.forEach(function(s){
 
-let distanceText=""
+let distanceText="Chưa xác định"
 
 if(userLat){
-
 let d=map.distance([userLat,userLon],[s.lat,s.lon])/1000
 distanceText=d.toFixed(2)+" km"
-
 }
 
 html+=`
 
-<div class="shop-box" id="shop-${s.lat}-${s.lon}"
+<div class="shop-box"
 onclick="focusShop(${s.lat},${s.lon})">
 
 <div class="shop-name">${s.ten}</div>
@@ -384,7 +321,7 @@ onclick="focusShop(${s.lat},${s.lon})">
 
 <br>
 
-<button class="btn btn-blue"
+<button class="btn-map btn-blue"
 onclick="routeToStore(${s.lat},${s.lon});event.stopPropagation()">
 Chỉ đường
 </button>
@@ -396,6 +333,7 @@ Chỉ đường
 })
 
 document.getElementById("shopList").innerHTML=html
+
 
 }
 
@@ -435,11 +373,10 @@ map.removeLayer(userMarker)
 }
 
 userMarker=L.marker([userLat,userLon],{icon:userIcon}).addTo(map)
-.bindPopup("Vị trí của bạn",{offset:[0,-25]}).openPopup()
+.bindPopup("Vị trí của bạn",{offset:[0,-20]}).openPopup()
 
 map.setView([userLat,userLon],14)
 
-loadMarkers()
 renderShopList(stores)
 
 })
@@ -484,7 +421,7 @@ renderShopList(result)
 
 }
 
-/* NEAREST STORE */
+/* NEAREST */
 
 function nearestStore(){
 
@@ -494,7 +431,7 @@ return
 }
 
 var nearest=null
-var min=999
+var min=999999
 
 stores.forEach(function(s){
 
@@ -564,22 +501,7 @@ document.getElementById("routeInfo").innerHTML=
 
 showSteps(route.legs[0].steps)
 
-autoZoom(lat,lon)
-
 })
-
-}
-
-/* AUTO ZOOM */
-
-function autoZoom(lat,lon){
-
-var group=new L.featureGroup([
-L.marker([userLat,userLon]),
-L.marker([lat,lon])
-])
-
-map.fitBounds(group.getBounds().pad(0.4))
 
 }
 
@@ -613,5 +535,4 @@ document.getElementById("routeBox").style.display="block"
 
 </script>
 
-</body>
-</html>
+{% endblock %}
