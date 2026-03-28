@@ -5,51 +5,76 @@
     <meta charset="utf-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="{% static "/css/bootstrap.min.css" %}" rel="stylesheet"/>
-    <script src="{% static "/js/bootstrap.bundle.min.js" %}"> </script>
+    <script src="{% static "/js/bootstrap.bundle.min.js" %}"></script>
     
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <!-- Google Font -->
     <link href="https://fonts.googleapis.com/css2?family=Jost:wght@400;500;600;700&display=swap" rel="stylesheet">
     
+    <!-- Animate.css -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+
+    <!-- AOS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.css" rel="stylesheet">
+
+    <!-- Anime.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+
     <title>Cửa Hàng</title>
-    <meta name="description" content="" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <link rel="stylesheet" href="" />
-    
+
     <style>
-      /* Thêm nền sáng mờ và áp dụng font chữ mới */
       body { font-family: 'Jost', sans-serif; background-color: #fcfcfc; }
+
+      .navbar .nav-link {
+        transition: all 0.3s ease;
+      }
+
+      .navbar .nav-link:hover {
+        color: #000;
+        transform: translateY(-2px);
+      }
+
+      .btn {
+        transition: all 0.3s ease;
+      }
+
+      .btn:hover {
+        transform: scale(1.05);
+      }
     </style>
   </head>
   
   <body>
     <nav class="navbar navbar-expand-lg bg-white sticky-top shadow-sm py-2">
       <div class="container-fluid">
-        <a class="navbar-brand fw-bold" style="letter-spacing: 1px;" href="#">FASHION</a>
         
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation"><span class="navbar-toggler-icon"></span></button>
+        <a class="navbar-brand fw-bold animate__animated animate__fadeInLeft" style="letter-spacing: 1px;" href="#">
+          FASHION
+        </a>
+        
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent">
+          <span class="navbar-toggler-icon"></span>
+        </button>
         
         <div class="collapse navbar-collapse" id="navbarSupportedContent">
-          <ul class="navbar-nav me-auto mb-2 mb-lg-0 align-items-lg-center">
+          
+          <ul class="navbar-nav me-auto mb-2 mb-lg-0 align-items-lg-center animate__animated animate__fadeInDown">
+            
             <li class="nav-item">
-              <a class="nav-link fw-semibold" href="{% url "home" %}">
-                Trang chủ
-              </a>
+              <a class="nav-link fw-semibold" href="{% url "home" %}">Trang chủ</a>
             </li>
+
             {% if request.user.is_superuser %}
             <li class="nav-item">
-              <a class="nav-link fw-semibold" href="{% url 'quantri' %}">
-                Bảng điều khiển
-              </a>
+              <a class="nav-link fw-semibold" href="{% url 'quantri' %}">Bảng điều khiển</a>
             </li>
             {% endif %}
+
             <li class="nav-item">
-              <a class="nav-link fw-semibold" href="{% url 'map' %}">
-                Hệ thống cửa hàng
-              </a>
+              <a class="nav-link fw-semibold" href="{% url 'map' %}">Hệ thống cửa hàng</a>
             </li>
+
             <li class="nav-item d-flex align-items-center ms-lg-3 mt-2 mt-lg-0">
               {% if request.user.is_authenticated %}
                 <span style="font-weight: 500; margin-right: 15px;">
@@ -62,12 +87,17 @@
                   </button>
                 </form>
               {% else %}
-                <a class="btn btn-outline-dark rounded-pill px-4 fw-bold btn-sm" href="{% url 'dangnhap' %}">Đăng Nhập</a>
+                <a class="btn btn-outline-dark rounded-pill px-4 fw-bold btn-sm" href="{% url 'dangnhap' %}">
+                  Đăng Nhập
+                </a>
               {% endif %}
             </li>
+
           </ul>
           
-          <a href="{% url 'giohang' %}" class="btn btn-dark rounded-pill px-4 fw-bold shadow-sm me-3 position-relative">
+          <!-- Giỏ hàng -->
+          <a href="{% url 'giohang' %}" 
+             class="btn btn-dark rounded-pill px-4 fw-bold shadow-sm me-3 position-relative animate__animated animate__pulse animate__infinite">
               🛒 Giỏ hàng
               {% if count > 0 %}
                 <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger border border-light">
@@ -76,11 +106,13 @@
               {% endif %}
           </a>
           
-          <form class="d-flex" role="search" method="post" action="{% url "timkiem" %}">
+          <!-- Search -->
+          <form class="d-flex" method="post" action="{% url "timkiem" %}">
             {% csrf_token %}
-            <input class="form-control me-2 rounded-pill bg-light border-0" type="search" placeholder="Tìm sản phẩm.." aria-label="Search" name="search" style="box-shadow: none;"/>
+            <input class="form-control me-2 rounded-pill bg-light border-0" type="search" placeholder="Tìm sản phẩm.." name="search"/>
             <button class="btn btn-outline-dark rounded-pill px-4" type="submit">Tìm</button>
           </form>
+
         </div>
       </div>
     </nav>
@@ -89,9 +121,9 @@
       <div class="container mt-3">
         {% if messages %}
             {% for message in messages %}
-                <div class="alert alert-{{ message.tags }} alert-dismissible fade show shadow-sm border-0 rounded-4" role="alert">
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show shadow-sm border-0 rounded-4 animate__animated animate__fadeInDown">
                     {{ message }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                 </div>
             {% endfor %}
         {% endif %}
@@ -100,5 +132,23 @@
       {% block main-content %}
       {% endblock main-content %}
     </div>
+
+    <!-- AOS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.js"></script>
+    <script>
+      AOS.init({ duration: 1000, once: true });
+    </script>
+
+    <!-- Anime.js -->
+    <script>
+      anime({
+        targets: '.btn',
+        scale: [0.95, 1],
+        duration: 600,
+        easing: 'easeOutQuad',
+        delay: anime.stagger(100)
+      });
+    </script>
+
   </body>
 </html>

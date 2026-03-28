@@ -19,7 +19,7 @@
 
     <div class="card border-0 shadow-sm rounded-0 mx-auto" style="max-width: 900px;">
         <div class="card-body p-4 p-md-5">
-            <form method="post">
+            <form method="post" enctype="multipart/form-data">
                 {% csrf_token %}
                 
                 <div class="mb-4">
@@ -28,7 +28,20 @@
                            class="form-control rounded-0 border-0 bg-light px-3 py-3 shadow-none" 
                            placeholder="Nhập tên cửa hàng..." required>
                 </div>
+                <div class="mb-3">
+                    <label>Ảnh cửa hàng</label>
+                    <input type="file" name="hinh" class="form-control">
+                </div>
 
+                <div class="mb-3">
+                    <label>Giờ mở</label>
+                    <input type="time" name="gio_mo" class="form-control">
+                </div>
+
+                <div class="mb-3">
+                    <label>Giờ đóng</label>
+                    <input type="time" name="gio_dong" class="form-control">
+                </div>
                 <div class="mb-4">
                     <label class="form-label fw-bold small text-uppercase text-secondary">Địa chỉ chi tiết</label>
                     <div class="input-group">

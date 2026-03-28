@@ -64,4 +64,17 @@ class CUAHANG(models.Model):
     diachi = models.CharField(max_length=100)
     lat = models.FloatField()
     lon = models.FloatField()
-    
+    hinh = models.ImageField(upload_to='cuahang/', null=True, blank=True)
+
+    gio_mo = models.TimeField(default="08:00")
+    gio_dong = models.TimeField(default="22:00")
+
+    def __str__(self):
+        return self.ten
+
+    @property
+    def hinhurl(self):
+        try:
+            return self.hinh.url
+        except:
+            return ''

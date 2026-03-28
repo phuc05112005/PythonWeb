@@ -20,13 +20,39 @@
 
     <div class="card border-0 shadow-sm rounded-0 mx-auto" style="max-width: 900px;">
         <div class="card-body p-4 p-md-5">
-            <form method="post">
+            <!-- **enctype để upload hình** -->
+            <form method="post" enctype="multipart/form-data">
                 {% csrf_token %}
                 
                 <div class="mb-4">
                     <label class="form-label fw-bold small text-uppercase text-secondary">Tên cửa hàng</label>
                     <input type="text" name="ten" value="{{ cuahang.ten|default:'' }}" 
                            class="form-control rounded-0 border-0 bg-light px-3 py-3 shadow-none" required>
+                </div>
+
+                <!-- Hiển thị hình hiện tại -->
+                <div class="mb-3">
+                    <label class="form-label fw-bold small text-uppercase text-secondary">Hình hiện tại</label>
+                    {% if cuahang.hinh %}
+                        <img src="{{ cuahang.hinh.url }}" alt="Hình cửa hàng" style="width: 200px; height: auto; display:block; margin-bottom:10px;">
+                    {% else %}
+                        <p class="text-muted small">Chưa có hình</p>
+                    {% endif %}
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label fw-bold small text-uppercase text-secondary">Thay hình mới</label>
+                    <input type="file" name="hinh" class="form-control">
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label fw-bold small text-uppercase text-secondary">Giờ mở</label>
+                    <input type="time" name="gio_mo" value="{{ cuahang.gio_mo }}" class="form-control">
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label fw-bold small text-uppercase text-secondary">Giờ đóng</label>
+                    <input type="time" name="gio_dong" value="{{ cuahang.gio_dong }}" class="form-control">
                 </div>
 
                 <div class="mb-4">
@@ -60,11 +86,8 @@
 </div>
 
 <script>
-    // 1. Khởi tạo bản đồ - Ưu tiên vị trí cũ của cửa hàng
     var initialLat = "{{ cuahang.lat }}".replace(',', '.');
     var initialLon = "{{ cuahang.lon }}".replace(',', '.');
-    
-    // Nếu chưa có tọa độ thì mặc định ở HCM
     var lat = initialLat ? parseFloat(initialLat) : 10.762622;
     var lon = initialLon ? parseFloat(initialLon) : 106.660172;
 
@@ -74,8 +97,6 @@
     }).addTo(map);
 
     var marker;
-
-    // Nếu đã có tọa độ cũ, vẽ marker ngay khi load trang
     if (initialLat && initialLon) {
         marker = L.marker([lat, lon], {draggable: true}).addTo(map);
     }
@@ -101,7 +122,6 @@
         map.setView([lat, lon], 16);
         if (marker) map.removeLayer(marker);
         marker = L.marker([lat, lon], {draggable: true}).addTo(map);
-        
         marker.on('dragend', function(e) {
             var newPos = marker.getLatLng();
             document.getElementById('lat').value = newPos.lat;

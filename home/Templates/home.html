@@ -5,8 +5,9 @@
 <div class="container mt-4 pb-5">
     <div class="row">
 
-        <div class="col-md-3 mb-4">
-            <div class="bg-white p-4 shadow-sm rounded-4 border-0"> 
+        <!-- DANH MỤC -->
+        <div class="col-md-3 mb-4" data-aos="fade-right">
+            <div class="bg-white p-4 shadow-sm rounded-4 border-0 category-box"> 
                 <div class="border-bottom pb-2 mb-3">
                     <h5 class="fw-bold text-uppercase m-0" style="letter-spacing: 1px;">Danh Mục</h5>
                 </div>
@@ -30,26 +31,45 @@
             </div>
         </div>
 
+        <!-- CONTENT -->
         <div class="col-md-9">
-            <div class="rounded-4 mb-5 text-center shadow-sm position-relative overflow-hidden" style="background: url('https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?auto=format&fit=crop&w=1350&q=80') no-repeat center center; background-size: cover; min-height: 350px;">
-                <div class="position-absolute top-0 start-0 w-100 h-100" style="background-color: rgba(0, 0, 0, 0.4);"></div>
-                <div class="container h-100 d-flex flex-column justify-content-center align-items-center position-relative py-5" style="color: white; z-index: 1;">
-                    <h1 class="display-4 fw-bolder mb-3" style="letter-spacing: 2px;">BỘ SƯU TẬP 2026</h1>
-                    <p class="lead mb-4 fw-light">Cập nhật những xu hướng thời trang hiện đại và phong cách nhất.</p>
-                    <a class="btn btn-light btn-lg mt-2 rounded-pill px-5 fw-bold text-uppercase shadow transition-hover" href="#san-pham" role="button">Mua sắm ngay</a>
+
+            <!-- BANNER -->
+            <div class="rounded-4 mb-5 text-center shadow-sm position-relative overflow-hidden banner">
+                <div class="overlay"></div>
+
+                <div class="container h-100 d-flex flex-column justify-content-center align-items-center position-relative py-5 text-white z-1">
+                    <h1 class="display-4 fw-bolder mb-3 animate__animated animate__fadeInDown">BỘ SƯU TẬP 2026</h1>
+                    <p class="lead mb-4 fw-light animate__animated animate__fadeInUp">Cập nhật những xu hướng thời trang hiện đại và phong cách nhất.</p>
+                    <a class="btn btn-light btn-lg mt-2 rounded-pill px-5 fw-bold text-uppercase shadow transition-hover animate__animated animate__pulse animate__infinite" href="#san-pham">
+                        Mua sắm ngay
+                    </a>
                 </div>
             </div>
 
+            <!-- SẢN PHẨM -->
             <div class="row row-cols-1 row-cols-md-3 g-4" id="san-pham">
                 {% for sp in sanpham %}
-                <div class="col">
+                <div class="col" data-aos="fade-up" data-aos-delay="{{ forloop.counter0|add:'1' }}00">
                     <a href="{% url 'chitiet' sp.id %}" class="text-decoration-none text-dark">
                         <div class="card h-100 shadow-sm border-0 rounded-4 transition-hover overflow-hidden product-card">
-                            <img src="{{sp.hinhurl}}" alt="{{sp.ten}}" class="card-img-top w-100" style="height: 280px; object-fit: cover;">
+                            
+                            <!-- IMAGE -->
+                            <div class="img-wrapper">
+                                <img src="{{sp.hinhurl}}" alt="{{sp.ten}}" class="card-img-top w-100">
+                                
+                                <!-- QUICK ACTION -->
+                                <div class="overlay-btn">
+                                    <button class="btn btn-dark btn-sm rounded-pill px-3">Xem nhanh</button>
+                                </div>
+                            </div>
+
+                            <!-- CONTENT -->
                             <div class="p-3 text-center bg-white">
                                 <h6 class="mt-2 mb-2 fw-bold text-uppercase text-truncate text-secondary">{{sp.ten}}</h6>
                                 <h5 class="fw-bold text-danger mb-2">{{sp.gia}} VNĐ</h5>
                             </div>
+
                         </div>
                     </a>
                 </div>
@@ -57,58 +77,144 @@
             </div>
         </div>
 
+        <!-- PAGINATION -->
         <div class="mt-5 w-100">
-            <nav aria-label="Page navigation">
+            <nav>
                 <ul class="pagination justify-content-center custom-pagination">
                     {% if sanpham.has_previous %}
                         <li class="page-item">
-                            <a class="page-link shadow-sm border-0 rounded-start-pill" href="?page=1{% if loai_id %}&loai_id={{loai_id}}{% endif %}">&laquo; Đầu</a>
+                            <a class="page-link shadow-sm border-0 rounded-start-pill" href="?page=1{% if loai_id %}&loai_id={{loai_id}}{% endif %}">
+                                &laquo; Đầu
+                            </a>
                         </li>
                     {% endif %}
+
                     <li class="page-item active">
-                        <span class="page-link shadow-sm border-0 bg-dark border-dark text-white">Trang {{ sanpham.number }} / {{ sanpham.paginator.num_pages }}</span>
+                        <span class="page-link shadow-sm border-0 bg-dark text-white">
+                            Trang {{ sanpham.number }} / {{ sanpham.paginator.num_pages }}
+                        </span>
                     </li>
+
                     {% if sanpham.has_next %}
                         <li class="page-item">
-                            <a class="page-link shadow-sm border-0 rounded-end-pill" href="?page={{ sanpham.next_page_number }}{% if loai_id %}&loai_id={{loai_id}}{% endif %}">Sau &raquo;</a>
+                            <a class="page-link shadow-sm border-0 rounded-end-pill" href="?page={{ sanpham.next_page_number }}{% if loai_id %}&loai_id={{loai_id}}{% endif %}">
+                                Sau &raquo;
+                            </a>
                         </li>
                     {% endif %}
                 </ul>
             </nav>
         </div>
-        
+
     </div>
 </div>
 
+<!-- STYLE -->
 <style>
-    .transition-hover { 
-        transition: all 0.3s ease; 
-    }
-    .transition-hover:hover { 
-        transform: translateY(-5px); 
-    }
-    .category-item {
-        background-color: transparent;
-        border: 1px solid transparent;
-        transition: all 0.2s ease;
-    }
-    /* Class khi được chọn (Active) */
-    .active-category {
-        background-color: #000 !important;
-        color: #fff !important;
-        box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-    }
-    .category-item:hover:not(.active-category) {
-        background-color: #f8f9fa;
-        color: #000 !important;
-        padding-left: 15px !important;
-    }
-    .product-card:hover {
-        box-shadow: 0 .5rem 1rem rgba(0,0,0,.15)!important;
-    }
-    .custom-pagination .page-link {
-        color: #333;
-        margin: 0 3px;
-    }
+
+.banner {
+    background: url('https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?auto=format&fit=crop&w=1350&q=80') no-repeat center center;
+    background-size: cover;
+    min-height: 350px;
+    transition: transform 0.5s ease;
+}
+.banner:hover {
+    transform: scale(1.02);
+}
+.overlay {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.4);
+}
+
+/* CATEGORY */
+.category-box {
+    transition: all 0.3s ease;
+}
+.category-box:hover {
+    transform: translateY(-5px);
+}
+
+/* PRODUCT */
+.product-card {
+    transition: all 0.4s ease;
+}
+.product-card:hover {
+    transform: translateY(-10px) scale(1.02);
+    box-shadow: 0 1rem 2rem rgba(0,0,0,.2);
+}
+
+/* IMAGE */
+.img-wrapper {
+    position: relative;
+    overflow: hidden;
+}
+.img-wrapper img {
+    height: 280px;
+    object-fit: cover;
+    transition: 0.5s;
+}
+.product-card:hover img {
+    transform: scale(1.1);
+}
+
+/* OVERLAY BUTTON */
+.overlay-btn {
+    position: absolute;
+    bottom: 10px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    opacity: 0;
+    transition: all 0.3s ease;
+}
+.product-card:hover .overlay-btn {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+}
+
+/* CATEGORY ITEM */
+.transition-hover { 
+    transition: all 0.3s ease; 
+}
+.transition-hover:hover { 
+    transform: translateX(5px); 
+}
+
+.category-item {
+    border: 1px solid transparent;
+}
+.active-category {
+    background-color: #000 !important;
+    color: #fff !important;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+}
+.category-item:hover:not(.active-category) {
+    background-color: #f8f9fa;
+}
+
+/* PAGINATION */
+.custom-pagination .page-link {
+    color: #333;
+    margin: 0 3px;
+    transition: 0.3s;
+}
+.custom-pagination .page-link:hover {
+    transform: scale(1.1);
+}
+
 </style>
+
+<!-- ANIME JS -->
+<script>
+anime({
+    targets: '.product-card',
+    opacity: [0,1],
+    translateY: [50,0],
+    delay: anime.stagger(100),
+    duration: 800,
+    easing: 'easeOutQuad'
+});
+</script>
+
 {% endblock main-content %}

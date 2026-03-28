@@ -10,6 +10,7 @@ from .tool import cuahanggannhat
 import os
 import json
 from django.core.serializers.json import DjangoJSONEncoder
+from datetime import datetime
 
 # Create your views here.
 def home(request, loai_id = None):
@@ -340,7 +341,11 @@ def themcuahang(request):
             ten = tench,
             diachi = diachich,
             lat = latch,
-            lon = lonch
+            lon = lonch,
+            hinh = request.FILES.get('hinh'),
+            rating = request.POST.get('rating') or 4.5,
+            gio_mo = request.POST.get('gio_mo') or "08:00",
+            gio_dong = request.POST.get('gio_dong') or "22:00"
         )
         cuahang.save()
         messages.success(request, "Thêm thành công")
@@ -349,14 +354,33 @@ def themcuahang(request):
 
 @staff_member_required(login_url='dangnhap')
 def suacuahang(request, cuahang_id):
-    cuahang = CUAHANG.objects.get(id = cuahang_id)
+    cuahang = CUAHANG.objects.get(id=cuahang_id)
     if request.method == 'POST':
         cuahang.ten = request.POST.get('ten')
         cuahang.diachi = request.POST.get('diachi')
-        cuahang.lat = request.POST.get('lat')
-        cuahang.lon = request.POST.get('lon')
+        
+        # Convert lat/lon sang float, đổi ',' thành '.'
+        lat_str = request.POST.get('lat', cuahang.lat)
+        lon_str = request.POST.get('lon', cuahang.lon)
+        try:
+            cuahang.lat = float(str(lat_str).replace(',', '.'))
+            cuahang.lon = float(str(lon_str).replace(',', '.'))
+        except ValueError:
+            cuahang.lat = cuahang.lat
+            cuahang.lon = cuahang.lon
+        
+        # Upload hình mới nếu có, giữ nguyên hình cũ nếu không
+        hinhmoi = request.FILES.get('hinh')
+        if hinhmoi:
+            cuahang.hinh = hinhmoi
+
+        cuahang.gio_mo = request.POST.get('gio_mo') or cuahang.gio_mo
+        cuahang.gio_dong = request.POST.get('gio_dong') or cuahang.gio_dong
+
         cuahang.save()
+        messages.success(request, "Cập nhật cửa hàng thành công")
         return redirect('quanlycuahang')
+    
     context = {'cuahang': cuahang}
     return render(request, 'admin/cuahang/suacuahang.html', context)
 
@@ -370,20 +394,25 @@ def xoacuahang(request, cuahang_id):
 def map_view(request):
 
     cuahang = CUAHANG.objects.all()
-
     data = []
 
+    now = datetime.now().time()
+
     for ch in cuahang:
+
+        is_open = ch.gio_mo <= now <= ch.gio_dong
+
         data.append({
             "ten": ch.ten,
             "lat": ch.lat,
             "lon": ch.lon,
-            "diachi": ch.diachi
+            "diachi": ch.diachi,
+            "hinh": ch.hinh.url if ch.hinh else "/static/images/cuahang1.jpg",
+            "gio_mo": ch.gio_mo.strftime("%H:%M"),
+            "gio_dong": ch.gio_dong.strftime("%H:%M"),
+            "is_open": is_open
         })
 
-    context = {
-        "stores_json": json.dumps(data, cls=DjangoJSONEncoder),
-        "cuahang": cuahang
-    }
-
-    return render(request, "map.html", context)
+    return render(request, "map.html", {
+        "stores_json": json.dumps(data, cls=DjangoJSONEncoder)
+    })
