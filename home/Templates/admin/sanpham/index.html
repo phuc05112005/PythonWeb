@@ -20,7 +20,58 @@
             </a>
         </div>
     </div>
+    <form method="GET" class="mb-4">
+        <div class="row g-2">
 
+            <!-- Tìm kiếm -->
+            <div class="col-md-3">
+                <input type="text" name="keyword" class="form-control"
+                    placeholder="Nhập tìm sản phẩm"
+                    value="{{ request.GET.keyword }}">
+            </div>
+
+            <!-- Loại -->
+            <div class="col-md-2">
+                <select name="loai" class="form-select">
+                    <option value="">-- Loại --</option>
+                    {% for l in loai %}
+                        <option value="{{ l.id }}"
+                            {% if request.GET.loai == l.id|stringformat:"s" %}selected{% endif %}>
+                            {{ l.loai }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Giá -->
+            <div class="col-md-2">
+                <input type="number" name="min_price" class="form-control"
+                    placeholder="Giá từ"
+                    value="{{ request.GET.min_price }}">
+            </div>
+
+            <div class="col-md-2">
+                <input type="number" name="max_price" class="form-control"
+                    placeholder="Đến"
+                    value="{{ request.GET.max_price }}">
+            </div>
+
+            <!-- Tồn kho -->
+            <div class="col-md-2">
+                <select name="tonkho" class="form-select">
+                    <option value="">-- Kho --</option>
+                    <option value="con" {% if request.GET.tonkho == "con" %}selected{% endif %}>Còn hàng</option>
+                    <option value="het" {% if request.GET.tonkho == "het" %}selected{% endif %}>Hết hàng</option>
+                </select>
+            </div>
+
+            <!-- Button -->
+            <div class="col-md-1 d-flex gap-1">
+                <button type="submit" class="btn btn-dark w-100">Lọc</button>
+            </div>
+
+        </div>
+    </form>
     <div class="card shadow-sm border-0 rounded-4 overflow-hidden">
         <div class="table-responsive">
             <table class="table table-hover align-middle mb-0">

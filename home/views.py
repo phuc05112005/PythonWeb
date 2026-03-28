@@ -187,20 +187,67 @@ def thanhtoan(request):
 @staff_member_required(login_url='dangnhap')
 def quantri(request):
     tongsp = SANPHAM.objects.count()
-    tongdh1 = DONHANG.objects.filter(trangthai = 1).count()
-    tongdh2 = DONHANG.objects.filter(trangthai = 2).count()
+    tongdh1 = DONHANG.objects.filter(trangthai=1).count()
+    tongdh2 = DONHANG.objects.filter(trangthai=2).count()
     tongch = CUAHANG.objects.count()
+
+    # 👇 Lấy tháng + năm hiện tại
+    now = datetime.now()
+
+    donhang = DONHANG.objects.filter(
+        trangthai=2,
+        ngaydat__month=now.month,
+        ngaydat__year=now.year
+    )
+
     tong = 0
-    donhang = DONHANG.objects.filter(trangthai = 2)
     for dh in donhang:
         tong += dh.tongtien
-    context = {'tongsp': tongsp, 'tongdh1': tongdh1, 'tongdh2': tongdh2, 'tongcuahang': tongch, 'tongtien': tong}
+
+    context = {
+        'tongsp': tongsp,
+        'tongdh1': tongdh1,
+        'tongdh2': tongdh2,
+        'tongcuahang': tongch,
+        'tongtien': tong,
+        'now': now
+    }
     return render(request, 'quantri.html', context)
 
 @staff_member_required(login_url='dangnhap')
 def quanlysanpham(request):
     sp = SANPHAM.objects.all().order_by('id')
-    context = {'sanpham': sp}
+    loai = LOAI.objects.all()
+
+    # ===== FILTER =====
+    keyword = request.GET.get('keyword')
+    loai_id = request.GET.get('loai')
+    min_price = request.GET.get('min_price')
+    max_price = request.GET.get('max_price')
+    tonkho = request.GET.get('tonkho')
+
+    if keyword:
+        sp = sp.filter(ten__icontains=keyword)
+
+    if loai_id:
+        sp = sp.filter(loaisp_id=loai_id)
+
+    if min_price:
+        sp = sp.filter(gia__gte=min_price)
+
+    if max_price:
+        sp = sp.filter(gia__lte=max_price)
+
+    if tonkho == "con":
+        sp = sp.filter(soluong__gt=0)
+    elif tonkho == "het":
+        sp = sp.filter(soluong=0)
+
+    context = {
+        'sanpham': sp,
+        'loai': loai,
+    }
+
     return render(request, 'admin/sanpham/index.html', context)
 
 @staff_member_required(login_url='dangnhap')
