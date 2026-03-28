@@ -27,6 +27,7 @@
                         <tr class="small text-uppercase">
                             <th class="ps-4 py-3 border-0">Mã đơn</th>
                             <th class="py-3 border-0">Khách hàng</th>
+                            <th class="py-3 border-0">Địa chỉ giao hàng</th>
                             <th class="py-3 border-0">Số điện thoại</th>
                             <th class="py-3 border-0">Tổng tiền</th>
                             <th class="py-3 border-0">Ngày đặt</th>
@@ -38,6 +39,7 @@
                         <tr class="bg-white border-bottom">
                             <td class="ps-4 fw-bold">#{{ dh.id }}</td>
                             <td>{{ dh.ten }}</td>
+                            <td>{{ dh.diachi }}</td>
                             <td>{{ dh.sdt }}</td>
                             <td class="fw-bold text-danger">{{ dh.tongtien }} đ</td>
                             <td class="text-muted small">{{ dh.ngaydat|date:"d/m/Y H:i" }}</td>
@@ -87,6 +89,7 @@
                             <th class="ps-4 py-3 border-0">Mã đơn</th>
                             <th class="py-3 border-0">Khách hàng</th>
                             <th class="py-3 border-0">Địa chỉ giao hàng</th>
+                            <th class="py-3 border-0">Số điện thoại</th>
                             <th class="py-3 border-0">Tổng tiền</th>
                             <th class="py-3 border-0">Ngày đặt</th>
                             <th class="pe-4 py-3 border-0 text-end">Thao tác</th>
@@ -95,11 +98,12 @@
                     <tbody>
                         {% for dh in donhang2 %}
                         <tr class="border-bottom text-muted">
-                            <td class="ps-4">#{{ dh.id }}</td>
-                            <td class="fw-bold text-dark">{{ dh.ten }}</td>
-                            <td class="small">{{ dh.diachi }}</td>
-                            <td class="fw-bold">{{ dh.tongtien }} đ</td>
-                            <td class="small">{{ dh.ngaydat|date:"d/m/Y" }}</td>
+                            <td class="ps-4 fw-bold">#{{ dh.id }}</td>
+                            <td>{{ dh.ten }}</td>
+                            <td>{{ dh.diachi }}</td>
+                            <td>{{ dh.sdt }}</td>
+                            <td class="fw-bold text-danger">{{ dh.tongtien }} đ</td>
+                            <td class="text-muted small">{{ dh.ngaydat|date:"d/m/Y H:i" }}</td>
                             <td class="pe-4 text-end">
                                 <a href="{% url 'chitietdonhang' dh.id %}" class="btn btn-light btn-sm rounded-0 px-3 fw-bold small text-uppercase border">
                                     Xem chi tiết
