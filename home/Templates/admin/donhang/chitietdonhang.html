@@ -22,6 +22,7 @@
                     <thead class="bg-light">
                         <tr class="small text-uppercase text-secondary">
                             <th class="ps-4 py-3 border-0">Sản phẩm</th>
+                            <th class="py-3 border-0 text-center">Size</th>
                             <th class="py-3 border-0">Hình ảnh</th>
                             <th class="py-3 border-0 text-center">Số lượng</th>
                             <th class="pe-4 py-3 border-0 text-end">Đơn giá</th>
@@ -32,6 +33,9 @@
                         <tr class="border-bottom">
                             <td class="ps-4 py-3">
                                 <span class="fw-bold text-dark">{{ ct.sanpham.ten }}</span>
+                            </td>
+                            <td class="text-center">
+                                <span class="badge bg-dark px-3 py-2">{{ ct.size }}</span>
                             </td>
                             <td>
                                 <img src="{{ ct.sanpham.hinhurl }}" alt="{{ ct.sanpham.ten }}" 

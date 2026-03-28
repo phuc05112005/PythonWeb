@@ -32,12 +32,20 @@ class GIOHANG(models.Model):
         return self.khachhang.username
 
 class CHITIETGIOHANG(models.Model):
+    SIZE_CHOICES = [
+        ('S', 'S'),
+        ('M', 'M'),
+        ('L', 'L'),
+        ('XL', 'XL'),
+    ]
+
     giohang = models.ForeignKey(GIOHANG, on_delete=models.CASCADE)
     sanpham = models.ForeignKey(SANPHAM, on_delete=models.CASCADE)
+    size = models.CharField(max_length=2, choices=SIZE_CHOICES, default='M')  # 👈 THÊM
     soluong = models.IntegerField(default=1) 
 
     def __str__(self):
-        return f"{self.sanpham.ten} x {self.soluong}"
+        return f"{self.sanpham.ten} - {self.size} x {self.soluong}"
     
 class DONHANG(models.Model):
     khachhang = models.ForeignKey(User , on_delete=models.CASCADE)
@@ -56,6 +64,7 @@ class DONHANG(models.Model):
 class CHITIETDONHANG(models.Model):
     donhang = models.ForeignKey(DONHANG, on_delete=models.CASCADE)
     sanpham = models.ForeignKey(SANPHAM, on_delete=models.CASCADE)
+    size = models.CharField(max_length=2, default='M')  # 👈 THÊM
     soluong = models.IntegerField()
     dongia = models.IntegerField()
 
@@ -78,3 +87,4 @@ class CUAHANG(models.Model):
             return self.hinh.url
         except:
             return ''
+    

@@ -21,6 +21,8 @@
     <!-- Anime.js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
 
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+
     <title>Cửa Hàng</title>
 
     <style>
@@ -152,3 +154,161 @@
 
   </body>
 </html>
+{% block footer %}
+<footer class="footer-modern pt-5 pb-3 mt-5">
+    <div class="container">
+        <div class="row">
+
+            <!-- BRAND -->
+            <div class="col-md-4 mb-4">
+                <h4 class="fw-bold text-white">FASHION SHOP</h4>
+                <p class="text-light small mt-3">
+                    Thời trang không chỉ là quần áo – đó là phong cách sống.  
+                    Luôn cập nhật xu hướng mới nhất 2026.
+                </p>
+
+                <p class="mt-3 small text-warning fw-bold">
+                    "Be Your Style – Be Your Confidence"
+                </p>
+            </div>
+
+            <!-- THÔNG TIN -->
+            <div class="col-md-3 mb-4">
+                <h6 class="fw-bold text-uppercase text-white mb-3">Thông tin</h6>
+                <ul class="list-unstyled small footer-link">
+                    <li><a href="#">Giới thiệu</a></li>
+                    <li><a href="#">Chính sách bảo hành</a></li>
+                    <li><a href="#">Chính sách đổi trả</a></li>
+                    <li><a href="#">Điều khoản sử dụng</a></li>
+                </ul>
+            </div>
+
+            <!-- LIÊN HỆ -->
+            <div class="col-md-3 mb-4">
+                <h6 class="fw-bold text-uppercase text-white mb-3">Liên hệ</h6>
+                <ul class="list-unstyled small text-light">
+                    <li>📧 Email: support@gmail.com</li>
+                    <li class="fw-bold text-warning">📞 Hotline: 0775989566</li>
+                </ul>
+            </div>
+
+            <!-- SOCIAL -->
+            <div class="col-md-2 mb-4">
+                <h6 class="fw-bold text-uppercase text-white mb-3">Kết nối</h6>
+                
+                <div class="d-flex gap-3 social-icon">
+                    <a href="https://www.facebook.com/" target="_blank" title="Facebook">
+                        <i class="bi bi-facebook"></i>
+                    </a>
+                    <a href="https://www.instagram.com/" target="_blank" title="Instagram">
+                        <i class="bi bi-instagram"></i>
+                    </a>
+                    <a href="https://www.tiktok.com/" target="_blank" title="TikTok">
+                        <i class="bi bi-tiktok"></i>
+                    </a>
+                    <a href="https://www.youtube.com/" target="_blank" title="YouTube">
+                        <i class="bi bi-youtube"></i>
+                    </a>
+                </div>
+            </div>
+
+        </div>
+
+        <hr class="border-secondary">
+
+        <div class="text-center small text-light">
+            © 2026 Fashion Shop | Designed by You 😎
+        </div>
+    </div>
+</footer>
+{% endblock %}
+<style>
+/* NỀN GRADIENT XỊN */
+.footer-premium {
+    background: linear-gradient(135deg, #0f0f0f, #1c1c1c, #000000);
+}
+
+
+/* LINK */
+.footer-link {
+    color: #ddd;
+    text-decoration: none;
+    transition: 0.3s;
+}
+.footer-link:hover {
+    color: #00f5ff;
+    text-shadow: 0 0 8px rgba(0,245,255,0.8);
+    transform: translateX(5px);
+}
+
+/* ICON SOCIAL */
+.social-icon {
+    color: #ccc;
+    cursor: pointer;
+    transition: 0.3s;
+}
+.social-icon:hover {
+    color: #ff00ff;
+    transform: scale(1.3);
+    text-shadow: 0 0 10px rgba(255,0,255,0.9);
+}
+.footer-modern {
+    background: linear-gradient(135deg, #000000, #1a1a1a);
+}
+
+/* LINK */
+.footer-link a {
+    text-decoration: none;
+    color: #ccc;
+    display: block;
+    padding: 5px 0;
+    transition: all 0.3s;
+}
+
+.footer-link a:hover {
+    color: #fff;
+    transform: translateX(5px);
+}
+
+/* SOCIAL */
+.social-icon a {
+    width: 40px;
+    height: 40px;
+    background: #222;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    font-size: 18px;
+    transition: all 0.3s;
+}
+
+.social-icon a:hover {
+    background: #ff4d4d;
+    transform: scale(1.2);
+}
+.social-icon a {
+    width: 42px;
+    height: 42px;
+    background: #222;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    font-size: 18px;
+    transition: all 0.3s ease;
+}
+
+/* hover từng nền tảng */
+.social-icon a:nth-child(1):hover { background: #1877f2; } /* Facebook */
+.social-icon a:nth-child(2):hover { background: #e4405f; } /* Instagram */
+.social-icon a:nth-child(3):hover { background: #000; }   /* TikTok */
+.social-icon a:nth-child(4):hover { background: #ff0000; } /* YouTube */
+
+.social-icon a:hover {
+    transform: scale(1.2);
+    box-shadow: 0 0 10px rgba(255,255,255,0.3);
+}
+</style>

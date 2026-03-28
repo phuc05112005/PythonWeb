@@ -7,7 +7,7 @@
 
         <!-- DANH MỤC -->
         <div class="col-md-3 mb-4" data-aos="fade-right">
-            <div class="bg-white p-4 shadow-sm rounded-4 border-0 category-box"> 
+            <div class="bg-white p-4 shadow-sm rounded-4 border-0 category-box sticky-category">
                 <div class="border-bottom pb-2 mb-3">
                     <h5 class="fw-bold text-uppercase m-0" style="letter-spacing: 1px;">Danh Mục</h5>
                 </div>
@@ -202,7 +202,12 @@
 .custom-pagination .page-link:hover {
     transform: scale(1.1);
 }
-
+/* STICKY DANH MỤC */
+.sticky-category {
+    position: sticky;
+    top: 100px; /* tránh bị navbar che */
+    z-index: 10;
+}
 </style>
 
 <!-- ANIME JS -->

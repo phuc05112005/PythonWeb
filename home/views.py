@@ -71,20 +71,34 @@ def dangnhap(request):
 def themgiohang(request, sanpham_id):
     if not request.user.is_authenticated:
         return redirect('dangnhap')
-    sanpham = SANPHAM.objects.get(id = sanpham_id)
+
+    sanpham = SANPHAM.objects.get(id=sanpham_id)
     soluongmua = int(request.POST.get('soluong'))
-    giohang, created = GIOHANG.objects.get_or_create(khachhang = request.user)
-    chitiet, created = CHITIETGIOHANG.objects.get_or_create(giohang = giohang, sanpham = sanpham, defaults={'soluong': soluongmua})
+
+    size = request.POST.get('size')
+    if not size:
+        size = 'M'   # 👈 FIX CỨU CHÁY
+
+    giohang, created = GIOHANG.objects.get_or_create(khachhang=request.user)
+
+    chitiet, created = CHITIETGIOHANG.objects.get_or_create(
+        giohang=giohang,
+        sanpham=sanpham,
+        size=size,
+        defaults={'soluong': soluongmua}
+    )
+
     if not created:
         chitiet.soluong += soluongmua
         chitiet.save()
+
     return redirect('home')
 
 def suagiohang(request, sanpham_id):
     if request.method == 'POST':
         soluongmoi = int(request.POST.get('soluong'))
         gio_hang = GIOHANG.objects.get(khachhang = request.user)
-        chitiet = CHITIETGIOHANG.objects.get(giohang = gio_hang, sanpham_id = sanpham_id)
+        chitiet = CHITIETGIOHANG.objects.get(giohang = gio_hang, sanpham_id = sanpham_id, size=request.POST.get('size'))
         chitiet.soluong = soluongmoi
         chitiet.save()
     return redirect('giohang')
@@ -147,6 +161,7 @@ def thanhtoan(request):
                 CHITIETDONHANG.objects.create(
                     donhang = don_hang,
                     sanpham = mon.sanpham,
+                    size=mon.size,
                     soluong = mon.soluong,
                     dongia = mon.sanpham.gia
                 )

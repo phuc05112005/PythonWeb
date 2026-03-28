@@ -317,7 +317,27 @@ Chỉ đường
 `
 
 marker.bindPopup(popup)
+marker.on('click', function(){
 
+    // Xóa active cũ
+    document.querySelectorAll('.shop-box').forEach(box=>{
+        box.classList.remove('shop-active')
+    })
+
+    // Tìm đúng item trong list
+    let el = document.getElementById(`shop-${store.lat}-${store.lon}`)
+
+    if(el){
+        el.classList.add('shop-active')
+
+        // Scroll tới luôn (rất xịn)
+        el.scrollIntoView({
+            behavior: 'smooth',
+            block: 'center'
+        })
+    }
+
+})
 markers.push({
 marker:marker,
 data:store
@@ -381,7 +401,8 @@ distanceText=d.toFixed(2)+" km"
 html+=`
 
 <div class="shop-box"
-onclick="focusShop(${s.lat},${s.lon})">
+id="shop-${s.lat}-${s.lon}"
+onclick="focusShop(${s.lat},${s.lon}); setActiveShop(this)">
 
 <div class="shop-name">${s.ten}</div>
 
@@ -448,9 +469,21 @@ renderShopList(result)
 
 /* FOCUS */
 
-function focusShop(lat,lon){
+function focusShop(lat, lon){
 
-map.setView([lat,lon],16)
+    map.setView([lat, lon], 16)
+
+    // Tìm marker tương ứng
+    markers.forEach(function(m){
+
+        if(m.data.lat === lat && m.data.lon === lon){
+
+            // Mở popup luôn
+            m.marker.openPopup()
+
+        }
+
+    })
 
 }
 
@@ -614,11 +647,20 @@ var km=(route.distance/1000).toFixed(2)
 var time=Math.round(route.duration/60)
 
 document.getElementById("routeInfo").innerHTML=
-`Quãng đường: ${km} km<br>Thời gian: ${time} phút`
+`Quãng đường: ${km} km<br>Thời gian: ~${time} phút (Tùy vào mật độ giao thông)`
 
 showSteps(route.legs[0].steps)
 
 })
+
+}
+function setActiveShop(el){
+
+    document.querySelectorAll('.shop-box').forEach(box=>{
+        box.classList.remove('shop-active')
+    })
+
+    el.classList.add('shop-active')
 
 }
 
@@ -651,5 +693,6 @@ document.getElementById("routeBox").style.display="block"
 }
 
 </script>
+{% block footer %}{% endblock %}
 
 {% endblock %}

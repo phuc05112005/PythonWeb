@@ -31,13 +31,20 @@
                                 <td class="py-3">
                                     <div class="d-flex align-items-center gap-3">
                                         <img src="{{ sp.sanpham.hinhurl }}" alt="{{ sp.sanpham.ten }}" class="rounded-3 shadow-sm" style="width: 70px; height: 90px; object-fit: cover;">
-                                        <span class="fw-bold" style="font-size: 1.05rem;">{{ sp.sanpham.ten }}</span>
+                                        <span class="fw-bold">
+                                            {{ sp.sanpham.ten }} 
+                                            <br>
+                                            <small class="text-muted">Size: {{ sp.size }}</small>
+                                        </span>
                                     </div>
                                 </td>
                                 <td class="fw-medium text-secondary">{{ sp.sanpham.gia }} đ</td>
                                 <td>
                                     <form action="{% url 'suagiohang' sp.sanpham.id %}" method="post" class="d-flex justify-content-center m-0">
                                         {% csrf_token %}
+                                        
+                                        <input type="hidden" name="size" value="{{ sp.size }}">
+
                                         <input type="number" name="soluong" value="{{ sp.soluong }}" min="1" max="{{ sp.sanpham.soluong }}" 
                                             class="form-control text-center rounded-pill border-2 bg-light shadow-none fw-bold" style="width: 80px;"
                                             onchange="this.form.submit()">

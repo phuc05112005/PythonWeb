@@ -23,15 +23,69 @@
                 </span>
             </div>
 
+
             <form action="{% url 'themgiohang' sanpham.id %}" method="post" class="mt-auto">
                 {% csrf_token %}
+
+                <!-- SIZE -->
+                <div class="mb-3">
+                    <label class="form-label fw-bold small text-uppercase text-secondary ms-2">Size</label>
+                    <select name="size" class="form-select rounded-pill border-2 bg-light shadow-none" required style="height: 50px;">
+                        <option value="S">Size S</option>
+                        <option value="M" selected>Size M</option>
+                        <option value="L">Size L</option>
+                        <option value="XL">Size XL</option>
+                    </select>
+                </div>
+                <div class="mt-4">
+                    <h6 class="fw-bold text-uppercase text-secondary mb-3">Hướng dẫn chọn size</h6>
+
+                    <div class="table-responsive">
+                        <table class="table table-bordered text-center align-middle small">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>Size</th>
+                                    <th>Chiều cao (cm)</th>
+                                    <th>Cân nặng (kg)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td class="fw-bold">S</td>
+                                    <td>150 - 160</td>
+                                    <td>40 - 50</td>
+                                </tr>
+                                <tr>
+                                    <td class="fw-bold">M</td>
+                                    <td>160 - 168</td>
+                                    <td>50 - 60</td>
+                                </tr>
+                                <tr>
+                                    <td class="fw-bold">L</td>
+                                    <td>168 - 175</td>
+                                    <td>60 - 70</td>
+                                </tr>
+                                <tr>
+                                    <td class="fw-bold">XL</td>
+                                    <td>175 - 182</td>
+                                    <td>70 - 80</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    <p class="text-muted small mt-2">
+                        * Lưu ý: Size có thể chênh lệch 1-2 cm tùy form dáng.
+                    </p>
+                </div>
+
+                    
+                <!-- SỐ LƯỢNG -->
                 <div class="d-flex align-items-end gap-3 mb-3">
                     <div>
                         <label class="form-label fw-bold small text-uppercase text-secondary ms-2">Số lượng</label>
-                        <input type="number" name="soluong" class="form-control text-center rounded-pill border-2 bg-light shadow-none" value="1" min="1" max="{{ sanpham.soluong }}" style="width: 100px; height: 50px; font-weight: bold; font-size: 1.1rem;">
+                        <input type="number" name="soluong" value="1" min="1" max="{{ sanpham.soluong }}" class="form-control text-center rounded-pill">
                     </div>
-                    
-                    <button type="submit" class="btn btn-dark rounded-pill px-4 fw-bold text-uppercase shadow-sm transition-hover" style="height: 50px; flex-grow: 1; letter-spacing: 1px;">
+
+                    <button type="submit" class="btn btn-dark rounded-pill px-4 fw-bold">
                         Thêm vào giỏ hàng
                     </button>
                 </div>
