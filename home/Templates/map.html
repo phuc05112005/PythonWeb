@@ -213,6 +213,14 @@ border-bottom:1px dashed #eee;
 
 <hr>
 
+<select id="districtFilter" class="searchBox" onchange="filterByDistrict()">
+    <option value="">-- Lọc theo khu vực (phường) --</option>
+</select>
+<label style="display:flex;align-items:center;margin:10px 0;font-size:14px;cursor:pointer">
+    <input type="checkbox" id="openFilter" onchange="toggleOpenFilter()" style="margin-right:8px">
+    Danh sách cửa hàng đang mở cửa
+</label>
+
 <div id="shopList"></div>
 
 </div>
@@ -249,6 +257,8 @@ var userLon=null
 var userMarker=null
 var routeLayer=null
 var radiusCircle=null
+var showOpenOnly = false
+var currentDistrict = ""
 
 /* ICON */
 
@@ -295,7 +305,7 @@ ${store.diachi}
 
 <div style="margin-bottom:10px;font-weight:600;
 color:${store.is_open ? 'green' : 'red'}">
-${store.is_open ? '🟢 Đang mở cửa' : '🔴 Đã đóng cửa'}
+${store.is_open ? '🟢 Đang mở cửa' : '🔴 Đang đóng cửa'}
 </div>
 
 <button onclick="routeToStore(${store.lat},${store.lon})" 
@@ -318,6 +328,40 @@ data:store
 }
 
 loadMarkers()
+function loadDistricts(){
+
+    var districts = new Set()
+
+    stores.forEach(s=>{
+        if(s.diachi){
+            let parts = s.diachi.split(",")
+            let district = parts[parts.length-2]?.trim()
+            if(district) districts.add(district)
+        }
+    })
+
+    var select = document.getElementById("districtFilter")
+
+    districts.forEach(d=>{
+        let opt = document.createElement("option")
+        opt.value = d
+        opt.textContent = d
+        select.appendChild(opt)
+    })
+}
+
+
+loadDistricts()
+function filterByDistrict(){
+
+    currentDistrict = document.getElementById("districtFilter").value
+
+    applyFilters()
+}
+function toggleOpenFilter(){
+    showOpenOnly = document.getElementById("openFilter").checked
+    applyFilters()
+}
 
 /* SHOP LIST */
 
@@ -364,7 +408,32 @@ document.getElementById("shopList").innerHTML=html
 }
 
 renderShopList(stores)
+function applyFilters(){
 
+    var result = stores.filter(s=>{
+
+        // filter mở cửa
+        if(showOpenOnly && !s.is_open) return false
+
+        // filter quận
+        if(currentDistrict){
+            if(!s.diachi || !s.diachi.includes(currentDistrict)) return false
+        }
+
+        return true
+    })
+
+    // update marker
+    markers.forEach(m=>{
+        if(result.includes(m.data)){
+            m.marker.addTo(map)
+        }else{
+            map.removeLayer(m.marker)
+        }
+    })
+
+    renderShopList(result)
+}
 /* SEARCH */
 
 document.getElementById("searchInput").addEventListener("input",function(){
@@ -503,6 +572,12 @@ map.removeLayer(radiusCircle)
 }
 
 document.getElementById("routeBox").style.display="none"
+
+showOpenOnly = false
+currentDistrict = ""
+
+document.getElementById("districtFilter").value = ""
+document.getElementById("openFilter").checked = false
 
 markers.forEach(m=>m.marker.addTo(map))
 
