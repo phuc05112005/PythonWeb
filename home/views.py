@@ -41,13 +41,20 @@ def soluong(request):
     return {'count': count}
 
 def dangky(request):
-    form = UserCreationForm()
     if request.method == 'POST':
         form = UserCreationForm(request.POST)
-        form.save()
-        return redirect('dangnhap')
-    context = {'form': form}
-    return render(request, 'dangky.html', context)
+
+        if form.is_valid():  
+            form.save()
+            messages.success(request, "Đăng ký thành công!")
+            return redirect('dangnhap')
+        else:
+            messages.error(request, "Thông tin không hợp lệ!")
+
+    else:
+        form = UserCreationForm()
+
+    return render(request, 'dangky.html', {'form': form})
 
 def dangnhap(request):
     if request.user.is_authenticated:
@@ -191,7 +198,7 @@ def quantri(request):
     tongdh2 = DONHANG.objects.filter(trangthai=2).count()
     tongch = CUAHANG.objects.count()
 
-    # 👇 Lấy tháng + năm hiện tại
+    # Lấy tháng + năm hiện tại
     now = datetime.now()
 
     donhang = DONHANG.objects.filter(

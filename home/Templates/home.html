@@ -84,7 +84,7 @@
                     {% if sanpham.has_previous %}
                         <li class="page-item">
                             <a class="page-link shadow-sm border-0 rounded-start-pill" href="?page=1{% if loai_id %}&loai_id={{loai_id}}{% endif %}">
-                                &laquo; Đầu
+                                &laquo; Trước
                             </a>
                         </li>
                     {% endif %}
@@ -108,9 +108,84 @@
 
     </div>
 </div>
+<div id="scrollTopBtn"><i class="bi bi-arrow-up"></i></div>
 
+<a href="https://zalo.me/0908178656" target="_blank" class="zalo-btn">
+    <img src="https://upload.wikimedia.org/wikipedia/commons/9/91/Icon_of_Zalo.svg">
+</a>
 <!-- STYLE -->
 <style>
+body {
+    background: linear-gradient(270deg, #484848, #433e38, #4d443a, #41382c);
+    background-size: 800% 800%;
+    animation: gradientMove 20s ease infinite;
+}
+
+/* hiệu ứng chuyển màu mượt */
+@keyframes gradientMove {
+    0% { background-position: 0% 50%; }
+    25% { background-position: 50% 100%; }
+    50% { background-position: 100% 50%; }
+    75% { background-position: 50% 0%; }
+    100% { background-position: 0% 50%; }
+}
+
+/* lớp phủ glow hiện đại */
+body::before {
+    pointer-events: none;
+    content: "";
+    position: fixed;
+    width: 200%;
+    height: 200%;
+    top: -50%;
+    left: -50%;
+    background: radial-gradient(circle, rgba(255,255,255,0.1), transparent 70%);
+    animation: glowMove 20s linear infinite;
+    z-index: 0;
+}
+
+@keyframes glowMove {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+#scrollTopBtn {
+    position: fixed;
+    right: 25px;
+    bottom: 25px;
+    width: 50px;
+    height: 50px;
+    background: #000;
+    color: #fff;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    font-size: 20px;
+    z-index: 9999;
+    transition: 0.3s;
+}
+#scrollTopBtn:hover {
+    transform: scale(1.2);
+}
+
+/* ZALO BUTTON */
+.zalo-btn {
+    position: fixed;
+    right: 25px;
+    bottom: 90px;
+    z-index: 9999;
+}
+.zalo-btn img {
+    width: 55px;
+    animation: zaloPulse 1.5s infinite;
+}
+@keyframes zaloPulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.15); }
+    100% { transform: scale(1); }
+}
+
 
 .banner {
     background: url('https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?auto=format&fit=crop&w=1350&q=80') no-repeat center center;
@@ -220,6 +295,9 @@ anime({
     duration: 800,
     easing: 'easeOutQuad'
 });
+document.getElementById("scrollTopBtn").onclick = function() {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+};
 </script>
 
 {% endblock main-content %}
