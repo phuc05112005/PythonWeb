@@ -7,7 +7,7 @@
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
             <h3 class="fw-bolder m-0 text-uppercase" style="letter-spacing: 1px;">
-                <i class="bi bi-people-fill me-2"></i>Quản Lý Tài Khoản (Admin)
+                <i class="bi bi-people-fill me-2"></i>Quản Lý Tài Khoản
             </h3>
             <p class="text-muted small mt-1 mb-0">Chỉ Admin hệ thống mới có quyền truy cập và phân quyền tại đây.</p>
         </div>
@@ -49,7 +49,7 @@
                         <i class="bi bi-people fs-4"></i>
                     </div>
                     <div>
-                        <h6 class="text-muted mb-0 small fw-bold text-uppercase">Hệ thống</h6>
+                        <h6 class="text-muted mb-0 small fw-bold text-uppercase">Tài khoản</h6>
                         <h4 class="m-0 fw-bolder text-dark">{{ tong_taikhoan }}</h4>
                     </div>
                 </div>
@@ -104,7 +104,6 @@
                     <tr class="text-secondary text-uppercase" style="font-size: 0.85rem; letter-spacing: 0.5px;">
                         <th scope="col" class="ps-4 py-3 border-0">ID</th>
                         <th scope="col" class="py-3 border-0">Tên đăng nhập</th>
-                        <th scope="col" class="py-3 border-0">Email</th>
                         <th scope="col" class="py-3 border-0 text-center">Vai Trò</th>
                         <th scope="col" class="py-3 border-0 text-center">Hành động phân quyền</th>
                     </tr>
@@ -122,8 +121,6 @@
                                 <span class="fw-bold text-dark">{{ tk.user.username }}</span>
                             </div>
                         </td>
-                        
-                        <td class="text-muted">{{ tk.user.email|default:"—" }}</td>
                         
                         <td class="text-center">
                             {% if tk.user.is_superuser %}
@@ -146,19 +143,27 @@
                         </td>
                         
                         <td class="pe-4">
-                            <div class="d-flex justify-content-center gap-2">
+                            <div class="d-flex justify-content-center gap-2 align-items-center">
                                 {% if tk.user.is_superuser %}
-                                    <span class="text-muted small fst-italic">Hệ thống tối cao</span>
+                                    <span class="text-muted small fst-italic">Hệ thống chủ trì</span>
                                 {% elif tk.user.id == request.user.id %}
                                     <span class="text-muted small fst-italic">Tài khoản của bạn</span>
                                 {% else %}
                                     <form action="{% url 'capnhatquyen' tk.user.id %}" method="POST" class="d-flex gap-1 m-0">
                                         {% csrf_token %}
-                                        <select name="quyen" class="form-select form-select-sm rounded-pill px-3" style="width: auto; font-size: 0.8rem;" onchange="this.form.submit()">
+                                        <select name="quyen" class="form-select form-select-sm rounded-pill select-role" onchange="this.form.submit()">
                                             <option value="user" {% if tk.role == 'user' %}selected{% endif %}>User</option>
                                             <option value="quanly" {% if tk.role == 'quanly' %}selected{% endif %}>Quản lý</option>
                                             <option value="admin" {% if tk.role == 'admin' %}selected{% endif %}>Admin</option>
                                         </select>
+                                    </form>
+
+                                    <form action="{% url 'xoataikhoan' tk.user.id %}" method="POST" 
+                                        onsubmit="return confirm('Bạn có chắc muốn xóa tài khoản này không?');">
+                                        {% csrf_token %}
+                                        <button class="btn btn-sm btn-danger rounded-pill px-3">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
                                     </form>
                                 {% endif %}
                             </div>
@@ -203,5 +208,17 @@
     .form-select-sm:hover {
         border-color: #0d6efd;
     }
+    .select-role {
+    min-width: 160px;
+    padding: 6px 2.5rem 6px 12px;
+
+    border-radius: 50px;
+    background-color: #f8f9fa;
+
+    appearance: none;
+
+    background-position: right 0.8rem center;
+    background-size: 12px;
+}
 </style>
 {% endblock main-content %}

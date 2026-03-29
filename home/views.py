@@ -4,6 +4,7 @@ from django.shortcuts import redirect
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
 from functools import wraps
+from django.contrib import messages
 
 def admin_required(view_func):
     @wraps(view_func)
@@ -588,4 +589,23 @@ def capnhatquyen(request, user_id):
                 messages.success(request, f'Đã cập nhật quyền cho {tk.user.username} thành {tk.get_role_display()}!')
         except TAIKHOAN.DoesNotExist:
             messages.error(request, "Tài khoản không tồn tại!")
+    return redirect('quanlytaikhoan')
+
+def xoataikhoan(request, id):
+    if request.method == "POST":
+        user = get_object_or_404(User, id=id)
+
+        # ❌ Không cho xóa chính mình
+        if user == request.user:
+            messages.error(request, "Không thể xóa tài khoản của chính bạn!")
+            return redirect('quanlytaikhoan')
+
+        # ❌ Không cho xóa super admin
+        if user.is_superuser:
+            messages.error(request, "Không thể xóa Super Admin!")
+            return redirect('quanlytaikhoan')
+
+        user.delete()
+        messages.success(request, "Xóa tài khoản thành công!")
+
     return redirect('quanlytaikhoan')

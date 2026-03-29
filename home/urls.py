@@ -36,4 +36,5 @@ urlpatterns = [
     path('quantri/taikhoan/', views.quanlytaikhoan, name="quanlytaikhoan"),
     path('quantri/taikhoan/capnhat/<int:user_id>/', views.capnhatquyen, name="capnhatquyen"),
     path('map/', views.map_view, name="map"),
+    path('xoataikhoan/<int:id>/', views.xoataikhoan, name='xoataikhoan'),
 ]
