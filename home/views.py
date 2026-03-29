@@ -1,8 +1,30 @@
 from django.shortcuts import get_object_or_404, render
-from .models import SANPHAM, LOAI, GIOHANG, CHITIETGIOHANG, DONHANG, CHITIETDONHANG, CUAHANG
+from .models import SANPHAM, LOAI, GIOHANG, CHITIETGIOHANG, DONHANG, CHITIETDONHANG, CUAHANG, TAIKHOAN
 from django.shortcuts import redirect
 from django.contrib.auth.forms import UserCreationForm
-from django.contrib.admin.views.decorators import staff_member_required
+from django.contrib.auth.models import User
+from functools import wraps
+
+def admin_required(view_func):
+    @wraps(view_func)
+    def _wrapped_view(request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            return redirect('dangnhap')
+            
+        # Tự động đồng bộ nếu chưa có bản ghi TAIKHOAN
+        if not hasattr(request.user, 'taikhoan'):
+            TAIKHOAN.objects.get_or_create(
+                user=request.user,
+                defaults={'role': 'admin' if request.user.is_staff else 'user'}
+            )
+            
+        # Cho phép Admin và Quản lý truy cập các trang quản trị chung
+        if request.user.taikhoan.role not in ['admin', 'quanly']:
+            messages.error(request, "Bạn không có quyền truy cập trang này!")
+            return redirect('home')
+        return view_func(request, *args, **kwargs)
+    return _wrapped_view
+
 from django.contrib.auth import authenticate, login
 from django.contrib import messages
 from django.core.paginator import Paginator
@@ -58,7 +80,11 @@ def dangky(request):
 
 def dangnhap(request):
     if request.user.is_authenticated:
-        if request.user.is_staff:
+        # Đồng bộ nhanh nếu chưa có TAIKHOAN
+        if not hasattr(request.user, 'taikhoan'):
+            TAIKHOAN.objects.get_or_create(user=request.user, defaults={'role': 'admin' if request.user.is_staff else 'user'})
+            
+        if request.user.taikhoan.role == 'admin':
             return redirect('quantri')
         return redirect('home')
     if request.method == 'POST':
@@ -67,7 +93,11 @@ def dangnhap(request):
         user = authenticate(request, username = taikhoan, password = matkhau)
         if user is not None:
             login(request, user)
-            if user.is_staff:
+            # Đồng bộ nhanh nếu chưa có TAIKHOAN
+            if not hasattr(user, 'taikhoan'):
+                TAIKHOAN.objects.get_or_create(user=user, defaults={'role': 'admin' if user.is_staff else 'user'})
+                
+            if user.taikhoan.role == 'admin':
                 return redirect('quantri')
             else:
                 return redirect('home')
@@ -191,7 +221,7 @@ def thanhtoan(request):
         }
     return render(request, 'thanhtoan.html', context)
 
-@staff_member_required(login_url='dangnhap')
+@admin_required
 def quantri(request):
     tongsp = SANPHAM.objects.count()
     tongdh1 = DONHANG.objects.filter(trangthai=1).count()
@@ -221,7 +251,7 @@ def quantri(request):
     }
     return render(request, 'quantri.html', context)
 
-@staff_member_required(login_url='dangnhap')
+@admin_required
 def quanlysanpham(request):
     sp = SANPHAM.objects.all().order_by('id')
     loai = LOAI.objects.all()
@@ -257,7 +287,7 @@ def quanlysanpham(request):
 
     return render(request, 'admin/sanpham/index.html', context)
 
-@staff_member_required(login_url='dangnhap')
+@admin_required
 def xoasanpham(request, sanpham_id):
     if request.method == 'POST':
         sp = SANPHAM.objects.get(id = sanpham_id)
@@ -268,7 +298,7 @@ def xoasanpham(request, sanpham_id):
         messages.success(request, "Da xoa thanh cong")
     return redirect('quanlysanpham')
 
-@staff_member_required(login_url='dangnhap')
+@admin_required
 def suasanpham(request, sanpham_id):
     sp = SANPHAM.objects.get(id = sanpham_id)
     loai = LOAI.objects.all()
@@ -288,7 +318,7 @@ def suasanpham(request, sanpham_id):
     context = {'sanpham': sp, 'dsloai': loai}
     return render(request, 'admin/sanpham/suasanpham.html', context)
 
-@staff_member_required(login_url='dangnhap')
+@admin_required
 def themsanpham(request):
     loaisp = LOAI.objects.all()
     if request.method == 'POST':
@@ -310,14 +340,14 @@ def themsanpham(request):
     context = {'loai': loaisp}
     return render(request, 'admin/sanpham/themsanpham.html', context)
 
-@staff_member_required(login_url='dangnhap')
+@admin_required
 def quanlydonhang(request):
     donhang1 = DONHANG.objects.filter(trangthai = 1)
     donhang2 = DONHANG.objects.filter(trangthai = 2)
     context = {'donhang1': donhang1, 'donhang2': donhang2}
     return render(request, 'admin/donhang/index.html', context)
 
-@staff_member_required(login_url='dangnhap')
+@admin_required
 def duyetdonhang(request, donhang_id):
     if request.method == 'POST':
         dh = DONHANG.objects.get(id = donhang_id)
@@ -326,14 +356,14 @@ def duyetdonhang(request, donhang_id):
         messages.success(request, "Cập nhật thành công")
     return redirect('quanlydonhang')
     
-@staff_member_required(login_url='dangnhap')
+@admin_required
 def chitietdonhang(request, donhang_id):
     don_hang = DONHANG.objects.get(id = donhang_id)
     chitiet = CHITIETDONHANG.objects.filter(donhang = don_hang)
     context = {'chitiet': chitiet}
     return render(request, 'admin/donhang/chitietdonhang.html', context)
 
-@staff_member_required(login_url='dangnhap')
+@admin_required
 def xoadonhang(request, donhang_id):
     if request.method == 'POST':
         donhang = DONHANG.objects.get(id = donhang_id)
@@ -341,13 +371,13 @@ def xoadonhang(request, donhang_id):
         messages.success(request, "Xóa thành công")
     return redirect('quanlydonhang')
 
-@staff_member_required(login_url='dangnhap')
+@admin_required
 def quanlyloai(request):
     loai = LOAI.objects.all()
     context = {'loai': loai}
     return render(request, 'admin/loaisp/index.html', context)
 
-@staff_member_required(login_url='dangnhap')
+@admin_required
 def themloai(request):
     if request.method == 'POST':
         loaisp = request.POST.get('loai')
@@ -359,7 +389,7 @@ def themloai(request):
         return redirect('quanlyloai')
     return render(request, 'admin/loaisp/themloai.html')
 
-@staff_member_required(login_url='dangnhap')
+@admin_required
 def xoaloai(request, loai_id):
     if request.method == 'POST':
         loaisp = LOAI.objects.get(id = loai_id)
@@ -367,7 +397,7 @@ def xoaloai(request, loai_id):
         messages.success(request, "Xoa thanh cong")
     return redirect('quanlyloai')
 
-@staff_member_required(login_url='dangnhap')
+@admin_required
 def sualoai(request, loai_id):
     loaisp = LOAI.objects.get(id = loai_id)
     if request.method == 'POST':
@@ -389,13 +419,13 @@ def timkiem(request):
     context = {'kq': sanphamphantrang, 'search':search, 'loai': loai}
     return render(request, 'search.html', context)
 
-@staff_member_required(login_url='dangnhap')
+@admin_required
 def quanlycuahang(request):
     cuahang = CUAHANG.objects.all()
     context = {'cuahang': cuahang}
     return render(request, 'admin/cuahang/index.html', context)
 
-@staff_member_required(login_url='dangnhap')
+@admin_required
 def themcuahang(request):
     if request.method == 'POST':
         tench = request.POST.get('ten')
@@ -421,7 +451,7 @@ def themcuahang(request):
         return redirect('quanlycuahang')    
     return render(request, 'admin/cuahang/themcuahang.html')
 
-@staff_member_required(login_url='dangnhap')
+@admin_required
 def suacuahang(request, cuahang_id):
     cuahang = CUAHANG.objects.get(id=cuahang_id)
     if request.method == 'POST':
@@ -453,7 +483,7 @@ def suacuahang(request, cuahang_id):
     context = {'cuahang': cuahang}
     return render(request, 'admin/cuahang/suacuahang.html', context)
 
-@staff_member_required(login_url='dangnhap')
+@admin_required
 def xoacuahang(request, cuahang_id):
     cuahang = CUAHANG.objects.get(id = cuahang_id)
     if request.method == 'POST':
@@ -481,7 +511,81 @@ def map_view(request):
             "gio_dong": ch.gio_dong.strftime("%H:%M"),
             "is_open": is_open
         })
-
     return render(request, "map.html", {
         "stores_json": json.dumps(data, cls=DjangoJSONEncoder)
     })
+
+@admin_required
+def quanlytaikhoan(request):
+    # Chỉ Admin mới được vào trang quản lý tài khoản
+    if request.user.taikhoan.role != 'admin':
+        messages.error(request, "Chỉ Admin mới có quyền quản lý tài khoản!")
+        return redirect('quantri')
+
+    # Tự động tạo TAIKHOAN cho các user cũ chưa có
+    for u in User.objects.all():
+        TAIKHOAN.objects.get_or_create(
+            user=u,
+            defaults={'role': 'admin' if u.is_staff else 'user'}
+        )
+
+    taikhoan = TAIKHOAN.objects.select_related('user').all().order_by('user__id')
+
+    # Filter
+    keyword = request.GET.get('keyword')
+    role = request.GET.get('role')
+
+    if keyword:
+        taikhoan = taikhoan.filter(user__username__icontains=keyword)
+
+    if role:
+        taikhoan = taikhoan.filter(role=role)
+
+    tong_taikhoan = TAIKHOAN.objects.count()
+    tong_admin = TAIKHOAN.objects.filter(role='admin').count()
+    tong_quanly = TAIKHOAN.objects.filter(role='quanly').count()
+    tong_user = TAIKHOAN.objects.filter(role='user').count()
+
+    context = {
+        'taikhoan': taikhoan,
+        'tong_taikhoan': tong_taikhoan,
+        'tong_admin': tong_admin,
+        'tong_quanly': tong_quanly,
+        'tong_user': tong_user,
+    }
+    return render(request, 'admin/taikhoan/index.html', context)
+
+@admin_required
+def capnhatquyen(request, user_id):
+    # Chỉ Admin mới có quyền cập nhật người khác
+    if request.user.taikhoan.role != 'admin':
+        messages.error(request, "Chỉ Admin mới có quyền thay đổi phân quyền!")
+        return redirect('quantri')
+
+    if request.method == 'POST':
+        try:
+            tk = TAIKHOAN.objects.select_related('user').get(user__id=user_id)
+            # Không cho phép thay đổi superuser hoặc chính mình
+            if tk.user.is_superuser:
+                messages.error(request, "Không thể thay đổi quyền của Super Admin!")
+                return redirect('quanlytaikhoan')
+            if tk.user.id == request.user.id:
+                messages.error(request, "Không thể thay đổi quyền của chính bạn!")
+                return redirect('quanlytaikhoan')
+
+            quyen_moi = request.POST.get('quyen')
+            if quyen_moi in ['admin', 'quanly', 'user']:
+                tk.role = quyen_moi
+                
+                # Đồng bộ is_staff (Admin và Quản lý đều cần is_staff=True để vào trang quản trị)
+                if quyen_moi in ['admin', 'quanly']:
+                    tk.user.is_staff = True
+                else:
+                    tk.user.is_staff = False
+                
+                tk.user.save()
+                tk.save()
+                messages.success(request, f'Đã cập nhật quyền cho {tk.user.username} thành {tk.get_role_display()}!')
+        except TAIKHOAN.DoesNotExist:
+            messages.error(request, "Tài khoản không tồn tại!")
+    return redirect('quanlytaikhoan')

@@ -33,5 +33,7 @@ urlpatterns = [
     path('quantri/cuahang/them/', views.themcuahang, name="themcuahang"),
     path('quantri/cuahang/sua/<int:cuahang_id>/', views.suacuahang, name="suacuahang"),
     path('quantri/cuahang/xoa/<int:cuahang_id>/', views.xoacuahang, name="xoacuahang"),
+    path('quantri/taikhoan/', views.quanlytaikhoan, name="quanlytaikhoan"),
+    path('quantri/taikhoan/capnhat/<int:user_id>/', views.capnhatquyen, name="capnhatquyen"),
     path('map/', views.map_view, name="map"),
 ]

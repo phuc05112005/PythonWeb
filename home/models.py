@@ -87,5 +87,26 @@ class CUAHANG(models.Model):
             return self.hinh.url
         except:
             return ''
-    
-    
+
+class TAIKHOAN(models.Model):
+    ROLE_CHOICES = [
+        ('admin', 'Admin'),
+        ('quanly', 'Quản lý'),
+        ('user', 'User'),
+    ]
+
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='taikhoan')
+    role = models.CharField(max_length=10, choices=ROLE_CHOICES, default='user')
+
+    def __str__(self):
+        return f"{self.user.username} - {self.get_role_display()}"
+
+# Signal: Tự động tạo TAIKHOAN khi User mới được tạo
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+
+@receiver(post_save, sender=User)
+def tao_taikhoan(sender, instance, created, **kwargs):
+    if created:
+        role = 'admin' if instance.is_staff else 'user'
+        TAIKHOAN.objects.create(user=instance, role=role)
