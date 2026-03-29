@@ -1,6 +1,7 @@
 {% extends 'layout.html' %}
 {% load static %}
 {% block main-content %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
 <div class="container mt-4 pb-5">
     <div class="row">
@@ -110,9 +111,23 @@
 </div>
 <div id="scrollTopBtn"><i class="bi bi-arrow-up"></i></div>
 
-<a href="https://zalo.me/0908178656" target="_blank" class="zalo-btn">
-    <img src="https://upload.wikimedia.org/wikipedia/commons/9/91/Icon_of_Zalo.svg">
-</a>
+<div class="contact-wrapper">
+
+    <!-- BOX TEXT -->
+    <div class="contact-tooltip">Liên hệ Zalo & Hotline của shop để được hỗ trợ
+    </div>
+    <!-- ZALO -->
+    <a href="https://zalo.me/0908178656" target="_blank" class="zalo-btn">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/9/91/Icon_of_Zalo.svg">
+    </a>
+
+    <!-- PHONE -->
+    <a href="tel:0908178656" class="phone-btn">
+        <i class="fa-solid fa-phone"></i>
+        028 797 97979
+    </a>
+
+</div>
 <!-- STYLE -->
 <style>
 body {
@@ -169,17 +184,58 @@ body::before {
     transform: scale(1.2);
 }
 
-/* ZALO BUTTON */
-.zalo-btn {
+/* WRAPPER */
+.contact-wrapper {
     position: fixed;
-    right: 25px;
-    bottom: 90px;
+    left: 25px;
+    bottom: 80px;
     z-index: 9999;
+    display: flex;
+    align-items: center;
+    gap: 10px;
 }
+
+/* TOOLTIP */
+.contact-tooltip {
+    position: absolute;
+    left: 0; /* căn sát trái icon */
+    bottom: auto; /* bỏ bottom */
+    top: 70px;  /* đặt cách icon khoảng 70px xuống dưới */
+    background: #fff;
+    padding: 10px 14px;
+    border-radius: 12px;
+    font-size: 13px;
+    color: #333;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+    white-space: nowrap;
+    transform: translateX(0); /* bỏ translateX cũ nếu muốn */
+}
+
+/* PHONE BUTTON */
+.phone-btn {
+    background: linear-gradient(135deg, #00c853, #00e676);
+    color: #fff;
+    padding: 10px 14px;
+    border-radius: 30px;
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: none;
+    box-shadow: 0 6px 18px rgba(0,200,83,0.4);
+    transition: 0.3s;
+}
+
+.phone-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px rgba(0,200,83,0.5);
+}
+
+/* ZALO */
 .zalo-btn img {
     width: 55px;
     animation: zaloPulse 1.5s infinite;
 }
+
+/* ANIMATION */
 @keyframes zaloPulse {
     0% { transform: scale(1); }
     50% { transform: scale(1.15); }

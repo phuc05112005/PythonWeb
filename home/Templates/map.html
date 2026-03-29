@@ -4,7 +4,7 @@
 {% block main-content %}
 
 <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
-
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 <style>
 
 .map-wrapper{
@@ -191,6 +191,68 @@ padding:6px 0;
 border-bottom:1px dashed #eee;
 }
 
+/* WRAPPER */
+.contact-wrapper {
+    position: fixed;
+    right: 25px;
+    bottom: 50px;
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* TOOLTIP */
+.contact-tooltip {
+    position: absolute;
+    right: 0;
+    bottom: 70px;
+    background: #fff;
+    padding: 10px 14px;
+    border-radius: 12px;
+    font-size: 13px;
+    color: #333;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+    white-space: nowrap;
+}
+
+/* PHONE BUTTON */
+.phone-btn {
+    background: linear-gradient(135deg, #00c853, #00e676);
+    color: #fff;
+    padding: 10px 14px;
+    border-radius: 30px;
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: none;
+    box-shadow: 0 6px 18px rgba(0,200,83,0.4);
+    transition: 0.3s;
+}
+
+.phone-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px rgba(0,200,83,0.5);
+}
+
+/* ZALO */
+.zalo-btn img {
+    width: 55px;
+    animation: zaloPulse 1.5s infinite;
+}
+
+/* ANIMATION */
+@keyframes zaloPulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.15); }
+    100% { transform: scale(1); }
+}
+
+
+@keyframes zaloPulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.15); }
+    100% { transform: scale(1); }
+}
 </style>
 
 <div class="map-wrapper">
@@ -234,6 +296,24 @@ border-bottom:1px dashed #eee;
 <div id="routeInfo" class="routeInfo"></div>
 
 <div id="routeSteps"></div>
+</div>
+<div class="contact-wrapper">
+
+    <!-- BOX TEXT -->
+    <div class="contact-tooltip">
+        💬 Liên hệ Zalo hoặc Hotline để được hỗ trợ nhanh chóng
+    </div>
+
+    <!-- PHONE -->
+    <a href="tel:0908178656" class="phone-btn">
+        <i class="fa-solid fa-phone"></i>
+        028 797 97979
+    </a>
+
+    <!-- ZALO -->
+    <a href="https://zalo.me/0908178656" target="_blank" class="zalo-btn">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/9/91/Icon_of_Zalo.svg">
+    </a>
 
 </div>
 
@@ -246,6 +326,7 @@ var map=L.map('map').setView([10.8,106.7],12)
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
 attribution:'© OpenStreetMap'
 }).addTo(map)
+
 
 /* DATA */
 
