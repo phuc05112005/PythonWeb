@@ -24,7 +24,7 @@
         <div class="row g-2">
 
             <!-- Tìm kiếm -->
-            <div class="col-md-3">
+            <div class="col-md-2">
                 <input type="text" name="keyword" class="form-control"
                     placeholder="Nhập tìm sản phẩm"
                     value="{{ request.GET.keyword }}">
@@ -46,13 +46,13 @@
             <!-- Giá -->
             <div class="col-md-2">
                 <input type="number" name="min_price" class="form-control"
-                    placeholder="Giá từ"
+                    placeholder="Giá từ (VNĐ)"
                     value="{{ request.GET.min_price }}">
             </div>
 
             <div class="col-md-2">
                 <input type="number" name="max_price" class="form-control"
-                    placeholder="Đến"
+                    placeholder="Đến (VNĐ)"
                     value="{{ request.GET.max_price }}">
             </div>
 
@@ -68,6 +68,11 @@
             <!-- Button -->
             <div class="col-md-1 d-flex gap-1">
                 <button type="submit" class="btn btn-dark w-100">Lọc</button>
+            </div>
+            <div class="col-md-1 d-grid">
+                <a href="{% url 'quanlysanpham' %}" class="btn btn-outline-secondary btn-sm">
+                    Reset
+                </a>
             </div>
 
         </div>
@@ -100,7 +105,7 @@
                         
                         <td class="fw-bold text-dark">{{ sp.ten }}</td>
                         
-                        <td class="text-danger fw-bolder">{{ sp.gia|floatformat:0 }} đ</td>
+                        <td class="text-danger fw-bolder">{{ sp.gia|floatformat:0 }} VNĐ</td>
                         
                         <td class="text-center">
                             <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill px-3 py-2 fw-bold">

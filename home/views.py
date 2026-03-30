@@ -3,6 +3,7 @@ from .models import SANPHAM, LOAI, GIOHANG, CHITIETGIOHANG, DONHANG, CHITIETDONH
 from django.shortcuts import redirect
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
+from django.db.models import Q
 from functools import wraps
 from django.contrib import messages
 
@@ -352,10 +353,48 @@ def themsanpham(request):
 
 @admin_required
 def quanlydonhang(request):
-    donhang1 = DONHANG.objects.filter(trangthai = 1)
-    donhang2 = DONHANG.objects.filter(trangthai = 2)
-    context = {'donhang1': donhang1, 'donhang2': donhang2}
-    return render(request, 'admin/donhang/index.html', context)
+    donhang = DONHANG.objects.all()
+
+    # ===== FILTER =====
+    keyword = request.GET.get('keyword')
+    from_date = request.GET.get('from_date')
+    to_date = request.GET.get('to_date')
+    min_price = request.GET.get('min_price')
+    max_price = request.GET.get('max_price')
+    status = request.GET.get('status')   # ✅ thêm dòng này
+
+    if keyword:
+        donhang = donhang.filter(
+            Q(ten__icontains=keyword) |
+            Q(sdt__icontains=keyword)
+        )
+
+    if from_date:
+        donhang = donhang.filter(ngaydat__date__gte=from_date)
+
+    if to_date:
+        donhang = donhang.filter(ngaydat__date__lte=to_date)
+
+    if min_price:
+        donhang = donhang.filter(tongtien__gte=min_price)
+
+    if max_price:
+        donhang = donhang.filter(tongtien__lte=max_price)
+
+    # ===== FILTER STATUS (QUAN TRỌNG) =====
+    if status == "0":
+        donhang = donhang.filter(trangthai=1)  # chưa duyệt
+    elif status == "1":
+        donhang = donhang.filter(trangthai=2)  # đã duyệt
+
+    # ===== PHÂN LOẠI HIỂN THỊ =====
+    donhang1 = donhang.filter(trangthai=1)
+    donhang2 = donhang.filter(trangthai=2)
+
+    return render(request, 'admin/donhang/index.html', {
+        'donhang1': donhang1,
+        'donhang2': donhang2
+    })
 
 @admin_required
 def duyetdonhang(request, donhang_id):
@@ -452,7 +491,6 @@ def themcuahang(request):
             lat = latch,
             lon = lonch,
             hinh = request.FILES.get('hinh'),
-            rating = request.POST.get('rating') or 4.5,
             gio_mo = request.POST.get('gio_mo') or "08:00",
             gio_dong = request.POST.get('gio_dong') or "22:00"
         )

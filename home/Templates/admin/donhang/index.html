@@ -13,7 +13,49 @@
             Quay về
         </a>
     </div>
+    <form method="get" class="row g-2 mb-4 align-items-center">
 
+        <div class="col-md-2">
+            <input type="text" name="keyword" class="form-control form-control-sm"
+                placeholder="Tìm tên khách hàng - SĐT"
+                value="{{ request.GET.keyword }}">
+        </div>
+
+        <div class="col-md-2">
+            <input type="date" name="from_date" class="form-control form-control-sm"
+                value="{{ request.GET.from_date }}">
+        </div>
+
+        <div class="col-md-2">
+            <input type="date" name="to_date" class="form-control form-control-sm"
+                value="{{ request.GET.to_date }}">
+        </div>
+
+        <div class="col-md-2">
+            <input type="number" name="min_price" class="form-control form-control-sm"
+                placeholder="Giá từ (VNĐ)"
+                value="{{ request.GET.min_price }}">
+        </div>
+
+        <div class="col-md-2">
+            <input type="number" name="max_price" class="form-control form-control-sm"
+                placeholder="Đến (VNĐ)"
+                value="{{ request.GET.max_price }}">
+        </div>
+
+        <div class="col-md-1 d-grid">
+            <button type="submit" class="btn btn-dark btn-sm">
+                Lọc
+            </button>
+        </div>
+
+        <div class="col-md-1 d-grid">
+            <a href="{% url 'quanlydonhang' %}" class="btn btn-outline-secondary btn-sm">
+                Reset
+            </a>
+        </div>
+
+    </form>
     <div class="mb-5">
         <div class="d-flex align-items-center mb-3">
             <h4 class="fw-bold m-0 text-primary text-uppercase " style="letter-spacing: 1px;">Đơn hàng mới nhận</h4>
@@ -41,7 +83,7 @@
                             <td>{{ dh.ten }}</td>
                             <td>{{ dh.diachi }}</td>
                             <td>{{ dh.sdt }}</td>
-                            <td class="fw-bold text-danger">{{ dh.tongtien }} đ</td>
+                            <td class="fw-bold text-danger">{{ dh.tongtien }} VNĐ</td>
                             <td class="text-muted small">{{ dh.ngaydat|date:"d/m/Y H:i" }}</td>
                             <td class="pe-4 text-end">
                                 <div class="d-flex justify-content-end gap-2">
@@ -102,7 +144,7 @@
                             <td>{{ dh.ten }}</td>
                             <td>{{ dh.diachi }}</td>
                             <td>{{ dh.sdt }}</td>
-                            <td class="fw-bold text-danger">{{ dh.tongtien }} đ</td>
+                            <td class="fw-bold text-danger">{{ dh.tongtien }} VNĐ</td>
                             <td class="text-muted small">{{ dh.ngaydat|date:"d/m/Y H:i" }}</td>
                             <td class="pe-4 text-end">
                                 <a href="{% url 'chitietdonhang' dh.id %}" class="btn btn-light btn-sm rounded-0 px-3 fw-bold small text-uppercase border">
