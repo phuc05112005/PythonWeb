@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'home',
     'django.contrib.postgres',
     'django.contrib.humanize',
+    'django_cleanup.apps.CleanupConfig',
 ]
 
 MIDDLEWARE = [

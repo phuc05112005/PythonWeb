@@ -1,5 +1,5 @@
 from django.shortcuts import get_object_or_404, render
-from .models import SANPHAM, LOAI, GIOHANG, CHITIETGIOHANG, DONHANG, CHITIETDONHANG, CUAHANG, TAIKHOAN
+from .models import SANPHAM, LOAI, GIOHANG, CHITIETGIOHANG, DONHANG, CHITIETDONHANG, CUAHANG, TAIKHOAN, HINHANH
 from django.shortcuts import redirect
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
@@ -314,6 +314,12 @@ def suasanpham(request, sanpham_id):
         if hinhmoi:
             sp.hinh = hinhmoi
         sp.soluong = request.POST.get('soluong')
+        anhxoa = request.POST.getlist('anhxoa')
+        if anhxoa:
+            HINHANH.objects.filter(id__in = anhxoa).delete()
+        hinhchitietmoi = request.FILES.getlist('hinhchitietmoi')
+        for file in hinhchitietmoi:
+            HINHANH.objects.create(sanpham = sp, hinh = file)
         sp.save()
         messages.success(request, "cap nhat thanh cong")
         return redirect('quanlysanpham')
@@ -329,6 +335,7 @@ def themsanpham(request):
         giasp = request.POST.get('gia')
         soluongsp = request.POST.get('soluong')
         hinhsp = request.FILES.get('hinh')
+        hinhchitietsp = request.FILES.getlist('hinhchitiet')
         sp = SANPHAM.objects.create(
             ten = tensp,
             loaisp_id = loai,
@@ -336,6 +343,8 @@ def themsanpham(request):
             soluong = soluongsp,
             hinh = hinhsp,
         )
+        for file in hinhchitietsp:
+            HINHANH.objects.create(sanpham = sp, hinh= file)
         sp.save()
         messages.success(request, "luu thanh cong")
         return redirect('quanlysanpham')
