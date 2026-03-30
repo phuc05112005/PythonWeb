@@ -1,6 +1,8 @@
 from django.db import models
 from django.contrib.auth.models import User
-# Create your models here.
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+
 class LOAI(models.Model):
     loai = models.CharField(max_length=100)
 
@@ -101,9 +103,7 @@ class TAIKHOAN(models.Model):
     def __str__(self):
         return f"{self.user.username} - {self.get_role_display()}"
 
-# Signal: Tự động tạo TAIKHOAN khi User mới được tạo
-from django.db.models.signals import post_save
-from django.dispatch import receiver
+
 
 @receiver(post_save, sender=User)
 def tao_taikhoan(sender, instance, created, **kwargs):

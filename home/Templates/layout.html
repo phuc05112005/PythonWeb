@@ -191,6 +191,12 @@
                     <li>📧 Email: support@gmail.com</li>
                     <li class="fw-bold text-warning">📞 Hotline: 028 79797979</li>
                 </ul>
+
+                <!-- NÚT GỬI PHẢN HỒI -->
+                <a href="{% url 'send_mailtrap' %}" 
+                  class="btn btn-outline-light btn-sm rounded-pill px-3 mt-2 fw-semibold">
+                    Gửi phản hồi
+                </a>
             </div>
 
             <!-- SOCIAL -->
@@ -311,5 +317,23 @@
 .social-icon a:hover {
     transform: scale(1.2);
     box-shadow: 0 0 10px rgba(255,255,255,0.3);
+}
+.feedback-btn {
+    position: fixed;
+    right: 25px;
+    bottom: 150px;
+    background: #007bff;
+    color: #fff;
+    padding: 15px 20px;
+    border-radius: 50px;
+    font-size: 18px;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.3);
+    z-index: 9999;
+    transition: 0.3s;
+}
+.feedback-btn:hover {
+    transform: scale(1.2);
+    background: #0056b3;
+    text-decoration: none;
 }
 </style>

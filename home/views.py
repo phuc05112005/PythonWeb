@@ -656,3 +656,35 @@ def xoataikhoan(request, id):
         messages.success(request, "Xóa tài khoản thành công!")
 
     return redirect('quanlytaikhoan')
+
+from django.shortcuts import render, redirect
+from django.core.mail import send_mail
+from django.contrib import messages
+from .forms import MailForm  # tạo form cho email
+
+from django.conf import settings
+
+def send_mailtrap(request):
+    if request.method == 'POST':
+        form = MailForm(request.POST)
+        if form.is_valid():
+            subject = form.cleaned_data['subject']
+            message = form.cleaned_data['message']
+
+            try:
+                send_mail(
+                    subject,
+                    message,
+                    settings.DEFAULT_FROM_EMAIL,
+                    ['phuc052005@gmail.com'],
+                    fail_silently=False
+                )
+                messages.success(request, 'Email đã gửi thành công!')
+            except Exception as e:
+                messages.error(request, f'Gửi email thất bại: {e}')
+
+            return redirect('send_mailtrap')
+    else:
+        form = MailForm()
+
+    return render(request, 'send_mailtrap.html', {'form': form})

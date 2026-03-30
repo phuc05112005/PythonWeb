@@ -37,4 +37,5 @@ urlpatterns = [
     path('quantri/taikhoan/capnhat/<int:user_id>/', views.capnhatquyen, name="capnhatquyen"),
     path('map/', views.map_view, name="map"),
     path('xoataikhoan/<int:id>/', views.xoataikhoan, name='xoataikhoan'),
+    path('send-mailtrap/', views.send_mailtrap, name='send_mailtrap'),
 ]
