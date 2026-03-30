@@ -110,3 +110,7 @@ def tao_taikhoan(sender, instance, created, **kwargs):
     if created:
         role = 'admin' if instance.is_staff else 'user'
         TAIKHOAN.objects.create(user=instance, role=role)
+
+class HINHANH(models.Model):
+    sanpham = models.ForeignKey(SANPHAM, on_delete= models.CASCADE, related_name= 'hinhanh')
+    hinh = models.ImageField(null= True, blank= True)
