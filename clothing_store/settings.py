@@ -90,6 +90,10 @@ DATABASES = {
         'PORT': '5432',          
     }
 }
+EMAIL_HOST = 'sandbox.smtp.mailtrap.io'
+EMAIL_HOST_USER = 'd6fd04347e08b9'
+EMAIL_HOST_PASSWORD = '9b0d9c720788e2'
+EMAIL_PORT = '2525'
 
 
 # Password validation
