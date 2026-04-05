@@ -78,6 +78,12 @@
               <a class="nav-link fw-semibold" href="{% url 'map' %}">Hệ thống cửa hàng</a>
             </li>
 
+            {% if request.user.is_authenticated %}
+            <li class="nav-item">
+              <a class="nav-link fw-semibold" href="{% url 'donhangcuatoi' %}">Đơn hàng của tôi</a>
+            </li>
+            {% endif %}
+
             <li class="nav-item d-flex align-items-center ms-lg-3 mt-2 mt-lg-0">
               {% if request.user.is_authenticated %}
                 <span style="font-weight: 500; margin-right: 15px;">
@@ -177,10 +183,10 @@
             <div class="col-md-3 mb-4">
                 <h6 class="fw-bold text-uppercase text-white mb-3">Thông tin</h6>
                 <ul class="list-unstyled small footer-link">
-                    <li><a href="#">Giới thiệu</a></li>
-                    <li><a href="#">Chính sách bảo hành</a></li>
-                    <li><a href="#">Chính sách đổi trả</a></li>
-                    <li><a href="#">Điều khoản sử dụng</a></li>
+                    <li><a href="{% url 'gioithieu' %}">Giới thiệu</a></li>
+                    <li><a href="{% url 'chinhsachbaohanh' %}">Chính sách bảo hành</a></li>
+                    <li><a href="{% url 'chinhsachdoitra' %}">Chính sách đổi trả</a></li>
+                    <li><a href="{% url 'dieukhoansudung' %}">Điều khoản sử dụng</a></li>
                 </ul>
             </div>
 

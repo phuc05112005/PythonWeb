@@ -1,0 +1,178 @@
+{% extends "layout.html" %}
+{% load humanize %}
+
+{% block main-content %}
+<div class="container mt-5 mb-5 min-vh-100">
+    <div class="mb-4">
+        <a href="{% url 'donhangcuatoi' %}" class="text-decoration-none text-secondary fw-bold small text-uppercase d-inline-flex align-items-center">
+            <span class="me-2" style="font-size: 1.2rem;">&larr;</span> Quay lại danh sách đơn hàng
+        </a>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-lg-8">
+            <div class="bg-white rounded-4 shadow-sm border-0 p-4 p-md-5">
+                <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+                    <div>
+                        <div class="small text-uppercase text-secondary fw-bold mb-2">Chi tiết mã đơn hàng: #{{ donhang.id }}</div>
+                        <h3 class="fw-bolder mb-1">{{ donhang.ten }}</h3>
+                        <div class="text-secondary">Ngày đặt: {{ donhang.ngaydat|date:"d/m/Y H:i" }}</div>
+                    </div>
+
+                    <div>
+                        {% if donhang.trangthai == 2 %}
+                        <span class="badge rounded-pill text-bg-success px-3 py-2">Đã duyệt</span>
+                        {% else %}
+                        <span class="badge rounded-pill text-bg-warning px-3 py-2">Chờ duyệt</span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                {% if donhang.trangthai == 2 %}
+                <div class="alert alert-success border-0 rounded-4 mb-4">
+                    Đơn hàng sẽ được giao trong vòng 24h, vui lòng chú ý điện thoại.
+                </div>
+                {% endif %}
+
+                <div class="table-responsive">
+                    <table class="table align-middle mb-0">
+                        <thead class="table-light">
+                            <tr class="text-uppercase small fw-bold text-secondary">
+                                <th class="border-0 rounded-start-3">Sản phẩm</th>
+                                <th class="border-0 text-center">Size</th>
+                                <th class="border-0 text-center">Số lượng</th>
+                                <th class="border-0 text-end">Đơn giá</th>
+                                <th class="border-0 text-end rounded-end-3">Thành tiền</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in chitiet %}
+                            <tr>
+                                <td class="py-3">
+                                    <div class="d-flex align-items-center gap-3">
+                                        <img src="{{ item.sanpham.hinhurl }}" alt="{{ item.sanpham.ten }}" class="rounded-3 shadow-sm" style="width: 70px; height: 90px; object-fit: cover;">
+                                        <div>
+                                            <div class="fw-bold">{{ item.sanpham.ten }}</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="text-center fw-medium">{{ item.size }}</td>
+                                <td class="text-center fw-medium">{{ item.soluong }}</td>
+                                <td class="text-end">{{ item.dongia|intcomma }} đ</td>
+                                <td class="text-end fw-bold">{% widthratio item.soluong 1 item.dongia %} đ</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="bg-white rounded-4 shadow-sm border-0 p-4 sticky-top" style="top: 100px;">
+                <h5 class="fw-bold text-uppercase mb-4">Thông tin đơn hàng</h5>
+
+                <div class="mb-3">
+                    <div class="small text-uppercase text-secondary fw-bold mb-2">Người nhận</div>
+                    <div class="fw-semibold">{{ donhang.ten }}</div>
+                </div>
+
+                <div class="mb-3">
+                    <div class="small text-uppercase text-secondary fw-bold mb-2">Số điện thoại</div>
+                    <div class="fw-semibold">{{ donhang.sdt }}</div>
+                </div>
+
+                <div class="mb-4">
+                    <div class="small text-uppercase text-secondary fw-bold mb-2">Địa chỉ giao hàng</div>
+                    <div class="text-secondary">{{ donhang.diachi }}</div>
+                </div>
+
+                <hr class="opacity-25">
+
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="text-secondary">Tiền sản phẩm</span>
+                    <span class="fw-bold">{{ tong_san_pham|intcomma }} đ</span>
+                </div>
+                <div class="d-flex justify-content-between mb-3">
+                    <span class="text-secondary">Phí giao hàng</span>
+                    <span class="fw-bold">{{ phi_giao_hang|intcomma }} đ</span>
+                </div>
+
+                <hr class="opacity-25">
+
+                <div class="d-flex justify-content-between align-items-center">
+                    <span class="fw-bold text-uppercase">Tổng thanh toán</span>
+                    <span class="fw-bolder text-danger fs-4">{{ donhang.tongtien|intcomma }} đ</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="contact-wrapper">
+    <div class="contact-tooltip">Liên hệ Zalo hoặc hotline để được hỗ trợ đơn hàng nhanh hơn</div>
+
+    <a href="https://zalo.me/0908178656" target="_blank" class="zalo-btn">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/9/91/Icon_of_Zalo.svg" alt="Zalo">
+    </a>
+
+    <a href="tel:02879797979" class="phone-btn">
+        <i class="bi bi-telephone-fill"></i>
+        028 797 97979
+    </a>
+</div>
+
+<style>
+    .contact-wrapper {
+        position: fixed;
+        left: 25px;
+        bottom: 80px;
+        z-index: 9999;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .contact-tooltip {
+        position: absolute;
+        left: 0;
+        top: 70px;
+        background: #fff;
+        padding: 10px 14px;
+        border-radius: 12px;
+        font-size: 13px;
+        color: #333;
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        white-space: nowrap;
+        font-weight: bold;
+    }
+
+    .phone-btn {
+        background: linear-gradient(135deg, #00c853, #00e676);
+        color: #fff;
+        padding: 10px 14px;
+        border-radius: 30px;
+        font-size: 14px;
+        font-weight: 600;
+        text-decoration: none;
+        box-shadow: 0 6px 18px rgba(0, 200, 83, 0.4);
+        transition: 0.3s;
+    }
+
+    .phone-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px rgba(0, 200, 83, 0.5);
+    }
+
+    .zalo-btn img {
+        width: 55px;
+        animation: zaloPulse 1.5s infinite;
+    }
+
+    @keyframes zaloPulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.15); }
+        100% { transform: scale(1); }
+    }
+</style>
+{% endblock main-content %}

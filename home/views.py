@@ -223,6 +223,30 @@ def thanhtoan(request):
         }
     return render(request, 'thanhtoan.html', context)
 
+def donhangcuatoi(request):
+    if not request.user.is_authenticated:
+        return redirect('dangnhap')
+
+    donhang = DONHANG.objects.filter(khachhang=request.user).order_by('-ngaydat')
+    return render(request, 'donhangcuatoi.html', {'donhang': donhang})
+
+def chitietdonhang_khach(request, donhang_id):
+    if not request.user.is_authenticated:
+        return redirect('dangnhap')
+
+    don_hang = get_object_or_404(DONHANG, id=donhang_id, khachhang=request.user)
+    chitiet = CHITIETDONHANG.objects.filter(donhang=don_hang).select_related('sanpham')
+    tong_san_pham = sum(item.dongia * item.soluong for item in chitiet)
+    phi_giao_hang = max(don_hang.tongtien - tong_san_pham, 0)
+
+    context = {
+        'donhang': don_hang,
+        'chitiet': chitiet,
+        'tong_san_pham': tong_san_pham,
+        'phi_giao_hang': phi_giao_hang,
+    }
+    return render(request, 'chitietdonhang_khach.html', context)
+
 @admin_required
 def quantri(request):
     tongsp = SANPHAM.objects.count()
@@ -688,3 +712,15 @@ def send_mailtrap(request):
         form = MailForm()
 
     return render(request, 'send_mailtrap.html', {'form': form})
+
+def gioithieu(request):
+    return render(request, 'gioithieu.html')
+
+def chinhsachbaohanh(request):
+    return render(request, 'chinhsachbaohanh.html')
+
+def chinhsachdoitra(request):
+    return render(request, 'chinhsachdoitra.html')
+
+def dieukhoansudung(request):
+    return render(request, 'dieukhoansudung.html')

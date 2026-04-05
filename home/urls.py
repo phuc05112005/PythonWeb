@@ -15,6 +15,8 @@ urlpatterns = [
     path('giohang/', views.giohang, name="giohang"),
     path('thanhtoan/', views.thanhtoan, name="thanhtoan"),
     path('camon/', views.thanhtoan, name="camon"),
+    path('don-hang-cua-toi/', views.donhangcuatoi, name='donhangcuatoi'),
+    path('don-hang-cua-toi/<int:donhang_id>/', views.chitietdonhang_khach, name='chitietdonhang_khach'),
     path('quantri/', views.quantri, name="quantri"),
     path('quantri/sanpham/', views.quanlysanpham, name="quanlysanpham"),
     path('quantri/sanpham/xoa/<int:sanpham_id>/', views.xoasanpham, name="xoasanpham"),
@@ -38,4 +40,8 @@ urlpatterns = [
     path('map/', views.map_view, name="map"),
     path('xoataikhoan/<int:id>/', views.xoataikhoan, name='xoataikhoan'),
     path('send-mailtrap/', views.send_mailtrap, name='send_mailtrap'),
+    path('gioi-thieu/', views.gioithieu, name='gioithieu'),
+    path('chinh-sach-bao-hanh/', views.chinhsachbaohanh, name='chinhsachbaohanh'),
+    path('chinh-sach-doi-tra/', views.chinhsachdoitra, name='chinhsachdoitra'),
+    path('dieu-khoan-su-dung/', views.dieukhoansudung, name='dieukhoansudung'),
 ]
