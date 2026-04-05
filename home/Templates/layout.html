@@ -29,13 +29,52 @@
     <style>
       body { font-family: 'Jost', sans-serif; background-color: #fcfcfc; }
 
+      .navbar .nav-item {
+        position: relative;
+      }
+
+      .navbar .nav-item + .nav-item::before {
+        content: "";
+        position: absolute;
+        left: -2px;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 1px;
+        height: 22px;
+        background: #e5e7eb;
+      }
+
+      .navbar .nav-item.no-divider::before {
+        display: none;
+      }
+
       .navbar .nav-link {
-        transition: all 0.3s ease;
+        margin: 0 6px;
+        padding: 8px 14px !important;
+        border-radius: 999px;
+        transition: all 0.25s ease;
       }
 
       .navbar .nav-link:hover {
         color: #000;
+        background: #f3f4f6;
         transform: translateY(-2px);
+      }
+
+      .navbar .nav-link.active-nav {
+        color: #fff !important;
+        background: #111827;
+        box-shadow: 0 8px 16px rgba(17, 24, 39, 0.18);
+      }
+
+      .navbar .nav-greeting {
+        color: #0d6efd;
+      }
+
+      @media (max-width: 991.98px) {
+        .navbar .nav-item + .nav-item::before {
+          display: none;
+        }
       }
 
       .btn {
@@ -44,6 +83,10 @@
 
       .btn:hover {
         transform: scale(1.05);
+      }
+
+      .zoomable-product-image {
+        cursor: zoom-in;
       }
     </style>
   </head>
@@ -65,28 +108,28 @@
           <ul class="navbar-nav me-auto mb-2 mb-lg-0 align-items-lg-center animate__animated animate__fadeInDown">
             
             <li class="nav-item">
-              <a class="nav-link fw-semibold" href="{% url 'home' %}">Trang chủ</a>
+              <a class="nav-link fw-semibold {% if request.resolver_match.url_name == 'home' %}active-nav{% endif %}" href="{% url 'home' %}">Trang chủ</a>
             </li>
 
-            {% if request.user.is_authenticated and request.user.taikhoan and request.user.taikhoan.role != 'user' %}
             <li class="nav-item">
-              <a class="nav-link fw-semibold" href="{% url 'quantri' %}">Bảng điều khiển</a>
-            </li>
-            {% endif %}
-
-            <li class="nav-item">
-              <a class="nav-link fw-semibold" href="{% url 'map' %}">Hệ thống cửa hàng</a>
+              <a class="nav-link fw-semibold {% if request.resolver_match.url_name == 'map' %}active-nav{% endif %}" href="{% url 'map' %}">Hệ thống cửa hàng</a>
             </li>
 
             {% if request.user.is_authenticated %}
             <li class="nav-item">
-              <a class="nav-link fw-semibold" href="{% url 'donhangcuatoi' %}">Đơn hàng của tôi</a>
+              <a class="nav-link fw-semibold {% if request.resolver_match.url_name == 'donhangcuatoi' %}active-nav{% endif %}" href="{% url 'donhangcuatoi' %}">Đơn hàng của tôi</a>
             </li>
             {% endif %}
 
-            <li class="nav-item d-flex align-items-center ms-lg-3 mt-2 mt-lg-0">
+            {% if request.user.is_authenticated and request.user.taikhoan and request.user.taikhoan.role != 'user' %}
+            <li class="nav-item">
+              <a class="nav-link fw-semibold {% if request.resolver_match.url_name == 'quantri' %}active-nav{% endif %}" href="{% url 'quantri' %}">Bảng điều khiển</a>
+            </li>
+            {% endif %}
+
+            <li class="nav-item no-divider d-flex align-items-center ms-lg-3 mt-2 mt-lg-0">
               {% if request.user.is_authenticated %}
-                <span style="font-weight: 500; margin-right: 15px;">
+                <span class="nav-greeting" style="font-weight: 500; margin-right: 15px;">
                   Xin chào {{ request.user.username }}!
                 </span>
                 <form action="{% url 'dangxuat' %}" method="post" class="m-0">
@@ -156,6 +199,35 @@
         duration: 600,
         easing: 'easeOutQuad',
         delay: anime.stagger(100)
+      });
+    </script>
+
+    <div class="modal fade" id="imageZoomModal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered modal-xl">
+        <div class="modal-content bg-transparent border-0">
+          <button type="button" class="btn-close btn-close-white ms-auto me-2 mt-2" data-bs-dismiss="modal" aria-label="Close"></button>
+          <div class="modal-body p-0 text-center">
+            <img id="zoomedImage" src="" alt="Ảnh phóng to" class="img-fluid rounded-3 shadow-lg">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      document.addEventListener('click', function (e) {
+        const image = e.target.closest('img[data-zoom-src]');
+        if (!image) return;
+
+        e.preventDefault();
+        e.stopPropagation();
+
+        const zoomedImage = document.getElementById('zoomedImage');
+        const modalElement = document.getElementById('imageZoomModal');
+        if (!zoomedImage || !modalElement) return;
+
+        zoomedImage.src = image.getAttribute('data-zoom-src');
+        const zoomModal = bootstrap.Modal.getOrCreateInstance(modalElement);
+        zoomModal.show();
       });
     </script>
 

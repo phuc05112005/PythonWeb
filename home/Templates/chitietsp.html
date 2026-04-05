@@ -4,17 +4,17 @@
 {% block main-content %}
 <div class="container mt-5 mb-5 pb-5">
     <div class="row bg-white p-4 p-md-5 shadow-sm rounded-4 border-0">
-        
+
         <div class="col-md-5 mb-4 mb-md-0">
             <section id="main-carousel" class="splide rounded-4 overflow-hidden shadow-sm bg-light">
                 <div class="splide__track">
                     <ul class="splide__list list-unstyled">
                         <li class="splide__slide d-flex align-items-center justify-content-center">
-                            <img src="{{ sanpham.hinhurl }}" alt="{{ sanpham.ten }}" class="img-fluid w-100" style="object-fit: cover; min-height: 400px;">
+                            <img src="{{ sanpham.hinhurl }}" alt="{{ sanpham.ten }}" class="img-fluid w-100 zoomable-product-image" data-zoom-src="{{ sanpham.hinhurl }}" style="object-fit: cover; min-height: 400px;">
                         </li>
                         {% for item in sanpham.hinhanh.all %}
                         <li class="splide__slide d-flex align-items-center justify-content-center">
-                            <img src="{{ item.hinh.url }}" alt="Ảnh chi tiết" class="img-fluid w-100" style="object-fit: cover; min-height: 400px;">
+                            <img src="{{ item.hinh.url }}" alt="Ảnh chi tiết" class="img-fluid w-100 zoomable-product-image" data-zoom-src="{{ item.hinh.url }}" style="object-fit: cover; min-height: 400px;">
                         </li>
                         {% endfor %}
                     </ul>
@@ -24,36 +24,35 @@
             <section id="thumbnail-carousel" class="splide mt-3" aria-label="Album ảnh nhỏ">
                 <div class="splide__track">
                     <ul class="splide__list list-unstyled">
-                        <li class="splide__slide" style="cursor: pointer;">
-                            <img src="{{ sanpham.hinhurl }}" class="img-thumbnail rounded-2" style="width: 100%; height: 80px; object-fit: cover;">
+                        <li class="splide__slide thumb-slide" style="cursor: pointer;">
+                            <img src="{{ sanpham.hinhurl }}" class="thumb-img" style="width: 100%; height: 80px; object-fit: cover;">
                         </li>
                         {% for item in sanpham.hinhanh.all %}
-                        <li class="splide__slide" style="cursor: pointer;">
-                            <img src="{{ item.hinh.url }}" class="img-thumbnail rounded-2" style="width: 100%; height: 80px; object-fit: cover;">
+                        <li class="splide__slide thumb-slide" style="cursor: pointer;">
+                            <img src="{{ item.hinh.url }}" class="thumb-img" style="width: 100%; height: 80px; object-fit: cover;">
                         </li>
                         {% endfor %}
                     </ul>
                 </div>
             </section>
         </div>
-        
+
         <div class="col-md-7 d-flex flex-column justify-content-center ps-md-5">
             <h2 class="fw-bolder text-uppercase mb-2" style="letter-spacing: 1px;">{{ sanpham.ten }}</h2>
             <h3 class="text-danger fw-bold mb-4">{{ sanpham.gia }} VNĐ</h3>
-            
+
             <hr class="mb-4 opacity-25">
-            
+
             <div class="mb-4">
                 <span class="badge bg-light text-dark border border-secondary-subtle px-3 py-2 rounded-pill fs-6 fw-medium">
-                    Kho: Còn {{ sanpham.soluong }} sản phẩm
+                    Còn {{ sanpham.soluong }} sản phẩm
                 </span>
             </div>
 
-
             <form action="{% url 'themgiohang' sanpham.id %}" method="post" class="mt-auto">
                 {% csrf_token %}
+                <input type="hidden" name="next" value="{{ request.path }}">
 
-                <!-- SIZE -->
                 <div class="mb-3">
                     <label class="form-label fw-bold small text-uppercase text-secondary ms-2">Size</label>
                     <select name="size" class="form-select rounded-pill border-2 bg-light shadow-none" required style="height: 50px;">
@@ -63,6 +62,7 @@
                         <option value="XL">Size XL</option>
                     </select>
                 </div>
+
                 <div class="mt-4">
                     <h6 class="fw-bold text-uppercase text-secondary mb-3">Hướng dẫn chọn size</h6>
 
@@ -98,13 +98,12 @@
                                 </tr>
                             </tbody>
                         </table>
+                    </div>
                     <p class="text-muted small mt-2">
-                        * Lưu ý: Size có thể chênh lệch 1-2 cm tùy form dáng.
+                        Lưu ý: Size có thể chênh lệch 1-2 cm tùy form dáng.
                     </p>
                 </div>
 
-                    
-                <!-- SỐ LƯỢNG -->
                 <div class="d-flex align-items-end gap-3 mb-3">
                     <div>
                         <label class="form-label fw-bold small text-uppercase text-secondary ms-2">Số lượng</label>
@@ -116,62 +115,124 @@
                     </button>
                 </div>
             </form>
-            
+
             <a href="{% url 'home' %}" class="btn btn-outline-secondary rounded-pill fw-bold text-uppercase mt-2 w-100 transition-hover" style="height: 50px; display: flex; align-items: center; justify-content: center; letter-spacing: 1px;">
                 &larr; Tiếp tục mua sắm
             </a>
-            
+        </div>
+    </div>
+
+    <div class="row mt-4 g-3">
+        <div class="col-lg-6">
+            <div class="p-4 rounded-4 border bg-light-subtle product-description-box">
+                <h5 class="fw-bold mb-3">Mô tả sản phẩm</h5>
+                {% if sanpham.mota %}
+                    <p class="mb-0 text-secondary product-description-text">{{ sanpham.mota|linebreaksbr }}</p>
+                {% else %}
+                    <p class="mb-0 text-muted">Sản phẩm chưa có mô tả chi tiết.</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="col-lg-6">
+            <div class="p-4 rounded-4 branch-stock-box">
+                <p class="mb-3 fw-bold fs-5">Sản phẩm hiện có ở các hệ thống cửa hàng:</p>
+                <ul class="mb-3 ps-3 branch-list">
+                    {% for item in cuahang %}
+                        <li class="mb-2">
+                            <span class="fw-semibold">{{ item.ten }}</span>
+                            <span class="text-muted"> - {{ item.diachi }}</span>
+                        </li>
+                    {% empty %}
+                        <li class="text-muted">Chưa có thông tin chi nhánh.</li>
+                    {% endfor %}
+                </ul>
+                <a href="{% url 'map' %}" class="btn btn-dark w-100 rounded-pill fw-bold">
+                    Xem bản đồ
+                </a>
+            </div>
         </div>
     </div>
 </div>
 
 <style>
-    /* Hiệu ứng nổi lên mượt mà cho nút bấm */
-    .transition-hover { 
-        transition: all 0.3s ease; 
-    }
-    .transition-hover:hover { 
-        transform: translateY(-3px); 
-        box-shadow: 0 .5rem 1rem rgba(0,0,0,.15)!important; 
+    .transition-hover {
+        transition: all 0.3s ease;
     }
 
-    /* Hiệu ứng zoom nhẹ hình ảnh khi trỏ chuột vào (tạo cảm giác cao cấp) */
+    .transition-hover:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 .5rem 1rem rgba(0,0,0,.15) !important;
+    }
+
     .transition-hover-img {
         transition: transform 0.5s ease;
     }
+
     .overflow-hidden:hover .transition-hover-img {
         transform: scale(1.05);
     }
+
+    .product-description-box {
+        border-color: #e9ecef !important;
+    }
+
+    .product-description-text {
+        line-height: 1.7;
+        white-space: normal;
+    }
+
+    .branch-stock-box {
+        border: 1.5px dashed #f0a3b5;
+        background: #fff8fb;
+    }
+
+    .branch-list {
+        max-height: 220px;
+        overflow-y: auto;
+    }
+
+    #thumbnail-carousel .thumb-slide {
+        border-radius: 10px;
+        overflow: hidden;
+    }
+
+    #thumbnail-carousel .thumb-img {
+        display: block;
+        width: 100%;
+        height: 80px;
+        object-fit: cover;
+        border: 1px solid #dee2e6;
+        border-radius: 10px;
+    }
 </style>
+
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-        // 1. Khởi tạo Carousel chính
         var main = new Splide('#main-carousel', {
-            type      : 'fade',
-            rewind    : true,
+            type: 'fade',
+            rewind: true,
             pagination: false,
-            arrows    : true,
+            arrows: true,
         });
 
-        // 2. Khởi tạo Carousel ảnh nhỏ
         var thumbnails = new Splide('#thumbnail-carousel', {
-            fixedWidth  : 100,
-            fixedHeight : 80,
-            gap         : 10,
-            rewind      : true,
-            isNavigation: true, // Cho phép click để chuyển ảnh chính
-            focus       : 'center',
-            pagination  : false,
-            arrows      : false, // Ẩn mũi tên cho gọn
-            breakpoints : {
+            fixedWidth: 100,
+            fixedHeight: 80,
+            gap: 10,
+            rewind: true,
+            isNavigation: true,
+            focus: 'center',
+            pagination: false,
+            arrows: false,
+            breakpoints: {
                 600: {
-                    fixedWidth : 60,
+                    fixedWidth: 60,
                     fixedHeight: 44,
                 },
             },
         });
 
-        // 3. Kết nối (Sync)
         main.sync(thumbnails);
         main.mount();
         thumbnails.mount();

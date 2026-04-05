@@ -13,6 +13,7 @@ class LOAI(models.Model):
 class SANPHAM(models.Model):
     loaisp = models.ForeignKey(LOAI, on_delete=models.CASCADE)
     ten = models.CharField(max_length=200)
+    mota = models.TextField(blank=True, default='')
     gia = models.IntegerField()
     hinh = models.ImageField(null=True, blank=True)
     soluong = models.IntegerField(default=0)
@@ -72,6 +73,7 @@ class CHITIETDONHANG(models.Model):
 
 class CUAHANG(models.Model):
     ten = models.CharField(max_length=100)
+    sodienthoai = models.CharField(max_length=15, blank=True, default='')
     diachi = models.CharField(max_length=100)
     lat = models.FloatField()
     lon = models.FloatField()

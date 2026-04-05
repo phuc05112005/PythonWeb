@@ -55,7 +55,7 @@
                                     {{ thanhtien }} đ
                                 </td>
                                 <td class="text-center">
-                                    <a href="{% url 'xoagiohang' sp.sanpham.id %}" class="btn btn-outline-danger btn-sm rounded-circle shadow-sm" style="width: 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center;" title="Xóa khỏi giỏ">
+                                    <a href="{% url 'xoagiohang' sp.sanpham.id %}?size={{ sp.size|urlencode }}" class="btn btn-outline-danger btn-sm rounded-circle shadow-sm" style="width: 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center;" title="Xóa khỏi giỏ">
                                         <b>&times;</b>
                                     </a>
                                 </td>

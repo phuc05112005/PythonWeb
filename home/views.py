@@ -1,9 +1,10 @@
-from django.shortcuts import get_object_or_404, render
+﻿from django.shortcuts import get_object_or_404, render
 from .models import SANPHAM, LOAI, GIOHANG, CHITIETGIOHANG, DONHANG, CHITIETDONHANG, CUAHANG, TAIKHOAN, HINHANH
 from django.shortcuts import redirect
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
-from django.db.models import Q
+from django.db.models import Q, Sum
+from django.db.models.functions import TruncMonth
 from functools import wraps
 from django.contrib import messages
 
@@ -13,16 +14,16 @@ def admin_required(view_func):
         if not request.user.is_authenticated:
             return redirect('dangnhap')
             
-        # Tự động đồng bộ nếu chưa có bản ghi TAIKHOAN
+        # Tá»± Ä‘á»™ng Ä‘á»“ng bá»™ náº¿u chÆ°a cĂ³ báº£n ghi TAIKHOAN
         if not hasattr(request.user, 'taikhoan'):
             TAIKHOAN.objects.get_or_create(
                 user=request.user,
                 defaults={'role': 'admin' if request.user.is_staff else 'user'}
             )
             
-        # Cho phép Admin và Quản lý truy cập các trang quản trị chung
+        # Cho phĂ©p Admin vĂ  Quáº£n lĂ½ truy cáº­p cĂ¡c trang quáº£n trá»‹ chung
         if request.user.taikhoan.role not in ['admin', 'quanly']:
-            messages.error(request, "Bạn không có quyền truy cập trang này!")
+            messages.error(request, "Báº¡n khĂ´ng cĂ³ quyá»n truy cáº­p trang nĂ y!")
             return redirect('home')
         return view_func(request, *args, **kwargs)
     return _wrapped_view
@@ -35,6 +36,8 @@ import os
 import json
 from django.core.serializers.json import DjangoJSONEncoder
 from datetime import datetime
+import calendar
+from django.utils.http import url_has_allowed_host_and_scheme
 
 # Create your views here.
 def home(request, loai_id = None):
@@ -51,7 +54,11 @@ def home(request, loai_id = None):
 
 def chitietsp(request, sanpham_id):
     sanpham = get_object_or_404(SANPHAM, id = sanpham_id)
-    context = {'sanpham': sanpham}
+    cuahang = CUAHANG.objects.all()
+    context = {
+        'sanpham': sanpham,
+        'cuahang': cuahang,
+    }
     return render(request, 'chitietsp.html', context)
 
 def soluong(request):
@@ -70,10 +77,10 @@ def dangky(request):
 
         if form.is_valid():  
             form.save()
-            messages.success(request, "Đăng ký thành công!")
+            messages.success(request, "ÄÄƒng kĂ½ thĂ nh cĂ´ng!")
             return redirect('dangnhap')
         else:
-            messages.error(request, "Thông tin không hợp lệ!")
+            messages.error(request, "ThĂ´ng tin khĂ´ng há»£p lá»‡!")
 
     else:
         form = UserCreationForm()
@@ -82,7 +89,7 @@ def dangky(request):
 
 def dangnhap(request):
     if request.user.is_authenticated:
-        # Đồng bộ nhanh nếu chưa có TAIKHOAN
+        # Äá»“ng bá»™ nhanh náº¿u chÆ°a cĂ³ TAIKHOAN
         if not hasattr(request.user, 'taikhoan'):
             TAIKHOAN.objects.get_or_create(user=request.user, defaults={'role': 'admin' if request.user.is_staff else 'user'})
             
@@ -95,7 +102,7 @@ def dangnhap(request):
         user = authenticate(request, username = taikhoan, password = matkhau)
         if user is not None:
             login(request, user)
-            # Đồng bộ nhanh nếu chưa có TAIKHOAN
+            # Äá»“ng bá»™ nhanh náº¿u chÆ°a cĂ³ TAIKHOAN
             if not hasattr(user, 'taikhoan'):
                 TAIKHOAN.objects.get_or_create(user=user, defaults={'role': 'admin' if user.is_staff else 'user'})
                 
@@ -104,7 +111,7 @@ def dangnhap(request):
             else:
                 return redirect('home')
         else:
-            messages.error(request, "Tên đăng nhập hoặc mật khẩu không chính xác!")
+            messages.error(request, "TĂªn Ä‘Äƒng nháº­p hoáº·c máº­t kháº©u khĂ´ng chĂ­nh xĂ¡c!")
     return render(request, "dangnhap.html")
 
 def themgiohang(request, sanpham_id):
@@ -116,7 +123,7 @@ def themgiohang(request, sanpham_id):
 
     size = request.POST.get('size')
     if not size:
-        size = 'M'   # 👈 FIX CỨU CHÁY
+        size = 'M'   # đŸ‘ˆ FIX Cá»¨U CHĂY
 
     giohang, created = GIOHANG.objects.get_or_create(khachhang=request.user)
 
@@ -131,6 +138,14 @@ def themgiohang(request, sanpham_id):
         chitiet.soluong += soluongmua
         chitiet.save()
 
+    next_url = request.POST.get('next')
+    if next_url and url_has_allowed_host_and_scheme(
+        url=next_url,
+        allowed_hosts={request.get_host()},
+        require_https=request.is_secure()
+    ):
+        return redirect(next_url)
+
     return redirect('home')
 
 def suagiohang(request, sanpham_id):
@@ -143,9 +158,20 @@ def suagiohang(request, sanpham_id):
     return redirect('giohang')
 
 def xoagiohang(request, sanpham_id):
+    if not request.user.is_authenticated:
+        return redirect('dangnhap')
+
     gio_hang = GIOHANG.objects.get(khachhang = request.user)
-    chitiet = CHITIETGIOHANG.objects.get(giohang = gio_hang, sanpham_id = sanpham_id)
-    chitiet.delete()
+    size = request.GET.get('size')
+
+    chitiet_query = CHITIETGIOHANG.objects.filter(giohang=gio_hang, sanpham_id=sanpham_id)
+    if size:
+        chitiet_query = chitiet_query.filter(size=size)
+
+    chitiet = chitiet_query.first()
+    if chitiet:
+        chitiet.delete()
+
     return redirect('giohang')
 
 def giohang(request):
@@ -179,7 +205,7 @@ def thanhtoan(request):
         lonkh = float(request.POST.get('lon'))
         action = request.POST.get('action')
         if not latkh or not lonkh:
-            messages.error(request, "Địa chỉ không hợp lệ")
+            messages.error(request, "Äá»‹a chá»‰ khĂ´ng há»£p lá»‡")
             context = {'tenkh': tenkh, 'sdtkh': sdtkh, 'diachikh': diachikh, 'sanpham': san_pham, 'tongtien': tongtiendonhang}
             return render(request, 'thanhtoan.html', context)
         cuahang = CUAHANG.objects.all()
@@ -254,7 +280,7 @@ def quantri(request):
     tongdh2 = DONHANG.objects.filter(trangthai=2).count()
     tongch = CUAHANG.objects.count()
 
-    # Lấy tháng + năm hiện tại
+    # Láº¥y thĂ¡ng + nÄƒm hiá»‡n táº¡i
     now = datetime.now()
 
     donhang = DONHANG.objects.filter(
@@ -267,13 +293,78 @@ def quantri(request):
     for dh in donhang:
         tong += dh.tongtien
 
+    monthly_revenue = (
+        DONHANG.objects.filter(trangthai=2)
+        .annotate(month=TruncMonth('ngaydat'))
+        .values('month')
+        .annotate(total=Sum('tongtien'))
+        .order_by('-month')
+    )
+
+    selected_month = request.GET.get('month')
+    selected_month_date = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+
+    if selected_month:
+        try:
+            selected_month_date = datetime.strptime(selected_month, '%Y-%m')
+        except ValueError:
+            selected_month_date = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+
+    max_day = calendar.monthrange(selected_month_date.year, selected_month_date.month)[1]
+    day_from = request.GET.get('day_from')
+    day_to = request.GET.get('day_to')
+    day_from_value = ''
+    day_to_value = ''
+
+    try:
+        if day_from is not None and day_from != '':
+            day_from_value = max(1, min(int(day_from), max_day))
+    except ValueError:
+        day_from_value = ''
+
+    try:
+        if day_to is not None and day_to != '':
+            day_to_value = max(1, min(int(day_to), max_day))
+    except ValueError:
+        day_to_value = ''
+
+    monthly_details = DONHANG.objects.filter(
+        trangthai=2,
+        ngaydat__year=selected_month_date.year,
+        ngaydat__month=selected_month_date.month
+    ).order_by('-ngaydat')
+
+    if day_from_value != '':
+        monthly_details = monthly_details.filter(ngaydat__day__gte=day_from_value)
+    if day_to_value != '':
+        monthly_details = monthly_details.filter(ngaydat__day__lte=day_to_value)
+
+    if day_from_value != '' and day_to_value != '' and day_from_value > day_to_value:
+        day_from_value, day_to_value = day_to_value, day_from_value
+        monthly_details = DONHANG.objects.filter(
+            trangthai=2,
+            ngaydat__year=selected_month_date.year,
+            ngaydat__month=selected_month_date.month,
+            ngaydat__day__gte=day_from_value,
+            ngaydat__day__lte=day_to_value
+        ).order_by('-ngaydat')
+
+    selected_month_total = monthly_details.aggregate(total=Sum('tongtien'))['total'] or 0
+
     context = {
         'tongsp': tongsp,
         'tongdh1': tongdh1,
         'tongdh2': tongdh2,
         'tongcuahang': tongch,
         'tongtien': tong,
-        'now': now
+        'now': now,
+        'monthly_revenue': monthly_revenue,
+        'selected_month_date': selected_month_date,
+        'monthly_details': monthly_details,
+        'selected_month_total': selected_month_total,
+        'day_from_value': day_from_value,
+        'day_to_value': day_to_value,
+        'max_day': max_day,
     }
     return render(request, 'quantri.html', context)
 
@@ -330,6 +421,7 @@ def suasanpham(request, sanpham_id):
     loai = LOAI.objects.all()
     if request.method == 'POST':
         sp.ten = request.POST.get('ten')
+        sp.mota = request.POST.get('mota', '')
         loai_id = request.POST.get('loai')
         if loai_id:
             sp.loaisp_id = loai_id
@@ -355,6 +447,7 @@ def themsanpham(request):
     loaisp = LOAI.objects.all()
     if request.method == 'POST':
         tensp = request.POST.get('ten')
+        motasp = request.POST.get('mota', '')
         loai = request.POST.get('loai')
         giasp = request.POST.get('gia')
         soluongsp = request.POST.get('soluong')
@@ -362,6 +455,7 @@ def themsanpham(request):
         hinhchitietsp = request.FILES.getlist('hinhchitiet')
         sp = SANPHAM.objects.create(
             ten = tensp,
+            mota = motasp,
             loaisp_id = loai,
             gia = giasp,
             soluong = soluongsp,
@@ -385,7 +479,7 @@ def quanlydonhang(request):
     to_date = request.GET.get('to_date')
     min_price = request.GET.get('min_price')
     max_price = request.GET.get('max_price')
-    status = request.GET.get('status')   # ✅ thêm dòng này
+    status = request.GET.get('status')   # âœ… thĂªm dĂ²ng nĂ y
 
     if keyword:
         donhang = donhang.filter(
@@ -405,13 +499,13 @@ def quanlydonhang(request):
     if max_price:
         donhang = donhang.filter(tongtien__lte=max_price)
 
-    # ===== FILTER STATUS (QUAN TRỌNG) =====
+    # ===== FILTER STATUS (QUAN TRá»ŒNG) =====
     if status == "0":
-        donhang = donhang.filter(trangthai=1)  # chưa duyệt
+        donhang = donhang.filter(trangthai=1)  # chÆ°a duyá»‡t
     elif status == "1":
-        donhang = donhang.filter(trangthai=2)  # đã duyệt
+        donhang = donhang.filter(trangthai=2)  # Ä‘Ă£ duyá»‡t
 
-    # ===== PHÂN LOẠI HIỂN THỊ =====
+    # ===== PHĂ‚N LOáº I HIá»‚N THá» =====
     donhang1 = donhang.filter(trangthai=1)
     donhang2 = donhang.filter(trangthai=2)
 
@@ -426,7 +520,7 @@ def duyetdonhang(request, donhang_id):
         dh = DONHANG.objects.get(id = donhang_id)
         dh.trangthai = 2
         dh.save()
-        messages.success(request, "Cập nhật thành công")
+        messages.success(request, "Cáº­p nháº­t thĂ nh cĂ´ng")
     return redirect('quanlydonhang')
     
 @admin_required
@@ -441,7 +535,7 @@ def xoadonhang(request, donhang_id):
     if request.method == 'POST':
         donhang = DONHANG.objects.get(id = donhang_id)
         donhang.delete()
-        messages.success(request, "Xóa thành công")
+        messages.success(request, "XĂ³a thĂ nh cĂ´ng")
     return redirect('quanlydonhang')
 
 @admin_required
@@ -502,15 +596,17 @@ def quanlycuahang(request):
 def themcuahang(request):
     if request.method == 'POST':
         tench = request.POST.get('ten')
+        sodienthoai = request.POST.get('sodienthoai', '').strip()
         diachich = request.POST.get('diachi')
         latch = request.POST.get('lat')
         lonch = request.POST.get('lon')
         if not latch or not lonch:
-            messages.error(request, "Địa chỉ không hợp lệ")
-            context = {'tench': tench, 'diachich': diachich}
+            messages.error(request, "Äá»‹a chá»‰ khĂ´ng há»£p lá»‡")
+            context = {'tench': tench, 'sodienthoai': sodienthoai, 'diachich': diachich}
             return render(request, 'admin/cuahang/themcuahang.html', context)
         cuahang = CUAHANG.objects.create(
             ten = tench,
+            sodienthoai = sodienthoai,
             diachi = diachich,
             lat = latch,
             lon = lonch,
@@ -519,7 +615,7 @@ def themcuahang(request):
             gio_dong = request.POST.get('gio_dong') or "22:00"
         )
         cuahang.save()
-        messages.success(request, "Thêm thành công")
+        messages.success(request, "ThĂªm thĂ nh cĂ´ng")
         return redirect('quanlycuahang')    
     return render(request, 'admin/cuahang/themcuahang.html')
 
@@ -528,9 +624,10 @@ def suacuahang(request, cuahang_id):
     cuahang = CUAHANG.objects.get(id=cuahang_id)
     if request.method == 'POST':
         cuahang.ten = request.POST.get('ten')
+        cuahang.sodienthoai = request.POST.get('sodienthoai', '').strip()
         cuahang.diachi = request.POST.get('diachi')
         
-        # Convert lat/lon sang float, đổi ',' thành '.'
+        # Convert lat/lon sang float, Ä‘á»•i ',' thĂ nh '.'
         lat_str = request.POST.get('lat', cuahang.lat)
         lon_str = request.POST.get('lon', cuahang.lon)
         try:
@@ -540,7 +637,7 @@ def suacuahang(request, cuahang_id):
             cuahang.lat = cuahang.lat
             cuahang.lon = cuahang.lon
         
-        # Upload hình mới nếu có, giữ nguyên hình cũ nếu không
+        # Upload hĂ¬nh má»›i náº¿u cĂ³, giá»¯ nguyĂªn hĂ¬nh cÅ© náº¿u khĂ´ng
         hinhmoi = request.FILES.get('hinh')
         if hinhmoi:
             cuahang.hinh = hinhmoi
@@ -549,7 +646,7 @@ def suacuahang(request, cuahang_id):
         cuahang.gio_dong = request.POST.get('gio_dong') or cuahang.gio_dong
 
         cuahang.save()
-        messages.success(request, "Cập nhật cửa hàng thành công")
+        messages.success(request, "Cáº­p nháº­t cá»­a hĂ ng thĂ nh cĂ´ng")
         return redirect('quanlycuahang')
     
     context = {'cuahang': cuahang}
@@ -560,7 +657,7 @@ def xoacuahang(request, cuahang_id):
     cuahang = CUAHANG.objects.get(id = cuahang_id)
     if request.method == 'POST':
         cuahang.delete()
-        messages.success(request, "Xóa thành công")
+        messages.success(request, "XĂ³a thĂ nh cĂ´ng")
     return redirect('quanlycuahang')
 def map_view(request):
 
@@ -575,6 +672,7 @@ def map_view(request):
 
         data.append({
             "ten": ch.ten,
+            "sodienthoai": ch.sodienthoai,
             "lat": ch.lat,
             "lon": ch.lon,
             "diachi": ch.diachi,
@@ -589,12 +687,12 @@ def map_view(request):
 
 @admin_required
 def quanlytaikhoan(request):
-    # Chỉ Admin mới được vào trang quản lý tài khoản
+    # Chá»‰ Admin má»›i Ä‘Æ°á»£c vĂ o trang quáº£n lĂ½ tĂ i khoáº£n
     if request.user.taikhoan.role != 'admin':
-        messages.error(request, "Chỉ Admin mới có quyền quản lý tài khoản!")
+        messages.error(request, "Chá»‰ Admin má»›i cĂ³ quyá»n quáº£n lĂ½ tĂ i khoáº£n!")
         return redirect('quantri')
 
-    # Tự động tạo TAIKHOAN cho các user cũ chưa có
+    # Tá»± Ä‘á»™ng táº¡o TAIKHOAN cho cĂ¡c user cÅ© chÆ°a cĂ³
     for u in User.objects.all():
         TAIKHOAN.objects.get_or_create(
             user=u,
@@ -629,27 +727,27 @@ def quanlytaikhoan(request):
 
 @admin_required
 def capnhatquyen(request, user_id):
-    # Chỉ Admin mới có quyền cập nhật người khác
+    # Chá»‰ Admin má»›i cĂ³ quyá»n cáº­p nháº­t ngÆ°á»i khĂ¡c
     if request.user.taikhoan.role != 'admin':
-        messages.error(request, "Chỉ Admin mới có quyền thay đổi phân quyền!")
+        messages.error(request, "Chá»‰ Admin má»›i cĂ³ quyá»n thay Ä‘á»•i phĂ¢n quyá»n!")
         return redirect('quantri')
 
     if request.method == 'POST':
         try:
             tk = TAIKHOAN.objects.select_related('user').get(user__id=user_id)
-            # Không cho phép thay đổi superuser hoặc chính mình
+            # KhĂ´ng cho phĂ©p thay Ä‘á»•i superuser hoáº·c chĂ­nh mĂ¬nh
             if tk.user.is_superuser:
-                messages.error(request, "Không thể thay đổi quyền của Super Admin!")
+                messages.error(request, "KhĂ´ng thá»ƒ thay Ä‘á»•i quyá»n cá»§a Super Admin!")
                 return redirect('quanlytaikhoan')
             if tk.user.id == request.user.id:
-                messages.error(request, "Không thể thay đổi quyền của chính bạn!")
+                messages.error(request, "KhĂ´ng thá»ƒ thay Ä‘á»•i quyá»n cá»§a chĂ­nh báº¡n!")
                 return redirect('quanlytaikhoan')
 
             quyen_moi = request.POST.get('quyen')
             if quyen_moi in ['admin', 'quanly', 'user']:
                 tk.role = quyen_moi
                 
-                # Đồng bộ is_staff (Admin và Quản lý đều cần is_staff=True để vào trang quản trị)
+                # Äá»“ng bá»™ is_staff (Admin vĂ  Quáº£n lĂ½ Ä‘á»u cáº§n is_staff=True Ä‘á»ƒ vĂ o trang quáº£n trá»‹)
                 if quyen_moi in ['admin', 'quanly']:
                     tk.user.is_staff = True
                 else:
@@ -657,34 +755,34 @@ def capnhatquyen(request, user_id):
                 
                 tk.user.save()
                 tk.save()
-                messages.success(request, f'Đã cập nhật quyền cho {tk.user.username} thành {tk.get_role_display()}!')
+                messages.success(request, f'ÄĂ£ cáº­p nháº­t quyá»n cho {tk.user.username} thĂ nh {tk.get_role_display()}!')
         except TAIKHOAN.DoesNotExist:
-            messages.error(request, "Tài khoản không tồn tại!")
+            messages.error(request, "TĂ i khoáº£n khĂ´ng tá»“n táº¡i!")
     return redirect('quanlytaikhoan')
 
 def xoataikhoan(request, id):
     if request.method == "POST":
         user = get_object_or_404(User, id=id)
 
-        # ❌ Không cho xóa chính mình
+        # âŒ KhĂ´ng cho xĂ³a chĂ­nh mĂ¬nh
         if user == request.user:
-            messages.error(request, "Không thể xóa tài khoản của chính bạn!")
+            messages.error(request, "KhĂ´ng thá»ƒ xĂ³a tĂ i khoáº£n cá»§a chĂ­nh báº¡n!")
             return redirect('quanlytaikhoan')
 
-        # ❌ Không cho xóa super admin
+        # âŒ KhĂ´ng cho xĂ³a super admin
         if user.is_superuser:
-            messages.error(request, "Không thể xóa Super Admin!")
+            messages.error(request, "KhĂ´ng thá»ƒ xĂ³a Super Admin!")
             return redirect('quanlytaikhoan')
 
         user.delete()
-        messages.success(request, "Xóa tài khoản thành công!")
+        messages.success(request, "XĂ³a tĂ i khoáº£n thĂ nh cĂ´ng!")
 
     return redirect('quanlytaikhoan')
 
 from django.shortcuts import render, redirect
 from django.core.mail import send_mail
 from django.contrib import messages
-from .forms import MailForm  # tạo form cho email
+from .forms import MailForm  # táº¡o form cho email
 
 from django.conf import settings
 
@@ -703,9 +801,9 @@ def send_mailtrap(request):
                     ['phuc052005@gmail.com'],
                     fail_silently=False
                 )
-                messages.success(request, 'Email đã gửi thành công!')
+                messages.success(request, 'Email Ä‘Ă£ gá»­i thĂ nh cĂ´ng!')
             except Exception as e:
-                messages.error(request, f'Gửi email thất bại: {e}')
+                messages.error(request, f'Gá»­i email tháº¥t báº¡i: {e}')
 
             return redirect('send_mailtrap')
     else:
@@ -724,3 +822,5 @@ def chinhsachdoitra(request):
 
 def dieukhoansudung(request):
     return render(request, 'dieukhoansudung.html')
+
+

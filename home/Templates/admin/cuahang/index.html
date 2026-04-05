@@ -3,8 +3,7 @@
 
 {% block main-content %}
 <div class="container-fluid mt-5 mb-5 px-4">
-    
-    <div class="d-flex justify-content-between align-items-end mb-4 mx-auto" style="max-width: 900px;">
+    <div class="d-flex justify-content-between align-items-end mb-4 mx-auto" style="max-width: 1000px;">
         <div>
             <h2 class="fw-bold text-uppercase m-0">Quản Lý Cửa Hàng</h2>
             <div style="width: 50px; height: 3px; background: #000; margin-top: 10px;"></div>
@@ -19,14 +18,15 @@
         </div>
     </div>
 
-    <div class="card border-0 shadow-sm rounded-0 mx-auto" style="max-width: 900px;">
+    <div class="card border-0 shadow-sm rounded-0 mx-auto" style="max-width: 1000px;">
         <div class="card-body p-0">
             <div class="table-responsive">
                 <table class="table align-middle mb-0">
                     <thead class="bg-light">
                         <tr class="small text-uppercase text-secondary">
-                            <th class="ps-4 py-3 border-0" style="width: 100px;">ID</th>
+                            <th class="ps-4 py-3 border-0" style="width: 80px;">ID</th>
                             <th class="py-3 border-0">Tên cửa hàng</th>
+                            <th class="py-3 border-0">Số điện thoại</th>
                             <th class="py-3 border-0">Địa chỉ</th>
                             <th class="pe-4 py-3 border-0 text-end">Thao tác</th>
                         </tr>
@@ -36,6 +36,7 @@
                         <tr class="border-bottom">
                             <td class="ps-4 py-3 text-muted">#{{ ch.id }}</td>
                             <td class="fw-bold text-dark text-uppercase small">{{ ch.ten }}</td>
+                            <td class="text-secondary small">{{ ch.sodienthoai|default:"-" }}</td>
                             <td class="text-secondary small">{{ ch.diachi }}</td>
                             <td class="pe-4 text-end">
                                 <div class="d-flex justify-content-end gap-3 align-items-center">
@@ -44,7 +45,7 @@
                                     </a>
                                     <form action="{% url 'xoacuahang' ch.id %}" method="post" class="m-0">
                                         {% csrf_token %}
-                                        <button type="submit" 
+                                        <button type="submit"
                                                 class="border-0 bg-transparent text-danger fw-bold small text-uppercase p-0"
                                                 onclick="return confirm('Bạn có chắc muốn xóa cửa hàng ({{ ch.ten }}) không?')">
                                             Xóa
@@ -55,7 +56,7 @@
                         </tr>
                         {% empty %}
                         <tr>
-                            <td colspan="4" class="text-center py-5 text-muted small text-uppercase">Chưa có thông tin cửa hàng.</td>
+                            <td colspan="5" class="text-center py-5 text-muted small text-uppercase">Chưa có thông tin cửa hàng.</td>
                         </tr>
                         {% endfor %}
                     </tbody>
