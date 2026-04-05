@@ -6,7 +6,7 @@
     <div class="row g-4">
 
         <div class="col-lg-3 col-md-4">
-            <div class="bg-white rounded-4 shadow-sm border-0 overflow-hidden sticky-top" style="top: 80px z-index 1">
+            <div class="bg-white rounded-4 shadow-sm border-0 overflow-hidden admin-menu-sticky">
                 <div class="p-3 border-bottom bg-light text-center">
                     <h6 class="m-0 fw-bold text-uppercase text-secondary" style="letter-spacing: 1px;">Menu Quản Trị
                     </h6>
@@ -273,6 +273,12 @@
         background: #0d6efd;
         border-color: #0d6efd;
         color: #fff;
+    }
+
+    .admin-menu-sticky {
+        position: sticky;
+        top: 96px;
+        z-index: 10;
     }
 </style>
 {% endblock main-content %}

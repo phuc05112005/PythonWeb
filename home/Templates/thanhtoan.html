@@ -1,5 +1,6 @@
 {% extends "layout.html" %}
 {% load static %}
+{% load humanize %}
 
 {% block main-content %}
 <meta name="referrer" content="no-referrer-when-downgrade">
@@ -7,10 +8,10 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
 <style>
-    #map { 
-        height: 350px; 
-        width: 100%; 
-        border: none; 
+    #map {
+        height: 350px;
+        width: 100%;
+        border: none;
         z-index: 1;
     }
 
@@ -23,14 +24,13 @@
     <form method="post">
         {% csrf_token %}
         <div class="row g-5">
-            
             <div class="col-lg-7">
                 <h3 class="fw-bolder text-uppercase mb-4" style="letter-spacing: 1px;">Thông tin giao hàng</h3>
-                
+
                 <div class="bg-white p-4 p-md-5 rounded-4 shadow-sm border-0 mb-4">
                     <div class="row g-3 mb-4">
                         <div class="col-md-6">
-                            <label class="form-label fw-bold small text-secondary text-uppercase">Họ và tên</label>
+                            <label class="form-label fw-bold small text-secondary text-uppercase">Tên khách hàng</label>
                             <input type="text" name="ten" class="form-control rounded-pill bg-light border-0 shadow-none" value="{{ tenkh|default:'' }}" placeholder="Nhập họ tên...">
                         </div>
                         <div class="col-md-6">
@@ -38,7 +38,7 @@
                             <input type="number" name="sdt" class="form-control rounded-pill bg-light border-0 shadow-none" value="{{ sdtkh|default:'' }}" placeholder="Nhập số điện thoại...">
                         </div>
                         <div class="col-12">
-                            <label class="form-label fw-bold small text-secondary text-uppercase">Địa chỉ cụ thể</label>
+                            <label class="form-label fw-bold small text-secondary text-uppercase">Địa chỉ giao hàng</label>
                             <div class="input-group">
                                 <input type="text" name="diachi" id="diachi" class="form-control bg-light border-0 shadow-none" style="border-top-left-radius: 50rem; border-bottom-left-radius: 50rem;" value="{{ diachikh|default:'' }}" placeholder="Số nhà, tên đường, phường/xã...">
                                 <button type="button" class="btn btn-dark px-4" style="border-top-right-radius: 50rem; border-bottom-right-radius: 50rem;" onclick="searchAddress()">
@@ -57,7 +57,7 @@
                             <div id="map"></div>
                         </div>
                     </div>
-                    
+
                     <div class="d-flex justify-content-end">
                         <button type="submit" name="action" value="tinhship" class="btn btn-outline-secondary rounded-pill fw-bold text-uppercase btn-sm px-4 d-none">
                         </button>
@@ -67,8 +67,8 @@
 
             <div class="col-lg-5">
                 <div class="bg-white p-4 p-md-5 rounded-4 shadow-sm border-0 sticky-top" style="top: 30px;">
-                    <h4 class="fw-bolder text-uppercase mb-4" style="letter-spacing: 1px;">Đơn hàng</h4>
-                    
+                    <h4 class="fw-bolder text-uppercase mb-4" style="letter-spacing: 1px;">Xác nhận đơn hàng</h4>
+
                     <div class="mb-4">
                         {% for sp in sanpham %}
                         <div class="d-flex align-items-center mb-3">
@@ -80,10 +80,11 @@
                             </div>
                             <div class="ms-3 flex-grow-1">
                                 <h6 class="mb-1 fw-bold text-truncate" style="max-width: 150px;">{{ sp.sanpham.ten }}</h6>
-                                <small class="text-secondary">{{ sp.sanpham.gia }} đ</small>
+                                <small class="text-secondary text-nowrap">{{ sp.sanpham.gia|intcomma }} đ</small>
                             </div>
-                            <div class="fw-bold text-end">
-                                {% widthratio sp.soluong 1 sp.sanpham.gia %} đ
+                            <div class="fw-bold text-end text-nowrap">
+                                {% widthratio sp.soluong 1 sp.sanpham.gia as thanhtien %}
+                                {{ thanhtien|intcomma }} đ
                             </div>
                         </div>
                         {% endfor %}
@@ -93,7 +94,7 @@
 
                     <div class="d-flex justify-content-between mb-2">
                         <span class="text-secondary fw-medium">Tạm tính:</span>
-                        <span class="fw-bold">{{ tongtiendonhang }} đ</span>
+                        <span class="fw-bold text-nowrap">{{ tongtiendonhang|intcomma }} đ</span>
                     </div>
 
                     {% if tienship %}
@@ -103,7 +104,7 @@
                     </div>
                     <div class="d-flex justify-content-between mb-3">
                         <span class="text-secondary fw-medium">Phí giao hàng:</span>
-                        <span class="fw-bold text-warning">{{ tienship }} đ</span>
+                        <span class="fw-bold text-warning text-nowrap">{{ tienship|intcomma }} đ</span>
                     </div>
                     {% else %}
                     <div class="alert alert-light text-center border border-warning-subtle text-warning small fw-bold mb-3 rounded-3">
@@ -113,9 +114,14 @@
 
                     <hr class="opacity-25 my-4">
 
+                    <div class="d-flex justify-content-between mb-3 align-items-center">
+                        <span class="text-secondary fw-medium">Thanh toán:</span>
+                        <span class="fw-bold text-nowrap">Thanh toán khi nhận hàng (COD)</span>
+                    </div>
+
                     <div class="d-flex justify-content-between mb-4 align-items-center">
                         <span class="fw-bold text-uppercase" style="font-size: 1.1rem;">Tổng thanh toán:</span>
-                        <span class="fw-bolder text-danger fs-3">{{ tongtien }} đ</span>
+                        <span class="fw-bolder text-danger fs-3 text-nowrap">{{ tongtien|intcomma }} đ</span>
                     </div>
 
                     <button type="submit" name="action" value="thanhtoan" class="btn btn-dark w-100 rounded-pill fw-bold text-uppercase py-3 shadow-sm transition-hover" style="letter-spacing: 1px;" {% if not tienship %}disabled{% endif %}>
@@ -123,7 +129,6 @@
                     </button>
                 </div>
             </div>
-
         </div>
     </form>
 </div>
@@ -140,7 +145,6 @@
         var address = document.getElementById('diachi').value;
         if (!address) return alert("Vui lòng nhập địa chỉ!");
 
-
         var btnTim = document.querySelector("button[onclick='searchAddress()']");
         var textGoc = btnTim.innerHTML;
         btnTim.innerHTML = "Đang tính...";
@@ -152,14 +156,13 @@
                     var lat = data[0].lat;
                     var lon = data[0].lon;
                     updateMap(lat, lon);
-                    
                     document.querySelector("button[value='tinhship']").click();
                 } else {
                     alert("Không tìm thấy tọa độ cho địa chỉ này! Vui lòng nhập chi tiết hơn.");
                     btnTim.innerHTML = textGoc;
                 }
             })
-            .catch(err => {
+            .catch(() => {
                 alert("Lỗi kết nối mạng, vui lòng thử lại!");
                 btnTim.innerHTML = textGoc;
             });
@@ -169,11 +172,11 @@
         document.getElementById('lat').value = lat;
         document.getElementById('lon').value = lon;
         map.setView([lat, lon], 16);
-        
-        if (marker) map.removeLayer(marker);
-        marker = L.marker([lat, lon], {draggable: true}).addTo(map);
 
-        marker.on('dragend', function(e) {
+        if (marker) map.removeLayer(marker);
+        marker = L.marker([lat, lon], { draggable: true }).addTo(map);
+
+        marker.on('dragend', function () {
             var newPos = marker.getLatLng();
             document.getElementById('lat').value = newPos.lat;
             document.getElementById('lon').value = newPos.lng;
@@ -181,12 +184,12 @@
         });
     }
 
-    map.on('click', function(e) {
+    map.on('click', function (e) {
         updateMap(e.latlng.lat, e.latlng.lng);
         document.querySelector("button[value='tinhship']").click();
     });
 
-    window.onload = function() {
+    window.onload = function () {
         var savedLat = "{{ latkh|default:'' }}";
         var savedLon = "{{ lonkh|default:'' }}";
         if (savedLat !== "" && savedLon !== "") {
@@ -196,13 +199,13 @@
 </script>
 
 <style>
-
     .transition-hover {
         transition: all 0.3s ease;
     }
+
     .transition-hover:hover {
         transform: translateY(-3px);
-        box-shadow: 0 .5rem 1rem rgba(0,0,0,.15)!important;
+        box-shadow: 0 .5rem 1rem rgba(0,0,0,.15) !important;
     }
 </style>
 {% endblock main-content %}

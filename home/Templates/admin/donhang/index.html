@@ -10,7 +10,7 @@
             <div style="width: 60px; height: 4px; background: #000; margin-top: 10px;"></div>
         </div>
         <a href="{% url 'quantri' %}" class="text-decoration-none text-dark fw-bold text-uppercase">
-            Quay về
+            <i class="bi bi-arrow-left me-1"></i> Quay lại
         </a>
     </div>
     <form method="get" class="row g-2 mb-4 align-items-center">
@@ -51,14 +51,14 @@
 
         <div class="col-md-1 d-grid">
             <a href="{% url 'quanlydonhang' %}" class="btn btn-outline-secondary btn-sm">
-                Reset
+                Bỏ lọc
             </a>
         </div>
 
     </form>
     <div class="mb-5">
         <div class="d-flex align-items-center mb-3">
-            <h4 class="fw-bold m-0 text-primary text-uppercase " style="letter-spacing: 1px;">Đơn hàng mới nhận</h4>
+            <h4 class="fw-bold m-0 text-primary text-uppercase " style="letter-spacing: 1px;">Đơn hàng mới</h4>
             <span class="ms-3 badge rounded-0 bg-primary px-3 py-2">{{ donhang1|length }} đơn</span>
         </div>
         
@@ -88,7 +88,7 @@
                             <td class="pe-4 text-end">
                                 <div class="d-flex justify-content-end gap-2">
                                     <a href="{% url 'chitietdonhang' dh.id %}" class="btn btn-outline-dark btn-sm rounded-0 px-3 fw-bold small text-uppercase">
-                                        Chi tiết
+                                        Chi tiết đơn hàng
                                     </a>
                                     <form action="{% url 'duyetdonhang' dh.id %}" method="post" class="m-0">
                                         {% csrf_token %}
@@ -148,7 +148,7 @@
                             <td class="text-muted small">{{ dh.ngaydat|date:"d/m/Y H:i" }}</td>
                             <td class="pe-4 text-end">
                                 <a href="{% url 'chitietdonhang' dh.id %}" class="btn btn-light btn-sm rounded-0 px-3 fw-bold small text-uppercase border">
-                                    Xem chi tiết
+                                    Chi tiết đơn hàng
                                 </a>
                             </td>
                         </tr>

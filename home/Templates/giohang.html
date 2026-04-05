@@ -5,11 +5,13 @@
 {% block main-content %}
 <div class="container mt-5 mb-5 min-vh-100">
     <h2 class="fw-bolder text-uppercase mb-4" style="letter-spacing: 1px;">Giỏ hàng của bạn</h2>
+
     <div class="mb-4">
         <a href="{% url 'home' %}" class="text-decoration-none text-secondary fw-bold small text-uppercase transition-hover d-inline-flex align-items-center">
             <span class="me-2" style="font-size: 1.2rem;">&larr;</span> Tiếp tục mua sắm
         </a>
     </div>
+
     {% if sanpham %}
     <div class="row">
         <div class="col-lg-8 mb-4 mb-lg-0">
@@ -19,9 +21,9 @@
                         <thead class="table-light">
                             <tr class="text-uppercase small fw-bold text-secondary">
                                 <th scope="col" class="border-0 rounded-start-3">Sản phẩm</th>
-                                <th scope="col" class="border-0">Đơn giá</th>
+                                <th scope="col" class="border-0 text-nowrap price-col">Đơn giá</th>
                                 <th scope="col" class="border-0 text-center">Số lượng</th>
-                                <th scope="col" class="border-0 text-end">Thành tiền</th>
+                                <th scope="col" class="border-0 text-end text-nowrap total-col">Thành tiền</th>
                                 <th scope="col" class="border-0 text-center rounded-end-3">Xóa</th>
                             </tr>
                         </thead>
@@ -32,28 +34,37 @@
                                     <div class="d-flex align-items-center gap-3">
                                         <img src="{{ sp.sanpham.hinhurl }}" alt="{{ sp.sanpham.ten }}" class="rounded-3 shadow-sm" style="width: 70px; height: 90px; object-fit: cover;">
                                         <span class="fw-bold">
-                                            {{ sp.sanpham.ten }} 
+                                            {{ sp.sanpham.ten }}
                                             <br>
                                             <small class="text-muted">Size: {{ sp.size }}</small>
                                         </span>
                                     </div>
                                 </td>
-                                <td class="fw-medium text-secondary">{{ sp.sanpham.gia }} đ</td>
+
+                                <td class="fw-medium text-secondary text-nowrap price-col">{{ sp.sanpham.gia|intcomma }} đ</td>
+
                                 <td>
                                     <form action="{% url 'suagiohang' sp.sanpham.id %}" method="post" class="d-flex justify-content-center m-0">
                                         {% csrf_token %}
-                                        
                                         <input type="hidden" name="size" value="{{ sp.size }}">
-
-                                        <input type="number" name="soluong" value="{{ sp.soluong }}" min="1" max="{{ sp.sanpham.soluong }}" 
-                                            class="form-control text-center rounded-pill border-2 bg-light shadow-none fw-bold" style="width: 80px;"
-                                            onchange="this.form.submit()">
+                                        <input
+                                            type="number"
+                                            name="soluong"
+                                            value="{{ sp.soluong }}"
+                                            min="1"
+                                            max="{{ sp.sanpham.soluong }}"
+                                            class="form-control text-center rounded-pill border-2 bg-light shadow-none fw-bold"
+                                            style="width: 80px;"
+                                            onchange="this.form.submit()"
+                                        >
                                     </form>
                                 </td>
-                                <td class="text-end fw-bold">
+
+                                <td class="text-end fw-bold text-nowrap total-col">
                                     {% widthratio sp.soluong 1 sp.sanpham.gia as thanhtien %}
-                                    {{ thanhtien }} đ
+                                    {{ thanhtien|intcomma }} đ
                                 </td>
+
                                 <td class="text-center">
                                     <a href="{% url 'xoagiohang' sp.sanpham.id %}?size={{ sp.size|urlencode }}" class="btn btn-outline-danger btn-sm rounded-circle shadow-sm" style="width: 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center;" title="Xóa khỏi giỏ">
                                         <b>&times;</b>
@@ -69,26 +80,25 @@
 
         <div class="col-lg-4">
             <div class="bg-white p-4 rounded-4 shadow-sm border-0 sticky-top" style="top: 100px;">
-                <h5 class="fw-bold text-uppercase mb-4" style="letter-spacing: 0.5px;">Tóm tắt đơn hàng</h5>
-                
+                <h5 class="fw-bold text-uppercase mb-4" style="letter-spacing: 0.5px;">Đơn hàng</h5>
+
                 <div class="d-flex justify-content-between mb-3">
                     <span class="text-secondary fw-medium">Tạm tính:</span>
                     <span class="fw-bold">{{ tongtien|intcomma }} đ</span>
                 </div>
                 <hr class="opacity-25 my-4">
-                
+
                 <div class="d-flex justify-content-between mb-4 align-items-center">
                     <span class="fw-bold text-uppercase" style="font-size: 1.1rem;">Tổng cộng:</span>
                     <span class="fw-bolder text-danger fs-4">{{ tongtien|intcomma }} VNĐ</span>
                 </div>
-                
+
                 <a href="{% url 'thanhtoan' %}" class="btn btn-dark w-100 rounded-pill fw-bold text-uppercase py-3 shadow-sm transition-hover" style="letter-spacing: 1px;">
-                    Tiến hành thanh toán
+                    Tiến hành đặt hàng
                 </a>
             </div>
         </div>
     </div>
-    
     {% else %}
     <div class="bg-white p-5 rounded-4 shadow-sm text-center my-5 d-flex flex-column align-items-center justify-content-center" style="min-height: 400px;">
         <div class="mb-4" style="font-size: 4rem; opacity: 0.2;">🛒</div>
@@ -102,13 +112,21 @@
 </div>
 
 <style>
-    /* Hiệu ứng nổi lên mượt mà cho nút bấm */
     .transition-hover {
         transition: all 0.3s ease;
     }
+
     .transition-hover:hover {
         transform: translateY(-3px);
-        box-shadow: 0 .5rem 1rem rgba(0,0,0,.15)!important;
+        box-shadow: 0 .5rem 1rem rgba(0,0,0,.15) !important;
+    }
+
+    .price-col {
+        min-width: 130px;
+    }
+
+    .total-col {
+        min-width: 150px;
     }
 </style>
 {% endblock main-content %}
