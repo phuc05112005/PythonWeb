@@ -1,4 +1,4 @@
-{% extends "layout.html" %}
+﻿{% extends "layout.html" %}
 {% load static %}
 {% load humanize %}
 
@@ -31,20 +31,30 @@
                     <div class="row g-3 mb-4">
                         <div class="col-md-6">
                             <label class="form-label fw-bold small text-secondary text-uppercase">Tên khách hàng</label>
-                            <input type="text" name="ten" class="form-control rounded-pill bg-light border-0 shadow-none" value="{{ tenkh|default:'' }}" placeholder="Nhập họ tên...">
+                            <input type="text" name="ten" class="form-control rounded-pill bg-light border-0 shadow-none" value="{{ tenkh|default:'' }}" placeholder="Nhập tên khách hàng...">
                         </div>
                         <div class="col-md-6">
                             <label class="form-label fw-bold small text-secondary text-uppercase">Số điện thoại</label>
                             <input type="number" name="sdt" class="form-control rounded-pill bg-light border-0 shadow-none" value="{{ sdtkh|default:'' }}" placeholder="Nhập số điện thoại...">
                         </div>
+
                         <div class="col-12">
                             <label class="form-label fw-bold small text-secondary text-uppercase">Địa chỉ giao hàng</label>
-                            <div class="input-group">
-                                <input type="text" name="diachi" id="diachi" class="form-control bg-light border-0 shadow-none" style="border-top-left-radius: 50rem; border-bottom-left-radius: 50rem;" value="{{ diachikh|default:'' }}" placeholder="Số nhà, tên đường, phường/xã...">
-                                <button type="button" class="btn btn-dark px-4" style="border-top-right-radius: 50rem; border-bottom-right-radius: 50rem;" onclick="searchAddress()">
-                                    Tìm vị trí
-                                </button>
-                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <input type="text" name="diachi_duong" id="diachi_duong" class="form-control rounded-pill bg-light border-0 shadow-none" value="{{ diachi_duong|default:'' }}" placeholder="Số nhà và tên đường...">
+                        </div>
+                        <div class="col-md-3">
+                            <input type="text" name="diachi_phuong" id="diachi_phuong" class="form-control rounded-pill bg-light border-0 shadow-none" value="{{ diachi_phuong|default:'' }}" placeholder="Phường/Xã">
+                        </div>
+                        <div class="col-md-3">
+                            <input type="text" name="diachi_thanhpho" id="diachi_thanhpho" class="form-control rounded-pill bg-light border-0 shadow-none" value="{{ diachi_thanhpho|default:'' }}" placeholder="Tỉnh/Thành">
+                        </div>
+                        <div class="col-12">
+                            <input type="hidden" name="diachi" id="diachi" value="{{ diachikh|default:'' }}">
+                            <button type="button" id="btn-search-address" class="btn btn-dark rounded-pill px-4" onclick="searchAddress()">
+                                Tìm vị trí
+                            </button>
                         </div>
                     </div>
 
@@ -52,7 +62,7 @@
                     <input type="hidden" name="lon" id="lon">
 
                     <div class="mb-3">
-                        <label class="form-label fw-bold small text-secondary text-uppercase">Hoặc ghim vị trí trên bản đồ</label>
+                        <label class="form-label fw-bold small text-secondary text-uppercase">Ghim vị trí giao hàng trên bản đồ</label>
                         <div class="overflow-hidden rounded-4 shadow-sm border border-2 border-light">
                             <div id="map"></div>
                         </div>
@@ -80,6 +90,7 @@
                             </div>
                             <div class="ms-3 flex-grow-1">
                                 <h6 class="mb-1 fw-bold text-truncate" style="max-width: 150px;">{{ sp.sanpham.ten }}</h6>
+                                <small class="text-muted d-block">Size: {{ sp.size }}</small>
                                 <small class="text-secondary text-nowrap">{{ sp.sanpham.gia|intcomma }} đ</small>
                             </div>
                             <div class="fw-bold text-end text-nowrap">
@@ -141,15 +152,31 @@
 
     var marker;
 
+    function buildAddressFromFields() {
+        var addressParts = [
+            document.getElementById('diachi_duong').value.trim(),
+            document.getElementById('diachi_phuong').value.trim(),
+            document.getElementById('diachi_thanhpho').value.trim()
+        ].filter(Boolean);
+
+        var diachiHidden = document.getElementById('diachi');
+        var fullAddress = addressParts.join(', ');
+        if (!fullAddress) {
+            return diachiHidden.value.trim();
+        }
+        diachiHidden.value = fullAddress;
+        return fullAddress;
+    }
+
     function searchAddress() {
-        var address = document.getElementById('diachi').value;
-        if (!address) return alert("Vui lòng nhập địa chỉ!");
+        var address = buildAddressFromFields();
+        if (!address) return alert('Vui lòng nhập địa chỉ!');
 
-        var btnTim = document.querySelector("button[onclick='searchAddress()']");
+        var btnTim = document.getElementById('btn-search-address');
         var textGoc = btnTim.innerHTML;
-        btnTim.innerHTML = "Đang tính...";
+        btnTim.innerHTML = 'Đang tìm...';
 
-        fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address + ", Vietnam")}`)
+        fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address + ', Vietnam')}`)
             .then(res => res.json())
             .then(data => {
                 if (data.length > 0) {
@@ -158,12 +185,12 @@
                     updateMap(lat, lon);
                     document.querySelector("button[value='tinhship']").click();
                 } else {
-                    alert("Không tìm thấy tọa độ cho địa chỉ này! Vui lòng nhập chi tiết hơn.");
+                    alert('Không tìm thấy tọa độ cho địa chỉ này! Vui lòng nhập chi tiết hơn.');
                     btnTim.innerHTML = textGoc;
                 }
             })
             .catch(() => {
-                alert("Lỗi kết nối mạng, vui lòng thử lại!");
+                alert('Lỗi kết nối mạng, vui lòng thử lại!');
                 btnTim.innerHTML = textGoc;
             });
     }
@@ -180,19 +207,26 @@
             var newPos = marker.getLatLng();
             document.getElementById('lat').value = newPos.lat;
             document.getElementById('lon').value = newPos.lng;
+            buildAddressFromFields();
             document.querySelector("button[value='tinhship']").click();
         });
     }
 
     map.on('click', function (e) {
         updateMap(e.latlng.lat, e.latlng.lng);
+        buildAddressFromFields();
         document.querySelector("button[value='tinhship']").click();
     });
 
+    document.querySelector('form[method="post"]').addEventListener('submit', function () {
+        buildAddressFromFields();
+    });
+
     window.onload = function () {
+        buildAddressFromFields();
         var savedLat = "{{ latkh|default:'' }}";
         var savedLon = "{{ lonkh|default:'' }}";
-        if (savedLat !== "" && savedLon !== "") {
+        if (savedLat !== '' && savedLon !== '') {
             updateMap(parseFloat(savedLat), parseFloat(savedLon));
         }
     };
@@ -205,7 +239,7 @@
 
     .transition-hover:hover {
         transform: translateY(-3px);
-        box-shadow: 0 .5rem 1rem rgba(0,0,0,.15) !important;
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, .15) !important;
     }
 </style>
 {% endblock main-content %}

@@ -1,9 +1,23 @@
 ﻿from django.shortcuts import get_object_or_404, render
-from .models import SANPHAM, LOAI, GIOHANG, CHITIETGIOHANG, DONHANG, CHITIETDONHANG, CUAHANG, TAIKHOAN, HINHANH
+from .models import (
+    SANPHAM,
+    LOAI,
+    GIOHANG,
+    CHITIETGIOHANG,
+    DONHANG,
+    CHITIETDONHANG,
+    CUAHANG,
+    TAIKHOAN,
+    HINHANH,
+    TONKHOSIZE,
+    LICHSUKHO,
+    SIZE_CHOICES,
+)
 from django.shortcuts import redirect
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
 from django.db.models import Q, Sum
+from django.db import transaction
 from django.db.models.functions import TruncMonth
 from functools import wraps
 from django.contrib import messages
@@ -39,6 +53,61 @@ from datetime import datetime
 import calendar
 from django.utils.http import url_has_allowed_host_and_scheme
 
+SIZE_ORDER = [size for size, _ in SIZE_CHOICES]
+
+
+def parse_non_negative_int(value, default=0):
+    try:
+        value_int = int(value)
+    except (TypeError, ValueError):
+        return default
+    return max(value_int, 0)
+
+
+def ensure_tonkho_records(sanpham):
+    tonkho_map = {row.size: row for row in sanpham.tonkho_sizes.all()}
+    for size in SIZE_ORDER:
+        if size not in tonkho_map:
+            tonkho_map[size] = TONKHOSIZE.objects.create(sanpham=sanpham, size=size, soluong=0)
+    return tonkho_map
+
+
+def dong_bo_tong_ton_kho(sanpham):
+    tong = TONKHOSIZE.objects.filter(sanpham=sanpham).aggregate(total=Sum('soluong'))['total'] or 0
+    if sanpham.soluong != tong:
+        sanpham.soluong = tong
+        sanpham.save(update_fields=['soluong'])
+    return tong
+
+
+def lay_ton_theo_size(sanpham, size):
+    tonkho = TONKHOSIZE.objects.filter(sanpham=sanpham, size=size).first()
+    if not tonkho:
+        tonkho = TONKHOSIZE.objects.create(sanpham=sanpham, size=size, soluong=0)
+    return tonkho.soluong
+
+
+def doc_ton_kho_tu_post(post_data):
+    return {
+        size: parse_non_negative_int(post_data.get(f'ton_{size.lower()}'), 0)
+        for size in SIZE_ORDER
+    }
+
+
+def ghi_lich_su_kho(sanpham, size, loai_biendong, so_luong, ton_truoc, ton_sau, user=None, ghichu=''):
+    if so_luong <= 0:
+        return
+    LICHSUKHO.objects.create(
+        sanpham=sanpham,
+        size=size,
+        loai_biendong=loai_biendong,
+        soluong_thaydoi=so_luong,
+        ton_truoc=ton_truoc,
+        ton_sau=ton_sau,
+        nguoithuchien=user,
+        ghichu=ghichu,
+    )
+
 # Create your views here.
 def home(request, loai_id = None):
     loai = LOAI.objects.all()
@@ -54,9 +123,14 @@ def home(request, loai_id = None):
 
 def chitietsp(request, sanpham_id):
     sanpham = get_object_or_404(SANPHAM, id = sanpham_id)
+    tonkho_map = ensure_tonkho_records(sanpham)
+    dong_bo_tong_ton_kho(sanpham)
     cuahang = CUAHANG.objects.all()
     context = {
         'sanpham': sanpham,
+        'tonkho_size': {size: tonkho_map[size].soluong for size in SIZE_ORDER},
+        'tonkho_list': [(size, tonkho_map[size].soluong) for size in SIZE_ORDER],
+        'size_order': SIZE_ORDER,
         'cuahang': cuahang,
     }
     return render(request, 'chitietsp.html', context)
@@ -118,43 +192,73 @@ def themgiohang(request, sanpham_id):
     if not request.user.is_authenticated:
         return redirect('dangnhap')
 
-    sanpham = SANPHAM.objects.get(id=sanpham_id)
-    soluongmua = int(request.POST.get('soluong'))
+    sanpham = get_object_or_404(SANPHAM, id=sanpham_id)
+    ensure_tonkho_records(sanpham)
+    size = (request.POST.get('size') or 'M').upper()
+    if size not in SIZE_ORDER:
+        messages.error(request, "Size khong hop le.")
+        return redirect('chitiet', sanpham_id=sanpham_id)
 
-    size = request.POST.get('size')
-    if not size:
-        size = 'M'   # đŸ‘ˆ FIX Cá»¨U CHĂY
+    soluongmua = parse_non_negative_int(request.POST.get('soluong'), 1)
+    if soluongmua <= 0:
+        messages.error(request, "So luong mua phai lon hon 0.")
+        return redirect('chitiet', sanpham_id=sanpham_id)
 
-    giohang, created = GIOHANG.objects.get_or_create(khachhang=request.user)
-
+    giohang, _ = GIOHANG.objects.get_or_create(khachhang=request.user)
     chitiet, created = CHITIETGIOHANG.objects.get_or_create(
         giohang=giohang,
         sanpham=sanpham,
         size=size,
-        defaults={'soluong': soluongmua}
+        defaults={'soluong': soluongmua},
     )
 
-    if not created:
-        chitiet.soluong += soluongmua
-        chitiet.save()
+    ton_theo_size = lay_ton_theo_size(sanpham, size)
+    if created:
+        if soluongmua > ton_theo_size:
+            chitiet.delete()
+            messages.error(request, f"Kho size {size} chi con {ton_theo_size} san pham.")
+            return redirect('chitiet', sanpham_id=sanpham_id)
+    else:
+        soluong_moi = chitiet.soluong + soluongmua
+        if soluong_moi > ton_theo_size:
+            messages.error(request, f"Kho size {size} chi con {ton_theo_size} san pham.")
+            return redirect('chitiet', sanpham_id=sanpham_id)
+        chitiet.soluong = soluong_moi
+        chitiet.save(update_fields=['soluong'])
 
     next_url = request.POST.get('next')
     if next_url and url_has_allowed_host_and_scheme(
         url=next_url,
         allowed_hosts={request.get_host()},
-        require_https=request.is_secure()
+        require_https=request.is_secure(),
     ):
+        messages.success(request, "Da them vao gio hang.")
         return redirect(next_url)
 
+    messages.success(request, "Da them vao gio hang.")
     return redirect('home')
 
 def suagiohang(request, sanpham_id):
+    if not request.user.is_authenticated:
+        return redirect('dangnhap')
+
     if request.method == 'POST':
-        soluongmoi = int(request.POST.get('soluong'))
-        gio_hang = GIOHANG.objects.get(khachhang = request.user)
-        chitiet = CHITIETGIOHANG.objects.get(giohang = gio_hang, sanpham_id = sanpham_id, size=request.POST.get('size'))
+        size = (request.POST.get('size') or 'M').upper()
+        soluongmoi = parse_non_negative_int(request.POST.get('soluong'), 1)
+        gio_hang = GIOHANG.objects.get(khachhang=request.user)
+        chitiet = CHITIETGIOHANG.objects.get(giohang=gio_hang, sanpham_id=sanpham_id, size=size)
+
+        ton_theo_size = lay_ton_theo_size(chitiet.sanpham, size)
+        if soluongmoi <= 0:
+            chitiet.delete()
+            messages.success(request, "Da xoa san pham khoi gio hang.")
+            return redirect('giohang')
+        if soluongmoi > ton_theo_size:
+            messages.error(request, f"Kho size {size} chi con {ton_theo_size} san pham.")
+            return redirect('giohang')
+
         chitiet.soluong = soluongmoi
-        chitiet.save()
+        chitiet.save(update_fields=['soluong'])
     return redirect('giohang')
 
 def xoagiohang(request, sanpham_id):
@@ -178,9 +282,10 @@ def giohang(request):
     if not request.user.is_authenticated:
         return redirect('dangnhap')
     gio_hang, created = GIOHANG.objects.get_or_create(khachhang = request.user)
-    sanpham = CHITIETGIOHANG.objects.filter(giohang = gio_hang)
+    sanpham = CHITIETGIOHANG.objects.filter(giohang = gio_hang).select_related('sanpham')
     tongtien = 0
     for mon in sanpham:
+        mon.ton_size = lay_ton_theo_size(mon.sanpham, mon.size)
         tongtien += mon.sanpham.gia * mon.soluong
     context = {'sanpham': sanpham, 'tongtien': tongtien}
     return render(request, 'giohang.html', context)
@@ -189,64 +294,162 @@ def giohang(request):
 def thanhtoan(request):
     if not request.user.is_authenticated:
         return redirect('dangnhap')
-    gio_hang, created = GIOHANG.objects.get_or_create(khachhang = request.user)
-    san_pham = CHITIETGIOHANG.objects.filter(giohang = gio_hang)
+    gio_hang, created = GIOHANG.objects.get_or_create(khachhang=request.user)
+    san_pham = CHITIETGIOHANG.objects.filter(giohang=gio_hang).select_related('sanpham')
     tienship = 0
-    tong = 0
     km = 0
     tongtiendonhang = 0
     for mon in san_pham:
+        mon.ton_size = lay_ton_theo_size(mon.sanpham, mon.size)
         tongtiendonhang += mon.sanpham.gia * mon.soluong
+    tong = tongtiendonhang
+
     if request.method == 'POST':
         tenkh = request.POST.get('ten')
         sdtkh = request.POST.get('sdt')
-        diachikh = request.POST.get('diachi')
-        latkh = float(request.POST.get('lat'))
-        lonkh = float(request.POST.get('lon'))
+        diachi_duong = request.POST.get('diachi_duong', '').strip()
+        diachi_phuong = request.POST.get('diachi_phuong', '').strip()
+        diachi_thanhpho = request.POST.get('diachi_thanhpho', '').strip()
+        diachi_parts = [diachi_duong, diachi_phuong, diachi_thanhpho]
+        diachikh = request.POST.get('diachi', '').strip() or ", ".join(part for part in diachi_parts if part)
+        lat_raw = request.POST.get('lat', '').strip()
+        lon_raw = request.POST.get('lon', '').strip()
         action = request.POST.get('action')
-        if not latkh or not lonkh:
-            messages.error(request, "Äá»‹a chá»‰ khĂ´ng há»£p lá»‡")
-            context = {'tenkh': tenkh, 'sdtkh': sdtkh, 'diachikh': diachikh, 'sanpham': san_pham, 'tongtien': tongtiendonhang}
+
+        if not diachikh:
+            messages.error(request, "Vui long nhap dia chi giao hang.")
+            context = {
+                'tenkh': tenkh,
+                'sdtkh': sdtkh,
+                'diachikh': diachikh,
+                'diachi_duong': diachi_duong,
+                'diachi_phuong': diachi_phuong,
+                'diachi_thanhpho': diachi_thanhpho,
+                'sanpham': san_pham,
+                'tongtiendonhang': tongtiendonhang,
+                'tongtien': tongtiendonhang,
+            }
             return render(request, 'thanhtoan.html', context)
+
+        try:
+            latkh = float(lat_raw) if lat_raw else None
+            lonkh = float(lon_raw) if lon_raw else None
+        except (TypeError, ValueError):
+            latkh = None
+            lonkh = None
+
+        if latkh is None or lonkh is None:
+            messages.error(request, "Dia chi khong hop le.")
+            context = {
+                'tenkh': tenkh,
+                'sdtkh': sdtkh,
+                'diachikh': diachikh,
+                'diachi_duong': diachi_duong,
+                'diachi_phuong': diachi_phuong,
+                'diachi_thanhpho': diachi_thanhpho,
+                'sanpham': san_pham,
+                'tongtiendonhang': tongtiendonhang,
+                'tongtien': tongtiendonhang,
+            }
+            return render(request, 'thanhtoan.html', context)
+
         cuahang = CUAHANG.objects.all()
         ch_gan_nhat, km = cuahanggannhat(latkh, lonkh, cuahang)
-        tienship = int(km * 3000)
+        tienship = int(km * 15000)
         tong = tongtiendonhang + tienship
+
         if action == 'thanhtoan':
-            don_hang = DONHANG.objects.create(
-                khachhang = request.user,
-                ten = tenkh,
-                sdt = sdtkh,
-                diachi = diachikh,
-                lat = latkh,
-                lon = lonkh,
-                tongtien = tong
-            )
-            for mon in san_pham:
-                CHITIETDONHANG.objects.create(
-                    donhang = don_hang,
-                    sanpham = mon.sanpham,
-                    size=mon.size,
-                    soluong = mon.soluong,
-                    dongia = mon.sanpham.gia
+            if not san_pham.exists():
+                messages.error(request, "Gio hang dang trong.")
+                return redirect('giohang')
+
+            with transaction.atomic():
+                gio_hang = GIOHANG.objects.select_for_update().get(id=gio_hang.id)
+                cart_items = list(
+                    CHITIETGIOHANG.objects.select_related('sanpham').filter(giohang=gio_hang)
                 )
-                sp = mon.sanpham
-                sp.soluong -= mon.soluong
-                sp.save()
-            san_pham.delete()
+
+                if not cart_items:
+                    messages.error(request, "Gio hang dang trong.")
+                    return redirect('giohang')
+
+                tonkho_cache = {}
+                for item in cart_items:
+                    tonkho = TONKHOSIZE.objects.select_for_update().filter(
+                        sanpham=item.sanpham,
+                        size=item.size,
+                    ).first()
+                    if not tonkho:
+                        messages.error(
+                            request,
+                            f"San pham {item.sanpham.ten} chua co ton kho cho size {item.size}.",
+                        )
+                        return redirect('giohang')
+                    if item.soluong > tonkho.soluong:
+                        messages.error(
+                            request,
+                            f"San pham {item.sanpham.ten} size {item.size} chi con {tonkho.soluong}.",
+                        )
+                        return redirect('giohang')
+                    tonkho_cache[item.id] = tonkho
+
+                don_hang = DONHANG.objects.create(
+                    khachhang=request.user,
+                    ten=tenkh,
+                    sdt=sdtkh,
+                    diachi=diachikh,
+                    lat=latkh,
+                    lon=lonkh,
+                    tongtien=tong,
+                )
+
+                sanpham_anh_huong = {}
+                for item in cart_items:
+                    CHITIETDONHANG.objects.create(
+                        donhang=don_hang,
+                        sanpham=item.sanpham,
+                        size=item.size,
+                        soluong=item.soluong,
+                        dongia=item.sanpham.gia,
+                    )
+                    tonkho = tonkho_cache[item.id]
+                    ton_truoc = tonkho.soluong
+                    tonkho.soluong = ton_truoc - item.soluong
+                    tonkho.save(update_fields=['soluong'])
+                    ghi_lich_su_kho(
+                        sanpham=item.sanpham,
+                        size=item.size,
+                        loai_biendong='xuat',
+                        so_luong=item.soluong,
+                        ton_truoc=ton_truoc,
+                        ton_sau=tonkho.soluong,
+                        user=request.user,
+                        ghichu=f'Xuat kho theo don hang #{don_hang.id}',
+                    )
+                    sanpham_anh_huong[item.sanpham_id] = item.sanpham
+
+                CHITIETGIOHANG.objects.filter(giohang=gio_hang).delete()
+
+                for sp in sanpham_anh_huong.values():
+                    dong_bo_tong_ton_kho(sp)
+
             return render(request, 'camon.html')
+
     context = {
-        'tenkh': request.POST.get('ten'), 
-        'sdtkh': request.POST.get('sdt'), 
-        'diachikh': request.POST.get('diachi'), 
-        'sanpham': san_pham, 
-        'tongtiendonhang': tongtiendonhang, 
+        'tenkh': request.POST.get('ten'),
+        'sdtkh': request.POST.get('sdt'),
+        'diachikh': request.POST.get('diachi'),
+        'diachi_duong': request.POST.get('diachi_duong'),
+        'diachi_phuong': request.POST.get('diachi_phuong'),
+        'diachi_thanhpho': request.POST.get('diachi_thanhpho'),
+        'sanpham': san_pham,
+        'tongtiendonhang': tongtiendonhang,
         'tongtien': tong,
         'km': km,
-        'tienship': tienship, 
+        'tienship': tienship,
         'latkh': request.POST.get('lat'),
-        'lonkh': request.POST.get('lon')
-        }
+        'lonkh': request.POST.get('lon'),
+    }
     return render(request, 'thanhtoan.html', context)
 
 def donhangcuatoi(request):
@@ -370,7 +573,7 @@ def quantri(request):
 
 @admin_required
 def quanlysanpham(request):
-    sp = SANPHAM.objects.all().order_by('id')
+    sp = SANPHAM.objects.all().prefetch_related('tonkho_sizes').order_by('id')
     loai = LOAI.objects.all()
 
     # ===== FILTER =====
@@ -397,9 +600,20 @@ def quanlysanpham(request):
     elif tonkho == "het":
         sp = sp.filter(soluong=0)
 
+    for item in sp:
+        tonkho_map = {size: 0 for size in SIZE_ORDER}
+        for ton in item.tonkho_sizes.all():
+            tonkho_map[ton.size] = ton.soluong
+        item.tonkho_map = tonkho_map
+        item.tong_ton = sum(tonkho_map.values())
+        if item.soluong != item.tong_ton:
+            SANPHAM.objects.filter(id=item.id).update(soluong=item.tong_ton)
+            item.soluong = item.tong_ton
+
     context = {
         'sanpham': sp,
         'loai': loai,
+        'size_order': SIZE_ORDER,
     }
 
     return render(request, 'admin/sanpham/index.html', context)
@@ -418,6 +632,7 @@ def xoasanpham(request, sanpham_id):
 @admin_required
 def suasanpham(request, sanpham_id):
     sp = SANPHAM.objects.get(id = sanpham_id)
+    tonkho_map = ensure_tonkho_records(sp)
     loai = LOAI.objects.all()
     if request.method == 'POST':
         sp.ten = request.POST.get('ten')
@@ -425,21 +640,63 @@ def suasanpham(request, sanpham_id):
         loai_id = request.POST.get('loai')
         if loai_id:
             sp.loaisp_id = loai_id
-        sp.gia = request.POST.get('gia')
+        sp.gia = parse_non_negative_int(request.POST.get('gia'), sp.gia)
+
         hinhmoi = request.FILES.get('hinh')
         if hinhmoi:
             sp.hinh = hinhmoi
-        sp.soluong = request.POST.get('soluong')
+
+        ton_moi_theo_size = doc_ton_kho_tu_post(request.POST)
+        for size in SIZE_ORDER:
+            ton_row = tonkho_map[size]
+            ton_cu = ton_row.soluong
+            ton_moi = ton_moi_theo_size[size]
+            if ton_moi == ton_cu:
+                continue
+            if ton_moi > ton_cu:
+                ghi_lich_su_kho(
+                    sanpham=sp,
+                    size=size,
+                    loai_biendong='dieuchinh_tang',
+                    so_luong=ton_moi - ton_cu,
+                    ton_truoc=ton_cu,
+                    ton_sau=ton_moi,
+                    user=request.user,
+                    ghichu='Cap nhat ton kho khi sua san pham',
+                )
+            else:
+                ghi_lich_su_kho(
+                    sanpham=sp,
+                    size=size,
+                    loai_biendong='dieuchinh_giam',
+                    so_luong=ton_cu - ton_moi,
+                    ton_truoc=ton_cu,
+                    ton_sau=ton_moi,
+                    user=request.user,
+                    ghichu='Cap nhat ton kho khi sua san pham',
+                )
+            ton_row.soluong = ton_moi
+            ton_row.save(update_fields=['soluong'])
+
         anhxoa = request.POST.getlist('anhxoa')
         if anhxoa:
-            HINHANH.objects.filter(id__in = anhxoa).delete()
+            HINHANH.objects.filter(id__in=anhxoa).delete()
+
         hinhchitietmoi = request.FILES.getlist('hinhchitietmoi')
         for file in hinhchitietmoi:
-            HINHANH.objects.create(sanpham = sp, hinh = file)
+            HINHANH.objects.create(sanpham=sp, hinh=file)
+
         sp.save()
-        messages.success(request, "cap nhat thanh cong")
+        dong_bo_tong_ton_kho(sp)
+        messages.success(request, "Cap nhat thanh cong.")
         return redirect('quanlysanpham')
-    context = {'sanpham': sp, 'dsloai': loai}
+
+    context = {
+        'sanpham': sp,
+        'dsloai': loai,
+        'size_order': SIZE_ORDER,
+        'tonkho_map': {size: tonkho_map[size].soluong for size in SIZE_ORDER},
+    }
     return render(request, 'admin/sanpham/suasanpham.html', context)
 
 @admin_required
@@ -449,25 +706,79 @@ def themsanpham(request):
         tensp = request.POST.get('ten')
         motasp = request.POST.get('mota', '')
         loai = request.POST.get('loai')
-        giasp = request.POST.get('gia')
-        soluongsp = request.POST.get('soluong')
+        giasp = parse_non_negative_int(request.POST.get('gia'), 0)
+        ton_theo_size = doc_ton_kho_tu_post(request.POST)
         hinhsp = request.FILES.get('hinh')
         hinhchitietsp = request.FILES.getlist('hinhchitiet')
+
         sp = SANPHAM.objects.create(
-            ten = tensp,
-            mota = motasp,
-            loaisp_id = loai,
-            gia = giasp,
-            soluong = soluongsp,
-            hinh = hinhsp,
+            ten=tensp,
+            mota=motasp,
+            loaisp_id=loai,
+            gia=giasp,
+            soluong=0,
+            hinh=hinhsp,
         )
+
+        tong_ton = 0
+        for size in SIZE_ORDER:
+            so_luong = ton_theo_size[size]
+            TONKHOSIZE.objects.create(sanpham=sp, size=size, soluong=so_luong)
+            tong_ton += so_luong
+            if so_luong > 0:
+                ghi_lich_su_kho(
+                    sanpham=sp,
+                    size=size,
+                    loai_biendong='nhap',
+                    so_luong=so_luong,
+                    ton_truoc=0,
+                    ton_sau=so_luong,
+                    user=request.user,
+                    ghichu='Nhap kho ban dau khi tao san pham',
+                )
+
+        sp.soluong = tong_ton
+        sp.save(update_fields=['soluong'])
+
         for file in hinhchitietsp:
-            HINHANH.objects.create(sanpham = sp, hinh= file)
-        sp.save()
-        messages.success(request, "luu thanh cong")
+            HINHANH.objects.create(sanpham=sp, hinh=file)
+
+        messages.success(request, "Luu thanh cong.")
         return redirect('quanlysanpham')
+
     context = {'loai': loaisp}
     return render(request, 'admin/sanpham/themsanpham.html', context)
+
+
+@admin_required
+def lichsukho(request):
+    lichsu = LICHSUKHO.objects.select_related('sanpham', 'nguoithuchien')
+    danhsach_sanpham = SANPHAM.objects.all().order_by('ten')
+
+    sanpham_id = request.GET.get('sanpham')
+    size = (request.GET.get('size') or '').upper()
+    loai = request.GET.get('loai')
+    from_date = request.GET.get('from_date')
+    to_date = request.GET.get('to_date')
+
+    if sanpham_id:
+        lichsu = lichsu.filter(sanpham_id=sanpham_id)
+    if size in SIZE_ORDER:
+        lichsu = lichsu.filter(size=size)
+    if loai:
+        lichsu = lichsu.filter(loai_biendong=loai)
+    if from_date:
+        lichsu = lichsu.filter(thoigian__date__gte=from_date)
+    if to_date:
+        lichsu = lichsu.filter(thoigian__date__lte=to_date)
+
+    context = {
+        'lichsu': lichsu,
+        'danhsach_sanpham': danhsach_sanpham,
+        'size_order': SIZE_ORDER,
+        'loai_biendong_choices': LICHSUKHO.LOAI_BIENDONG_CHOICES,
+    }
+    return render(request, 'admin/kho/lichsu.html', context)
 
 @admin_required
 def quanlydonhang(request):

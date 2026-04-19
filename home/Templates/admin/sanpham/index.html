@@ -1,129 +1,105 @@
-{% extends 'layoutadmin.html' %}
+﻿{% extends 'layoutadmin.html' %}
 {% load static %}
 
 {% block main-content %}
 <div class="container-fluid mt-4 mb-5">
-    
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
-            <h3 class="fw-bolder m-0 text-uppercase" style="letter-spacing: 1px;">
-                Danh Sách Sản Phẩm
-            </h3>
-            <p class="text-muted small mt-1 mb-0">Quản lý kho hàng, cập nhật giá và thông tin sản phẩm.</p>
+            <h3 class="fw-bolder m-0 text-uppercase" style="letter-spacing: 1px;">Danh Sách Sản Phẩm</h3>
+            <p class="text-muted small mt-1 mb-0">Quản lý tồn kho theo size, cập nhật giá và thông tin sản phẩm.</p>
         </div>
         <div class="d-flex gap-2">
-            <a href="{% url 'quantri' %}" class="btn btn-outline-secondary rounded-pill fw-bold px-4 py-2 transition-hover">
+            <a href="{% url 'lichsukho' %}" class="btn btn-outline-dark rounded-pill fw-bold px-4 py-2">
+                <i class="bi bi-clock-history me-1"></i> Lịch sử xuất nhập kho
+            </a>
+            <a href="{% url 'quantri' %}" class="btn btn-outline-secondary rounded-pill fw-bold px-4 py-2">
                 <i class="bi bi-arrow-left me-1"></i> Quay lại
             </a>
-            <a href="{% url 'themsanpham' %}" class="btn btn-dark rounded-pill fw-bold px-4 py-2 shadow-sm transition-hover">
+            <a href="{% url 'themsanpham' %}" class="btn btn-dark rounded-pill fw-bold px-4 py-2 shadow-sm">
                 <i class="bi bi-plus-lg me-1"></i> Thêm sản phẩm
             </a>
         </div>
     </div>
+
     <form method="GET" class="mb-4">
         <div class="row g-2">
-
-            <!-- Tìm kiếm -->
             <div class="col-md-2">
-                <input type="text" name="keyword" class="form-control"
-                    placeholder="Nhập tìm sản phẩm"
-                    value="{{ request.GET.keyword }}">
+                <input type="text" name="keyword" class="form-control" placeholder="Nhập tìm sản phẩm" value="{{ request.GET.keyword }}">
             </div>
-
-            <!-- Loại -->
             <div class="col-md-2">
                 <select name="loai" class="form-select">
                     <option value="">-- Loại --</option>
                     {% for l in loai %}
-                        <option value="{{ l.id }}"
-                            {% if request.GET.loai == l.id|stringformat:"s" %}selected{% endif %}>
-                            {{ l.loai }}
-                        </option>
+                    <option value="{{ l.id }}" {% if request.GET.loai == l.id|stringformat:"s" %}selected{% endif %}>{{ l.loai }}</option>
                     {% endfor %}
                 </select>
             </div>
-
-            <!-- Giá -->
             <div class="col-md-2">
-                <input type="number" name="min_price" class="form-control"
-                    placeholder="Giá từ (VNĐ)"
-                    value="{{ request.GET.min_price }}">
+                <input type="number" name="min_price" class="form-control" placeholder="Giá từ" value="{{ request.GET.min_price }}">
             </div>
-
             <div class="col-md-2">
-                <input type="number" name="max_price" class="form-control"
-                    placeholder="Đến (VNĐ)"
-                    value="{{ request.GET.max_price }}">
+                <input type="number" name="max_price" class="form-control" placeholder="Giá đến" value="{{ request.GET.max_price }}">
             </div>
-
-            <!-- Tồn kho -->
             <div class="col-md-2">
                 <select name="tonkho" class="form-select">
-                    <option value="">-- Kho --</option>
+                    <option value="">-- Tồn kho --</option>
                     <option value="con" {% if request.GET.tonkho == "con" %}selected{% endif %}>Còn hàng</option>
                     <option value="het" {% if request.GET.tonkho == "het" %}selected{% endif %}>Hết hàng</option>
                 </select>
             </div>
-
-            <!-- Button -->
             <div class="col-md-1 d-flex gap-1">
                 <button type="submit" class="btn btn-dark w-100">Lọc</button>
             </div>
             <div class="col-md-1 d-grid">
-                <a href="{% url 'quanlysanpham' %}" class="btn btn-outline-secondary btn-sm">
-                    Bỏ lọc
-                </a>
+                <a href="{% url 'quanlysanpham' %}" class="btn btn-outline-secondary btn-sm">Bỏ lọc</a>
             </div>
-
         </div>
     </form>
+
     <div class="card shadow-sm border-0 rounded-4 overflow-hidden">
         <div class="table-responsive">
             <table class="table table-hover align-middle mb-0">
-                
                 <thead class="bg-light">
                     <tr class="text-secondary text-uppercase" style="font-size: 0.85rem; letter-spacing: 0.5px;">
-                        <th scope="col" class="ps-4 py-3 border-0">Mã Sản Phẩm</th>
-                        <th scope="col" class="py-3 border-0">Hình Ảnh</th>
-                        <th scope="col" class="py-3 border-0">Tên Sản Phẩm</th>
-                        <th scope="col" class="py-3 border-0">Giá (VNĐ)</th>
-                        <th scope="col" class="py-3 border-0 text-center">Kho</th>
-                        <th scope="col" class="pe-4 py-3 border-0 text-end">Thao tác</th>
+                        <th class="ps-4 py-3 border-0">Mã SP</th>
+                        <th class="py-3 border-0">Hình</th>
+                        <th class="py-3 border-0">Tên sản phẩm</th>
+                        <th class="py-3 border-0">Giá (VND)</th>
+                        <th class="py-3 border-0 text-center">Tổng kho</th>
+                        <th class="py-3 border-0">Tồn theo size</th>
+                        <th class="pe-4 py-3 border-0 text-end">Thao tác</th>
                     </tr>
                 </thead>
-                
-                <tbody class="border-top-0">
+                <tbody>
                     {% for sp in sanpham %}
                     <tr>
                         <td class="ps-4 text-muted fw-semibold">#{{ sp.id }}</td>
-                        
                         <td>
-                            <img src="{{ sp.hinhurl }}" alt="{{ sp.ten }}" 
-                                 class="rounded-3 shadow-sm border" 
-                                 style="width: 55px; height: 55px; object-fit: cover;">
+                            <img src="{{ sp.hinhurl }}" alt="{{ sp.ten }}" class="rounded-3 shadow-sm border" style="width: 55px; height: 55px; object-fit: cover;">
                         </td>
-                        
                         <td class="fw-bold text-dark">{{ sp.ten }}</td>
-                        
-                        <td class="text-danger fw-bolder">{{ sp.gia|floatformat:0 }} VNĐ</td>
-                        
+                        <td class="text-danger fw-bolder">{{ sp.gia|floatformat:0 }} VND</td>
                         <td class="text-center">
-                            <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill px-3 py-2 fw-bold">
-                                {{ sp.soluong }}
+                            <span class="badge {% if sp.tong_ton > 0 %}bg-primary bg-opacity-10 text-primary{% else %}bg-danger bg-opacity-10 text-danger{% endif %} rounded-pill px-3 py-2 fw-bold">
+                                {{ sp.tong_ton }}
                             </span>
                         </td>
-                        
+                        <td>
+                            <div class="d-flex flex-wrap gap-1">
+                                <span class="badge text-bg-light border">S: {{ sp.tonkho_map.S }}</span>
+                                <span class="badge text-bg-light border">M: {{ sp.tonkho_map.M }}</span>
+                                <span class="badge text-bg-light border">L: {{ sp.tonkho_map.L }}</span>
+                                <span class="badge text-bg-light border">XL: {{ sp.tonkho_map.XL }}</span>
+                            </div>
+                        </td>
                         <td class="pe-4">
                             <div class="d-flex justify-content-end gap-2">
                                 <a href="{% url 'suasanpham' sp.id %}" class="btn btn-sm btn-outline-primary rounded-circle action-btn" title="Sửa">
                                     <i class="bi bi-pencil-square"></i>
                                 </a>
-                                
                                 <form action="{% url 'xoasanpham' sp.id %}" method="POST" class="m-0">
                                     {% csrf_token %}
-                                    <button type="submit" class="btn btn-sm btn-outline-danger rounded-circle action-btn" 
-                                            onclick="return confirm('Bạn có chắc chắn muốn xóa sản phẩm ({{ sp.ten }}) này không? Hành động này không thể hoàn tác!')" 
-                                            title="Xóa">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger rounded-circle action-btn" onclick="return confirm('Bạn có chắc chắn muốn xóa sản phẩm ({{ sp.ten }}) không?')" title="Xóa">
                                         <i class="bi bi-trash"></i>
                                     </button>
                                 </form>
@@ -132,11 +108,7 @@
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="6" class="text-center py-5 text-muted">
-                            <i class="bi bi-inboxes fs-1 d-block mb-3 text-secondary opacity-50"></i>
-                            Chưa có sản phẩm nào trong cửa hàng.<br>
-                            Hãy bấm <strong>"Thêm sản phẩm"</strong> để bắt đầu kinh doanh!
-                        </td>
+                        <td colspan="7" class="text-center py-5 text-muted">Chưa có sản phẩm nào.</td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -146,15 +118,6 @@
 </div>
 
 <style>
-    /* Hiệu ứng mượt mà cho nút bấm */
-    .transition-hover {
-        transition: all 0.3s ease;
-    }
-    .transition-hover:hover {
-        transform: translateY(-2px);
-    }
-    
-    /* Làm đẹp các nút Sửa/Xóa hình tròn */
     .action-btn {
         width: 32px;
         height: 32px;
@@ -163,14 +126,8 @@
         justify-content: center;
         transition: all 0.2s;
     }
-    .action-btn:hover {
-        transform: scale(1.1);
-    }
 
-    /* Hiệu ứng khi di chuột vào từng dòng của bảng */
-    .table-hover tbody tr:hover {
-        background-color: #f8f9fa;
-        cursor: pointer;
-    }
+    .action-btn:hover { transform: scale(1.1); }
+    .table-hover tbody tr:hover { background-color: #f8f9fa; }
 </style>
 {% endblock main-content %}

@@ -1,0 +1,106 @@
+﻿{% extends 'layoutadmin.html' %}
+{% load static %}
+
+{% block main-content %}
+<div class="container-fluid mt-4 mb-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h3 class="fw-bolder m-0 text-uppercase" style="letter-spacing: 1px;">Lịch Sử Xuất Nhập Kho</h3>
+            <p class="text-muted small mt-1 mb-0">Theo dõi biến động tồn kho theo từng size sản phẩm.</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{% url 'quanlysanpham' %}" class="btn btn-outline-secondary rounded-pill fw-bold px-4 py-2">
+                <i class="bi bi-arrow-left me-1"></i> Về sản phẩm
+            </a>
+        </div>
+    </div>
+
+    <form method="get" class="row g-2 mb-4 align-items-end">
+        <div class="col-md-3">
+            <label class="form-label small text-muted mb-1">Sản phẩm</label>
+            <select name="sanpham" class="form-select form-select-sm">
+                <option value="">Tất cả</option>
+                {% for sp in danhsach_sanpham %}
+                <option value="{{ sp.id }}" {% if request.GET.sanpham == sp.id|stringformat:"s" %}selected{% endif %}>{{ sp.ten }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="col-md-2">
+            <label class="form-label small text-muted mb-1">Size</label>
+            <select name="size" class="form-select form-select-sm">
+                <option value="">Tất cả</option>
+                {% for size in size_order %}
+                <option value="{{ size }}" {% if request.GET.size == size %}selected{% endif %}>{{ size }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="col-md-3">
+            <label class="form-label small text-muted mb-1">Loại biến động</label>
+            <select name="loai" class="form-select form-select-sm">
+                <option value="">Tất cả</option>
+                {% for value, label in loai_biendong_choices %}
+                <option value="{{ value }}" {% if request.GET.loai == value %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="col-md-2">
+            <label class="form-label small text-muted mb-1">Từ ngày</label>
+            <input type="date" name="from_date" value="{{ request.GET.from_date }}" class="form-control form-control-sm">
+        </div>
+
+        <div class="col-md-2">
+            <label class="form-label small text-muted mb-1">Đến ngày</label>
+            <input type="date" name="to_date" value="{{ request.GET.to_date }}" class="form-control form-control-sm">
+        </div>
+
+        <div class="col-md-2 d-grid">
+            <button type="submit" class="btn btn-dark btn-sm">Lọc</button>
+        </div>
+        <div class="col-md-2 d-grid">
+            <a href="{% url 'lichsukho' %}" class="btn btn-outline-secondary btn-sm">Bỏ lọc</a>
+        </div>
+    </form>
+
+    <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr class="small text-uppercase text-secondary">
+                        <th class="ps-4 py-3 border-0">Thời gian</th>
+                        <th class="py-3 border-0">Sản phẩm</th>
+                        <th class="py-3 border-0 text-center">Size</th>
+                        <th class="py-3 border-0">Loại</th>
+                        <th class="py-3 border-0 text-center">Số lượng</th>
+                        <th class="py-3 border-0 text-center">Tồn trước</th>
+                        <th class="py-3 border-0 text-center">Tồn sau</th>
+                        <th class="py-3 border-0">Người thao tác</th>
+                        <th class="pe-4 py-3 border-0">Ghi chú</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in lichsu %}
+                    <tr>
+                        <td class="ps-4 text-nowrap">{{ item.thoigian|date:"d/m/Y H:i:s" }}</td>
+                        <td class="fw-semibold">{{ item.sanpham.ten }}</td>
+                        <td class="text-center"><span class="badge bg-dark">{{ item.size }}</span></td>
+                        <td>{{ item.get_loai_biendong_display }}</td>
+                        <td class="text-center fw-bold">{{ item.soluong_thaydoi }}</td>
+                        <td class="text-center">{{ item.ton_truoc }}</td>
+                        <td class="text-center fw-bold">{{ item.ton_sau }}</td>
+                        <td>{{ item.nguoithuchien.username|default:'-' }}</td>
+                        <td class="pe-4">{{ item.ghichu|default:'-' }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="9" class="text-center text-muted py-5">Không có dữ liệu lịch sử kho.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock main-content %}

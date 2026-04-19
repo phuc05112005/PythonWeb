@@ -1,20 +1,20 @@
-{% extends 'layoutadmin.html' %}
+﻿{% extends 'layoutadmin.html' %}
 {% load static %}
 
 {% block main-content %}
 <div class="container-fluid mt-5 mb-5 px-4">
-    
+
     <div class="d-flex justify-content-between align-items-end mb-5">
         <div>
-            <h2 class="fw-bold text-uppercase m-0">Quản lý Đơn hàng</h2>
+            <h2 class="fw-bold text-uppercase m-0">Quản Lý Đơn Hàng</h2>
             <div style="width: 60px; height: 4px; background: #000; margin-top: 10px;"></div>
         </div>
         <a href="{% url 'quantri' %}" class="text-decoration-none text-dark fw-bold text-uppercase">
             <i class="bi bi-arrow-left me-1"></i> Quay lại
         </a>
     </div>
-    <form method="get" class="row g-2 mb-4 align-items-center">
 
+    <form method="get" class="row g-2 mb-4 align-items-center">
         <div class="col-md-2">
             <input type="text" name="keyword" class="form-control form-control-sm"
                 placeholder="Tìm tên khách hàng - SĐT"
@@ -54,14 +54,14 @@
                 Bỏ lọc
             </a>
         </div>
-
     </form>
+
     <div class="mb-5">
         <div class="d-flex align-items-center mb-3">
-            <h4 class="fw-bold m-0 text-primary text-uppercase " style="letter-spacing: 1px;">Đơn hàng mới</h4>
+            <h4 class="fw-bold m-0 text-primary text-uppercase" style="letter-spacing: 1px;">Đơn hàng mới</h4>
             <span class="ms-3 badge rounded-0 bg-primary px-3 py-2">{{ donhang1|length }} đơn</span>
         </div>
-        
+
         <div class="card border-0 shadow-sm rounded-0">
             <div class="table-responsive">
                 <table class="table align-middle mb-0">
@@ -93,13 +93,13 @@
                                     <form action="{% url 'duyetdonhang' dh.id %}" method="post" class="m-0">
                                         {% csrf_token %}
                                         <button type="submit" class="btn btn-primary btn-sm rounded-0 px-4 fw-bold small text-uppercase">
-                                            Duyệt đơn
+                                            Xác nhận đơn hàng
                                         </button>
                                     </form>
-                                    <form action="{% url "xoadonhang" dh.id%}" method="post">
+                                    <form action="{% url 'xoadonhang' dh.id %}" method="post">
                                         {% csrf_token %}
-                                        <button type="submit" class="btn btn-sm btn-outline-danger rounded-circle action-btn" 
-                                            onclick="return confirm('Bạn có chắc chắn muốn xóa đơn hàng này không? Hành động này không thể hoàn tác!')" 
+                                        <button type="submit" class="btn btn-sm btn-outline-danger rounded-circle action-btn"
+                                            onclick="return confirm('Bạn có chắc chắn muốn xóa đơn hàng này không? Hành động này không thể hoàn tác!')"
                                             title="Xóa">
                                             <i class="bi bi-trash"></i>
                                         </button>
@@ -109,7 +109,7 @@
                         </tr>
                         {% empty %}
                         <tr>
-                            <td colspan="6" class="text-center py-5 text-muted">Không có đơn hàng mới nào cần xử lý.</td>
+                            <td colspan="7" class="text-center py-5 text-muted">Không có đơn hàng mới nào cần xử lý.</td>
                         </tr>
                         {% endfor %}
                     </tbody>
@@ -120,9 +120,9 @@
 
     <div>
         <div class="d-flex align-items-center mb-3">
-            <h4 class="fw-bold m-0 text-secondary text-uppercase small" style="letter-spacing: 1px;">Lịch sử đơn đã duyệt</h4>
+            <h4 class="fw-bold m-0 text-secondary text-uppercase small" style="letter-spacing: 1px;">Lịch sử đơn đã xác nhận</h4>
         </div>
-        
+
         <div class="card border-0 shadow-sm rounded-0">
             <div class="table-responsive">
                 <table class="table align-middle mb-0">
@@ -154,7 +154,7 @@
                         </tr>
                         {% empty %}
                         <tr>
-                            <td colspan="6" class="text-center py-4 text-muted small">Chưa có đơn hàng nào đã duyệt.</td>
+                            <td colspan="7" class="text-center py-4 text-muted small">Chưa xác nhận đơn hàng nào.</td>
                         </tr>
                         {% endfor %}
                     </tbody>
@@ -166,21 +166,18 @@
 </div>
 
 <style>
-    /* Loại bỏ bo góc mặc định của Bootstrap cho phong cách Minimalist */
     .card, .btn, .table, .badge {
         border-radius: 0 !important;
     }
-    
-    /* Hiệu ứng hover cho dòng trong bảng */
+
     .table tbody tr {
         transition: background-color 0.2s;
     }
-    
+
     .table tbody tr:hover {
         background-color: #fcfcfc !important;
     }
 
-    /* Định dạng cột tiêu đề bảng */
     thead th {
         font-weight: 700;
         letter-spacing: 0.5px;

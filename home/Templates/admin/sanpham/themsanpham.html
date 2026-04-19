@@ -1,10 +1,9 @@
-{% extends 'layoutadmin.html' %}
+﻿{% extends 'layoutadmin.html' %}
 {% load static %}
 
 {% block main-content %}
 <div class="container-fluid mt-4 mb-5">
-    
-    <div class="d-flex justify-content-between align-items-center mb-4 mx-auto" style="max-width: 800px;">
+    <div class="d-flex justify-content-between align-items-center mb-4 mx-auto" style="max-width: 900px;">
         <h3 class="fw-bolder m-0 text-uppercase" style="letter-spacing: 1px;">
             <i class="bi bi-plus-square-dotted me-2 text-primary"></i> Thêm Sản Phẩm Mới
         </h3>
@@ -13,24 +12,22 @@
         </a>
     </div>
 
-    <div class="card shadow-sm border-0 rounded-4 mx-auto overflow-hidden" style="max-width: 800px;">
+    <div class="card shadow-sm border-0 rounded-4 mx-auto overflow-hidden" style="max-width: 900px;">
         <div class="card-body p-4 p-md-5">
-            
             <form method="post" enctype="multipart/form-data" class="needs-validation">
                 {% csrf_token %}
-                
+
                 <div class="row g-4 mb-4">
                     <div class="col-md-7">
                         <label class="form-label fw-bold text-secondary small text-uppercase">Tên Sản Phẩm</label>
-                        <input type="text" name="ten" class="form-control bg-light border-0 shadow-none px-4 py-3 rounded-3" placeholder="Nhập tên sản phẩm..." required>
+                        <input type="text" name="ten" class="form-control bg-light border-0 shadow-none px-4 py-3 rounded-3" placeholder="Nhập tên sản phẩm" required>
                     </div>
-                    
                     <div class="col-md-5">
                         <label class="form-label fw-bold text-secondary small text-uppercase">Loại Sản Phẩm</label>
-                        <select name="loai" class="form-select bg-light border-0 shadow-none px-4 py-3 rounded-3 form-select-custom" required>
+                        <select name="loai" class="form-select bg-light border-0 shadow-none px-4 py-3 rounded-3" required>
                             <option value="" selected disabled>-- Chọn danh mục --</option>
                             {% for item in loai %}
-                                <option value="{{ item.id }}">{{ item.loai }}</option>
+                            <option value="{{ item.id }}">{{ item.loai }}</option>
                             {% endfor %}
                         </select>
                     </div>
@@ -38,25 +35,36 @@
 
                 <div class="row g-4 mb-4">
                     <div class="col-md-6">
-                        <label class="form-label fw-bold text-secondary small text-uppercase">Giá Bán (VNĐ)</label>
-                        <div class="input-group">
-                            <span class="input-group-text bg-light border-0 rounded-start-3 text-muted"></span>
-                            <input type="number" name="gia" class="form-control bg-light border-0 shadow-none py-3 rounded-end-3" placeholder="Ví dụ: 250000" min="0" required>
-                        </div>
+                        <label class="form-label fw-bold text-secondary small text-uppercase">Giá Bán (VND)</label>
+                        <input type="number" name="gia" class="form-control bg-light border-0 shadow-none py-3 rounded-3" placeholder="Ví dụ: 250000" min="0" required>
                     </div>
-                    
-                    <div class="col-md-6">
-                        <label class="form-label fw-bold text-secondary small text-uppercase">Số Lượng Trong Kho</label>
-                        <div class="input-group">
-                            <span class="input-group-text bg-light border-0 rounded-start-3 text-muted"></i></span>
-                            <input type="number" name="soluong" class="form-control bg-light border-0 shadow-none py-3 rounded-end-3" placeholder="Nhập số lượng..." min="0" required>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label fw-bold text-secondary small text-uppercase">Tồn Kho Theo Size</label>
+                    <div class="row g-3">
+                        <div class="col-6 col-md-3">
+                            <label class="form-label small text-muted mb-1">Size S</label>
+                            <input type="number" name="ton_s" class="form-control bg-light border-0 shadow-none py-3 rounded-3" min="0" value="0" required>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <label class="form-label small text-muted mb-1">Size M</label>
+                            <input type="number" name="ton_m" class="form-control bg-light border-0 shadow-none py-3 rounded-3" min="0" value="0" required>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <label class="form-label small text-muted mb-1">Size L</label>
+                            <input type="number" name="ton_l" class="form-control bg-light border-0 shadow-none py-3 rounded-3" min="0" value="0" required>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <label class="form-label small text-muted mb-1">Size XL</label>
+                            <input type="number" name="ton_xl" class="form-control bg-light border-0 shadow-none py-3 rounded-3" min="0" value="0" required>
                         </div>
                     </div>
                 </div>
 
                 <div class="mb-4">
                     <label class="form-label fw-bold text-secondary small text-uppercase">Mô Tả Chi Tiết</label>
-                    <textarea name="mota" rows="5" class="form-control bg-light border-0 shadow-none px-4 py-3 rounded-3" placeholder="Nhập mô tả sản phẩm..."></textarea>
+                    <textarea name="mota" rows="5" class="form-control bg-light border-0 shadow-none px-4 py-3 rounded-3" placeholder="Nhập mô tả sản phẩm"></textarea>
                 </div>
 
                 <div class="mb-5">
@@ -72,43 +80,21 @@
                         <i class="bi bi-check2-circle me-2 fs-5 align-middle"></i> Xác Nhận Thêm Mới
                     </button>
                 </div>
-                
             </form>
-            
         </div>
     </div>
 </div>
 
 <style>
-    /* Hiệu ứng nổi lên khi hover cho các nút */
-    .transition-hover {
-        transition: all 0.3s ease;
-    }
+    .transition-hover { transition: all 0.3s ease; }
     .transition-hover:hover {
         transform: translateY(-3px);
         box-shadow: 0 .5rem 1rem rgba(0,0,0,.15)!important;
     }
-    
-    /* Hiệu ứng khi focus vào ô nhập liệu */
     .form-control:focus, .form-select:focus {
         background-color: #fff !important;
         border: 1px solid #000 !important;
         box-shadow: none !important;
-    }
-
-    /* Mũi tên custom cho select */
-    .form-select-custom {
-        cursor: pointer;
-    }
-    
-    /* Input group focus fix để border đồng bộ */
-    .input-group:focus-within .input-group-text {
-        background-color: #fff !important;
-        border: 1px solid #000 !important;
-        border-right: none !important;
-    }
-    .input-group:focus-within .form-control {
-        border-left: none !important;
     }
 </style>
 {% endblock main-content %}

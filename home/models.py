@@ -1,7 +1,15 @@
-from django.db import models
 from django.contrib.auth.models import User
+from django.db import models
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+
+SIZE_CHOICES = [
+    ('S', 'S'),
+    ('M', 'M'),
+    ('L', 'L'),
+    ('XL', 'XL'),
+]
+
 
 class LOAI(models.Model):
     loai = models.CharField(max_length=100)
@@ -20,39 +28,54 @@ class SANPHAM(models.Model):
 
     def __str__(self):
         return self.ten
+
     @property
     def hinhurl(self):
         try:
-            url = self.hinh.url
-        except:
-            url = ''
-        return url
-    
+            return self.hinh.url
+        except Exception:
+            return ''
+
+    @property
+    def ton_theo_size(self):
+        return {item.size: item.soluong for item in self.tonkho_sizes.all()}
+
+
+class TONKHOSIZE(models.Model):
+    sanpham = models.ForeignKey(SANPHAM, on_delete=models.CASCADE, related_name='tonkho_sizes')
+    size = models.CharField(max_length=2, choices=SIZE_CHOICES)
+    soluong = models.IntegerField(default=0)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=['sanpham', 'size'], name='uniq_tonkho_sanpham_size'),
+            models.CheckConstraint(condition=models.Q(soluong__gte=0), name='tonkho_size_non_negative'),
+        ]
+
+    def __str__(self):
+        return f"{self.sanpham.ten} - {self.size}: {self.soluong}"
+
+
 class GIOHANG(models.Model):
     khachhang = models.OneToOneField(User, on_delete=models.CASCADE)
 
     def __str__(self):
         return self.khachhang.username
 
-class CHITIETGIOHANG(models.Model):
-    SIZE_CHOICES = [
-        ('S', 'S'),
-        ('M', 'M'),
-        ('L', 'L'),
-        ('XL', 'XL'),
-    ]
 
+class CHITIETGIOHANG(models.Model):
     giohang = models.ForeignKey(GIOHANG, on_delete=models.CASCADE)
     sanpham = models.ForeignKey(SANPHAM, on_delete=models.CASCADE)
-    size = models.CharField(max_length=2, choices=SIZE_CHOICES, default='M')  # 👈 THÊM
-    soluong = models.IntegerField(default=1) 
+    size = models.CharField(max_length=2, choices=SIZE_CHOICES, default='M')
+    soluong = models.IntegerField(default=1)
 
     def __str__(self):
         return f"{self.sanpham.ten} - {self.size} x {self.soluong}"
-    
+
+
 class DONHANG(models.Model):
-    khachhang = models.ForeignKey(User , on_delete=models.CASCADE)
-    ten = models.CharField(max_length = 100)
+    khachhang = models.ForeignKey(User, on_delete=models.CASCADE)
+    ten = models.CharField(max_length=100)
     sdt = models.CharField(max_length=11)
     diachi = models.TextField()
     tongtien = models.IntegerField()
@@ -63,13 +86,40 @@ class DONHANG(models.Model):
 
     def __str__(self):
         return f"Don hang {self.id} cua {self.ten}"
-    
+
+
 class CHITIETDONHANG(models.Model):
     donhang = models.ForeignKey(DONHANG, on_delete=models.CASCADE)
     sanpham = models.ForeignKey(SANPHAM, on_delete=models.CASCADE)
-    size = models.CharField(max_length=2, default='M')  # 👈 THÊM
+    size = models.CharField(max_length=2, choices=SIZE_CHOICES, default='M')
     soluong = models.IntegerField()
     dongia = models.IntegerField()
+
+
+class LICHSUKHO(models.Model):
+    LOAI_BIENDONG_CHOICES = [
+        ('nhap', 'Nhap kho'),
+        ('xuat', 'Xuat kho'),
+        ('dieuchinh_tang', 'Dieu chinh tang'),
+        ('dieuchinh_giam', 'Dieu chinh giam'),
+    ]
+
+    sanpham = models.ForeignKey(SANPHAM, on_delete=models.CASCADE, related_name='lichsu_kho')
+    size = models.CharField(max_length=2, choices=SIZE_CHOICES)
+    loai_biendong = models.CharField(max_length=20, choices=LOAI_BIENDONG_CHOICES)
+    soluong_thaydoi = models.IntegerField()
+    ton_truoc = models.IntegerField(default=0)
+    ton_sau = models.IntegerField(default=0)
+    ghichu = models.CharField(max_length=255, blank=True, default='')
+    nguoithuchien = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    thoigian = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-thoigian', '-id']
+
+    def __str__(self):
+        return f"{self.sanpham.ten} - {self.size} ({self.loai_biendong})"
+
 
 class CUAHANG(models.Model):
     ten = models.CharField(max_length=100)
@@ -78,9 +128,8 @@ class CUAHANG(models.Model):
     lat = models.FloatField()
     lon = models.FloatField()
     hinh = models.ImageField(upload_to='cuahang/', null=True, blank=True)
-
-    gio_mo = models.TimeField(default="08:00")
-    gio_dong = models.TimeField(default="22:00")
+    gio_mo = models.TimeField(default='08:00')
+    gio_dong = models.TimeField(default='22:00')
 
     def __str__(self):
         return self.ten
@@ -89,8 +138,9 @@ class CUAHANG(models.Model):
     def hinhurl(self):
         try:
             return self.hinh.url
-        except:
+        except Exception:
             return ''
+
 
 class TAIKHOAN(models.Model):
     ROLE_CHOICES = [
@@ -106,13 +156,13 @@ class TAIKHOAN(models.Model):
         return f"{self.user.username} - {self.get_role_display()}"
 
 
-
 @receiver(post_save, sender=User)
 def tao_taikhoan(sender, instance, created, **kwargs):
     if created:
         role = 'admin' if instance.is_staff else 'user'
         TAIKHOAN.objects.create(user=instance, role=role)
 
+
 class HINHANH(models.Model):
-    sanpham = models.ForeignKey(SANPHAM, on_delete= models.CASCADE, related_name= 'hinhanh')
-    hinh = models.ImageField(null= True, blank= True)
+    sanpham = models.ForeignKey(SANPHAM, on_delete=models.CASCADE, related_name='hinhanh')
+    hinh = models.ImageField(null=True, blank=True)

@@ -22,6 +22,7 @@ urlpatterns = [
     path('quantri/sanpham/xoa/<int:sanpham_id>/', views.xoasanpham, name="xoasanpham"),
     path('quantri/sanpham/sua/<int:sanpham_id>/', views.suasanpham, name="suasanpham"),
     path('quantri/sanpham/them/', views.themsanpham, name="themsanpham"),
+    path('quantri/kho/lichsu/', views.lichsukho, name="lichsukho"),
     path('quantri/donhang/', views.quanlydonhang, name="quanlydonhang"),
     path('quantri/donhang/<int:donhang_id>/', views.duyetdonhang, name="duyetdonhang"),
     path('quantri/donhang/chitietdonhang/<int:donhang_id>/', views.chitietdonhang, name="chitietdonhang"),
