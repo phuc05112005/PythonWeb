@@ -40,9 +40,8 @@
             <label class="form-label small text-muted mb-1">Loại biến động</label>
             <select name="loai" class="form-select form-select-sm">
                 <option value="">Tất cả</option>
-                {% for value, label in loai_biendong_choices %}
-                <option value="{{ value }}" {% if request.GET.loai == value %}selected{% endif %}>{{ label }}</option>
-                {% endfor %}
+                <option value="tang" {% if request.GET.loai == 'tang' %}selected{% endif %}>Tăng</option>
+                <option value="giam" {% if request.GET.loai == 'giam' %}selected{% endif %}>Giảm</option>
             </select>
         </div>
 

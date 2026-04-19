@@ -8,6 +8,7 @@ urlpatterns = [
     path('chitietsp/<int:sanpham_id>/', views.chitietsp, name="chitiet"),
     path('dangnhap/', views.dangnhap, name="dangnhap"),
     path('dangky/', views.dangky, name="dangky"),
+    path('tai-khoan/', views.thongtintaikhoan, name='thongtintaikhoan'),
     path('dangxuat/', dangnhap.LogoutView.as_view(next_page='home'), name="dangxuat"),
     path('themgiohang/<int:sanpham_id>/', views.themgiohang, name="themgiohang"),
     path('suagiohang/<int:sanpham_id>/', views.suagiohang, name="suagiohang"),

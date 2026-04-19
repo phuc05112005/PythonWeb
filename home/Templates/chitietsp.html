@@ -14,14 +14,14 @@
                         </li>
                         {% for item in sanpham.hinhanh.all %}
                         <li class="splide__slide d-flex align-items-center justify-content-center">
-                            <img src="{{ item.hinh.url }}" alt="áº¢nh chi tiáº¿t" class="img-fluid w-100 zoomable-product-image" data-zoom-src="{{ item.hinh.url }}" style="object-fit: cover; min-height: 400px;">
+                            <img src="{{ item.hinh.url }}" alt="Ảnh chi tiết" class="img-fluid w-100 zoomable-product-image" data-zoom-src="{{ item.hinh.url }}" style="object-fit: cover; min-height: 400px;">
                         </li>
                         {% endfor %}
                     </ul>
                 </div>
             </section>
 
-            <section id="thumbnail-carousel" class="splide mt-3" aria-label="Album áº£nh nhá»">
+            <section id="thumbnail-carousel" class="splide mt-3" aria-label="Album ảnh nhỏ">
                 <div class="splide__track">
                     <ul class="splide__list list-unstyled">
                         <li class="splide__slide thumb-slide" style="cursor: pointer;">
@@ -39,14 +39,20 @@
 
         <div class="col-md-7 d-flex flex-column justify-content-center ps-md-5">
             <h2 class="fw-bolder text-uppercase mb-2" style="letter-spacing: 1px;">{{ sanpham.ten }}</h2>
-            <h3 class="text-danger fw-bold mb-4">{{ sanpham.gia }} VNÄ</h3>
+            <h3 class="text-danger fw-bold mb-4">{{ sanpham.gia }} VNĐ</h3>
 
             <hr class="mb-4 opacity-25">
 
             <div class="mb-4">
-                <span class="badge bg-light text-dark border border-secondary-subtle px-3 py-2 rounded-pill fs-6 fw-medium">
-                    CĂ²n {{ sanpham.soluong }} sáº£n pháº©m
+                {% if sanpham.soluong > 0 %}
+                <span class="badge bg-light text-success border border-success-subtle px-3 py-2 rounded-pill fs-6 fw-medium">
+                    Còn hàng
                 </span>
+                {% else %}
+                <span class="badge bg-light text-danger border border-danger-subtle px-3 py-2 rounded-pill fs-6 fw-medium">
+                    Hết hàng
+                </span>
+                {% endif %}
             </div>
 
             <form action="{% url 'themgiohang' sanpham.id %}" method="post" class="mt-auto">
@@ -57,21 +63,23 @@
                     <label class="form-label fw-bold small text-uppercase text-secondary ms-2">Size</label>
                     <select id="size-select" name="size" class="form-select rounded-pill border-2 bg-light shadow-none" required style="height: 50px;">
                         {% for size, stock in tonkho_list %}
-                        <option value="{{ size }}" data-stock="{{ stock }}" {% if stock <= 0 %}disabled{% endif %}>Size {{ size }} - Con {{ stock }}</option>
+                        <option value="{{ size }}" data-stock="{{ stock }}" {% if stock <= 0 %}disabled{% endif %}>
+                            Size {{ size }}{% if stock > 0 %}{% else %} - Hết hàng{% endif %}
+                        </option>
                         {% endfor %}
                     </select>
                 </div>
 
                 <div class="mt-4">
-                    <h6 class="fw-bold text-uppercase text-secondary mb-3">HÆ°á»›ng dáº«n chá»n size</h6>
+                    <h6 class="fw-bold text-uppercase text-secondary mb-3">Hướng dẫn chọn size</h6>
 
                     <div class="table-responsive">
                         <table class="table table-bordered text-center align-middle small">
                             <thead class="table-dark">
                                 <tr>
                                     <th>Size</th>
-                                    <th>Chiá»u cao (cm)</th>
-                                    <th>CĂ¢n náº·ng (kg)</th>
+                                    <th>Chiều cao (cm)</th>
+                                    <th>Cân nặng (kg)</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -99,24 +107,24 @@
                         </table>
                     </div>
                     <p class="text-muted small mt-2">
-                        LÆ°u Ă½: Size cĂ³ thá»ƒ chĂªnh lá»‡ch 1-2 cm tĂ¹y form dĂ¡ng.
+                        Lưu ý: Size có thể chênh lệch 1-2 cm tùy form dáng.
                     </p>
                 </div>
 
                 <div class="d-flex align-items-end gap-3 mb-3">
                     <div>
-                        <label class="form-label fw-bold small text-uppercase text-secondary ms-2">Sá»‘ lÆ°á»£ng</label>
+                        <label class="form-label fw-bold small text-uppercase text-secondary ms-2">Số lượng</label>
                         <input id="qty-input" type="number" name="soluong" value="1" min="1" class="form-control text-center rounded-pill">
                     </div>
 
                     <button id="add-to-cart-btn" type="submit" class="btn btn-dark rounded-pill px-4 fw-bold">
-                        ThĂªm vĂ o giá» hĂ ng
+                        Thêm vào giỏ hàng
                     </button>
                 </div>
             </form>
 
             <a href="{% url 'home' %}" class="btn btn-outline-secondary rounded-pill fw-bold text-uppercase mt-2 w-100 transition-hover" style="height: 50px; display: flex; align-items: center; justify-content: center; letter-spacing: 1px;">
-                &larr; Tiáº¿p tá»¥c mua sáº¯m
+                &larr; Tiếp tục mua sắm
             </a>
         </div>
     </div>
@@ -124,18 +132,18 @@
     <div class="row mt-4 g-3">
         <div class="col-lg-6">
             <div class="p-4 rounded-4 border bg-light-subtle product-description-box">
-                <h5 class="fw-bold mb-3">MĂ´ táº£ sáº£n pháº©m</h5>
+                <h5 class="fw-bold mb-3">Mô tả sản phẩm</h5>
                 {% if sanpham.mota %}
                     <p class="mb-0 text-secondary product-description-text">{{ sanpham.mota|linebreaksbr }}</p>
                 {% else %}
-                    <p class="mb-0 text-muted">Sáº£n pháº©m chÆ°a cĂ³ mĂ´ táº£ chi tiáº¿t.</p>
+                    <p class="mb-0 text-muted">Sản phẩm chưa có mô tả chi tiết.</p>
                 {% endif %}
             </div>
         </div>
 
         <div class="col-lg-6">
             <div class="p-4 rounded-4 branch-stock-box">
-                <p class="mb-3 fw-bold fs-5">Sáº£n pháº©m hiá»‡n cĂ³ á»Ÿ cĂ¡c há»‡ thá»‘ng cá»­a hĂ ng:</p>
+                <p class="mb-3 fw-bold fs-5">Sản phẩm hiện có ở các hệ thống cửa hàng:</p>
                 <ul class="mb-3 ps-3 branch-list">
                     {% for item in cuahang %}
                         <li class="mb-2">
@@ -143,11 +151,11 @@
                             <span class="text-muted"> - {{ item.diachi }}</span>
                         </li>
                     {% empty %}
-                        <li class="text-muted">ChÆ°a cĂ³ thĂ´ng tin chi nhĂ¡nh.</li>
+                        <li class="text-muted">Chưa có thông tin chi nhánh.</li>
                     {% endfor %}
                 </ul>
                 <a href="{% url 'map' %}" class="btn btn-dark w-100 rounded-pill fw-bold">
-                    Xem báº£n Ä‘á»“
+                    Xem bản đồ
                 </a>
             </div>
         </div>
@@ -275,5 +283,3 @@
     });
 </script>
 {% endblock main-content %}
-
-

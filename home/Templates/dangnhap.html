@@ -19,7 +19,22 @@
 
             <div class="mb-4">
                 <label class="form-label fw-bold small text-secondary text-uppercase">Mật khẩu</label>
-                <input type="password" name="password" class="form-control bg-light border-0 shadow-none px-4 py-3 rounded-3" placeholder="••••••••" required>
+                <div class="pw-wrap">
+                    <input type="password" name="password" class="form-control bg-light border-0 shadow-none px-4 py-3 rounded-3" placeholder="••••••••" required>
+                    <button type="button" class="pw-toggle" aria-label="Hiện/ẩn mật khẩu">
+                        <svg class="eye-on" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                            <circle cx="12" cy="12" r="3"/>
+                        </svg>
+                        <svg class="eye-off" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none">
+                            <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/>
+                            <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/>
+                            <line x1="1" y1="1" x2="23" y2="23"/>
+                        </svg>
+                    </button>
+                </div>
             </div>
 
             {% if form.errors %}
@@ -53,11 +68,63 @@
         transform: translateY(-3px);
         opacity: 0.85;
     }
-    /* Đổi màu viền nhẹ khi click vào ô input */
     .form-control:focus {
         background-color: #fff !important;
         border: 1px solid #000 !important;
         box-shadow: none !important;
     }
+
+    .pw-wrap {
+        position: relative;
+        display: flex;
+        align-items: center;
+    }
+
+    .pw-wrap .form-control {
+        padding-right: 3rem;
+    }
+
+    .pw-toggle {
+        position: absolute;
+        right: 12px;
+        background: none;
+        border: none;
+        padding: 4px;
+        cursor: pointer;
+        color: #9ca3af;
+        display: flex;
+        align-items: center;
+        border-radius: 6px;
+        transition: color .2s, background .2s;
+        z-index: 5;
+    }
+
+    .pw-toggle:hover {
+        color: #111827;
+        background: #f3f4f6;
+    }
+
+    .pw-toggle svg {
+        width: 18px;
+        height: 18px;
+        display: block;
+    }
 </style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const btn    = document.querySelector('.pw-toggle');
+    const input  = btn.closest('.pw-wrap').querySelector('input');
+    const eyeOn  = btn.querySelector('.eye-on');
+    const eyeOff = btn.querySelector('.eye-off');
+
+    btn.addEventListener('click', function () {
+        const show = input.type === 'password';
+        input.type           = show ? 'text' : 'password';
+        eyeOn.style.display  = show ? 'none' : '';
+        eyeOff.style.display = show ? ''     : 'none';
+    });
+});
+</script>
+
 {% endblock main-content %}

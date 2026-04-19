@@ -28,7 +28,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('size', models.CharField(choices=[('S', 'S'), ('M', 'M'), ('L', 'L'), ('XL', 'XL')], max_length=2)),
-                ('loai_biendong', models.CharField(choices=[('nhap', 'Nhap kho'), ('xuat', 'Xuat kho'), ('dieuchinh_tang', 'Dieu chinh tang'), ('dieuchinh_giam', 'Dieu chinh giam')], max_length=20)),
+                ('loai_biendong', models.CharField(choices=[('dieuchinh_tang', 'Tăng'), ('dieuchinh_giam', 'Giảm')], max_length=20)),
                 ('soluong_thaydoi', models.IntegerField()),
                 ('ton_truoc', models.IntegerField(default=0)),
                 ('ton_sau', models.IntegerField(default=0)),
