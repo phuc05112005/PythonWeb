@@ -64,7 +64,7 @@
                     <select id="size-select" name="size" class="form-select rounded-pill border-2 bg-light shadow-none" required style="height: 50px;">
                         {% for size, stock in tonkho_list %}
                         <option value="{{ size }}" data-stock="{{ stock }}" {% if stock <= 0 %}disabled{% endif %}>
-                            Size {{ size }}{% if stock > 0 %}{% else %} - Hết hàng{% endif %}
+                            Size {{ size }} {% if stock <= 0 %} - Hết hàng{% endif %}
                         </option>
                         {% endfor %}
                     </select>
@@ -144,17 +144,29 @@
         <div class="col-lg-6">
             <div class="p-4 rounded-4 branch-stock-box">
                 <p class="mb-3 fw-bold fs-5">Sản phẩm hiện có ở các hệ thống cửa hàng:</p>
-                <ul class="mb-3 ps-3 branch-list">
-                    {% for item in cuahang %}
-                        <li class="mb-2">
-                            <span class="fw-semibold">{{ item.ten }}</span>
-                            <span class="text-muted"> - {{ item.diachi }}</span>
-                        </li>
+                <div class="branch-list">
+                    {% for item in tonkho_by_store %}
+                        <div class="mb-3 p-3 bg-white rounded-3 shadow-sm border border-light">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="fw-bold text-primary">{{ item.store.ten }}</span>
+                                <span class="badge {% if item.total_stock > 0 %}bg-success{% else %}bg-secondary{% endif %}">
+                                    {% if item.total_stock > 0 %}Còn hàng{% else %}Hết hàng{% endif %}
+                                </span>
+                            </div>
+                            <div class="small text-muted mb-2"><i class="fa-solid fa-location-dot me-1"></i> {{ item.store.diachi }}</div>
+                            <div class="d-flex flex-wrap gap-2">
+                                {% for inv in item.inventory %}
+                                    <span class="small border px-2 py-1 rounded {% if inv.soluong > 0 %}bg-white{% else %}bg-light text-muted{% endif %}">
+                                        {{ inv.size }}: <strong>{{ inv.soluong }}</strong>
+                                    </span>
+                                {% endfor %}
+                            </div>
+                        </div>
                     {% empty %}
-                        <li class="text-muted">Chưa có thông tin chi nhánh.</li>
+                        <p class="text-muted">Chưa có thông tin chi nhánh.</p>
                     {% endfor %}
-                </ul>
-                <a href="{% url 'map' %}" class="btn btn-dark w-100 rounded-pill fw-bold">
+                </div>
+                <a href="{% url 'map' %}" class="btn btn-dark w-100 rounded-pill fw-bold mt-3">
                     Xem bản đồ
                 </a>
             </div>
@@ -342,3 +354,4 @@
     });
 </script>
 {% endblock main-content %}
+

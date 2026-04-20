@@ -41,25 +41,23 @@
                 </div>
 
                 <div class="mb-4">
-                    <label class="form-label fw-bold text-secondary small text-uppercase">Tồn Kho Theo Size</label>
-                    <div class="row g-3">
-                        <div class="col-6 col-md-3">
-                            <label class="form-label small text-muted mb-1">Size S</label>
-                            <input type="number" name="ton_s" class="form-control bg-light border-0 shadow-none py-3 rounded-3" min="0" value="0" required>
-                        </div>
-                        <div class="col-6 col-md-3">
-                            <label class="form-label small text-muted mb-1">Size M</label>
-                            <input type="number" name="ton_m" class="form-control bg-light border-0 shadow-none py-3 rounded-3" min="0" value="0" required>
-                        </div>
-                        <div class="col-6 col-md-3">
-                            <label class="form-label small text-muted mb-1">Size L</label>
-                            <input type="number" name="ton_l" class="form-control bg-light border-0 shadow-none py-3 rounded-3" min="0" value="0" required>
-                        </div>
-                        <div class="col-6 col-md-3">
-                            <label class="form-label small text-muted mb-1">Size XL</label>
-                            <input type="number" name="ton_xl" class="form-control bg-light border-0 shadow-none py-3 rounded-3" min="0" value="0" required>
+                    <label class="form-label fw-bold text-primary small text-uppercase mb-3 d-block border-bottom pb-2">Tồn Kho Theo Cửa Hàng</label>
+                    
+                    {% for ch in cuahangs %}
+                    <div class="p-3 mb-4 border rounded-3 bg-white">
+                        <h6 class="fw-bold text-dark mb-3"><i class="bi bi-shop me-2"></i> {{ ch.ten }}</h6>
+                        <div class="row g-3">
+                            {% for size in size_order %}
+                            <div class="col-6 col-md-3">
+                                <label class="form-label small text-muted mb-1">Size {{ size }}</label>
+                                <input type="number" name="ton_{{ ch.id }}_{{ size|lower }}" class="form-control bg-light border-0 shadow-none py-2 rounded-3" min="0" value="0" required>
+                            </div>
+                            {% endfor %}
                         </div>
                     </div>
+                    {% empty %}
+                    <div class="alert alert-warning">Vui lòng thêm cửa hàng trước khi thêm sản phẩm.</div>
+                    {% endfor %}
                 </div>
 
                 <div class="mb-4">

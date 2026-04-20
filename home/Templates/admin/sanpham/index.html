@@ -9,6 +9,16 @@
             <p class="text-muted small mt-1 mb-0">Quản lý tồn kho theo size, cập nhật giá và thông tin sản phẩm.</p>
         </div>
         <div class="d-flex gap-2">
+            <!-- New Excel Buttons -->
+            <div class="btn-group">
+                <a href="{% url 'export_inventory_template' %}" class="btn btn-outline-success rounded-start-pill fw-bold px-3 py-2">
+                    <i class="bi bi-file-earmark-excel me-1"></i> Tải mẫu Excel
+                </a>
+                <button type="button" class="btn btn-success rounded-end-pill fw-bold px-3 py-2" data-bs-toggle="modal" data-bs-target="#importExcelModal">
+                    <i class="bi bi-upload me-1"></i> Cập nhật kho
+                </button>
+            </div>
+
             <a href="{% url 'lichsukho' %}" class="btn btn-outline-dark rounded-pill fw-bold px-4 py-2">
                 <i class="bi bi-clock-history me-1"></i> Lịch sử xuất nhập kho
             </a>
@@ -18,6 +28,40 @@
             <a href="{% url 'themsanpham' %}" class="btn btn-dark rounded-pill fw-bold px-4 py-2 shadow-sm">
                 <i class="bi bi-plus-lg me-1"></i> Thêm sản phẩm
             </a>
+        </div>
+    </div>
+
+    <!-- Modal Import Excel -->
+    <div class="modal fade" id="importExcelModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 rounded-4 shadow">
+                <div class="modal-header border-0">
+                    <h5 class="modal-title fw-bold">Cập nhật kho từ Excel</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form action="{% url 'import_inventory_excel' %}" method="POST" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <div class="modal-body p-4">
+                        <div class="mb-4">
+                            <label class="form-label small fw-bold text-secondary">CHỌN FILE EXCEL (.XLSX)</label>
+                            <input type="file" name="excel_file" class="form-control border-0 bg-light py-3 rounded-3" accept=".xlsx" required>
+                            <div class="form-text mt-2 small">Sử dụng file mẫu tải về từ hệ thống để đảm bảo dữ liệu chính xác.</div>
+                        </div>
+                        <div class="bg-light p-3 rounded-3 mb-2">
+                            <h6 class="fw-bold small mb-2 text-dark">Lưu ý khi nhập số liệu:</h6>
+                            <ul class="small text-muted mb-0 ps-3">
+                                <li><strong>Số lượng thêm:</strong> Nhập số dương để nhập kho, số âm để xuất kho.</li>
+                                <li><strong>Ghi chú:</strong> Nhập lý do thay đổi cho từng dòng.</li>
+                                <li>Hệ thống sẽ bỏ qua các dòng có <i>Số lượng thêm</i> bằng 0.</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="modal-footer border-0 p-4 pt-0">
+                        <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Hủy</button>
+                        <button type="submit" class="btn btn-success rounded-pill px-4 fw-bold">Bắt đầu cập nhật</button>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
 

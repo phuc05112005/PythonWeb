@@ -1,4 +1,4 @@
-﻿{% extends "layout.html" %}
+{% extends "layout.html" %}
 {% load static %}
 {% load humanize %}
 
@@ -9,37 +9,71 @@
 
 <style>
     #map {
-        height: 350px;
+        height: 380px;
         width: 100%;
-        border: none;
+        border-radius: 12px;
         z-index: 1;
     }
 
     .form-control {
         padding: 0.75rem 1.25rem;
     }
+
+    /* Đảm bảo sidebar không đè lên navbar sticky */
+    .sticky-sidebar {
+        position: -webkit-sticky;
+        position: sticky;
+        top: 100px; /* Offset cho navbar (khoảng 70px) + margin */
+        z-index: 10;
+    }
+
+    .transition-hover {
+        transition: all 0.3s ease;
+    }
+
+    .transition-hover:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, .15) !important;
+    }
+
+    .product-summary-list {
+        max-height: 300px;
+        overflow-y: auto;
+    }
+
+    /* Tùy chỉnh thanh cuộn cho danh sách sản phẩm */
+    .product-summary-list::-webkit-scrollbar {
+        width: 4px;
+    }
+    .product-summary-list::-webkit-scrollbar-thumb {
+        background: #ddd;
+        border-radius: 10px;
+    }
 </style>
 
-<div class="container mt-4 mb-5 min-vh-100">
-    <form method="post">
+<div class="container mt-4 mb-5 pb-5 min-vh-100">
+    <form method="post" id="checkout-form">
         {% csrf_token %}
-        <div class="row g-5">
+        <div class="row g-4">
+            <!-- Cột trái: Thông tin khách hàng & Bản đồ -->
             <div class="col-lg-7">
-                <h3 class="fw-bolder text-uppercase mb-4" style="letter-spacing: 1px;">Thông tin giao hàng</h3>
+                <h3 class="fw-bolder text-uppercase mb-4" style="letter-spacing: 1px;">
+                    <i class="bi bi-geo-alt-fill text-danger me-2"></i>Thông tin giao hàng
+                </h3>
 
                 <div class="bg-white p-4 p-md-5 rounded-4 shadow-sm border-0 mb-4">
                     <div class="row g-3 mb-4">
                         <div class="col-md-6">
                             <label class="form-label fw-bold small text-secondary text-uppercase">Tên khách hàng</label>
-                            <input type="text" name="ten" class="form-control rounded-pill bg-light border-0 shadow-none" value="{{ tenkh|default:'' }}" placeholder="Nhập tên khách hàng...">
+                            <input type="text" name="ten" class="form-control rounded-pill bg-light border-0 shadow-none" value="{{ tenkh|default:'' }}" placeholder="Nhập tên khách hàng..." required>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label fw-bold small text-secondary text-uppercase">Số điện thoại</label>
-                            <input type="number" name="sdt" class="form-control rounded-pill bg-light border-0 shadow-none" value="{{ sdtkh|default:'' }}" placeholder="Nhập số điện thoại...">
+                            <input type="number" name="sdt" class="form-control rounded-pill bg-light border-0 shadow-none" value="{{ sdtkh|default:'' }}" placeholder="Nhập số điện thoại..." required>
                         </div>
 
-                        <div class="col-12">
-                            <label class="form-label fw-bold small text-secondary text-uppercase">Địa chỉ giao hàng</label>
+                        <div class="col-12 mt-4">
+                            <label class="form-label fw-bold small text-secondary text-uppercase">Địa chỉ giao hàng chi tiết</label>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label small text-muted mb-1">Số nhà & tên đường</label>
@@ -53,48 +87,54 @@
                             <label class="form-label small text-muted mb-1">Tỉnh / Thành phố</label>
                             <input type="text" name="diachi_thanhpho" id="diachi_thanhpho" class="form-control rounded-pill bg-light border-0 shadow-none" value="{{ diachi_thanhpho|default:'' }}" placeholder="VD: TP.HCM">
                         </div>
-                        <div class="col-12">
+                        <div class="col-12 text-center mt-3">
                             <input type="hidden" name="diachi" id="diachi" value="{{ diachikh|default:'' }}">
-                            <button type="button" id="btn-search-address" class="btn btn-dark rounded-pill px-4" onclick="searchAddress()">
-                                Tìm vị trí
+                            <button type="button" id="btn-search-address" class="btn btn-dark rounded-pill px-5 fw-bold" onclick="searchAddress()">
+                                <i class="bi bi-search me-2"></i>XÁC ĐỊNH VỊ TRÍ GIAO HÀNG
                             </button>
+                            <div class="form-text text-muted mt-2">Hệ thống sẽ dựa vào bản đồ để tính phí giao hàng từ cửa hàng gần nhất.</div>
                         </div>
                     </div>
 
-                    <input type="hidden" name="lat" id="lat">
-                    <input type="hidden" name="lon" id="lon">
+                    <input type="hidden" name="lat" id="lat" value="{{ latkh|default:'' }}">
+                    <input type="hidden" name="lon" id="lon" value="{{ lonkh|default:'' }}">
 
-                    <div class="mb-3">
-                        <label class="form-label fw-bold small text-secondary text-uppercase">Ghim vị trí giao hàng trên bản đồ</label>
+                    <div class="mt-4">
+                        <label class="form-label fw-bold small text-secondary text-uppercase mb-3 d-block">
+                            Kiểm tra vị trí trên bản đồ (Bạn có thể kéo ghim để điều chỉnh)
+                        </label>
                         <div class="overflow-hidden rounded-4 shadow-sm border border-2 border-light">
                             <div id="map"></div>
                         </div>
                     </div>
 
-                    <div class="d-flex justify-content-end">
-                        <button type="submit" name="action" value="tinhship" class="btn btn-outline-secondary rounded-pill fw-bold text-uppercase btn-sm px-4 d-none">
-                        </button>
-                    </div>
+                    <!-- Nút ẩn để trigger tính ship -->
+                    <button type="submit" name="action" value="tinhship" id="btn-tinhship" class="d-none"></button>
                 </div>
             </div>
 
+            <!-- Cột phải: Hộp tính tiền (Sticky) -->
             <div class="col-lg-5">
-                <div class="bg-white p-4 p-md-5 rounded-4 shadow-sm border-0 sticky-top" style="top: 30px;">
-                    <h4 class="fw-bolder text-uppercase mb-4" style="letter-spacing: 1px;">Xác nhận đơn hàng</h4>
+                <div class="bg-white p-4 p-md-5 rounded-4 shadow-sm border-0 sticky-sidebar">
+                    <h4 class="fw-bolder text-uppercase mb-4" style="letter-spacing: 1px;">Đơn hàng của bạn</h4>
 
-                    <div class="mb-4">
+                    <div class="mb-4 product-summary-list">
                         {% for sp in sanpham %}
                         <div class="d-flex align-items-center mb-3">
                             <div class="position-relative">
-                                <img src="{{ sp.sanpham.hinhurl }}" alt="{{ sp.sanpham.ten }}" class="rounded-3 shadow-sm" style="width: 60px; height: 60px; object-fit: cover;">
-                                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-dark border border-white">
+                                <img src="{{ sp.sanpham.hinhurl }}" 
+                                    class="rounded-3 shadow-sm border"
+                                    style="width: 60px; height: 60px; object-fit: cover;">
+
+                                <span class="badge bg-dark text-white position-absolute top-0 end-0 m-1 px-2 py-1 rounded-pill"
+                                    style="font-size: 0.7rem;">
                                     {{ sp.soluong }}
                                 </span>
                             </div>
                             <div class="ms-3 flex-grow-1">
                                 <h6 class="mb-1 fw-bold text-truncate" style="max-width: 150px;">{{ sp.sanpham.ten }}</h6>
                                 <small class="text-muted d-block">Size: {{ sp.size }}</small>
-                                <small class="text-secondary text-nowrap">{{ sp.sanpham.gia|intcomma }} đ</small>
+                                <small class="text-secondary">{{ sp.sanpham.gia|intcomma }} đ</small>
                             </div>
                             <div class="fw-bold text-end text-nowrap">
                                 {% widthratio sp.soluong 1 sp.sanpham.gia as thanhtien %}
@@ -108,39 +148,43 @@
 
                     <div class="d-flex justify-content-between mb-2">
                         <span class="text-secondary fw-medium">Tạm tính:</span>
-                        <span class="fw-bold text-nowrap">{{ tongtiendonhang|intcomma }} đ</span>
+                        <span class="fw-bold">{{ tongtiendonhang|intcomma }} đ</span>
                     </div>
 
                     {% if tienship %}
                     <div class="d-flex justify-content-between mb-2">
                         <span class="text-secondary fw-medium">Khoảng cách:</span>
-                        <span class="fw-bold">{{ km }} km</span>
+                        <span class="fw-bold text-primary">{{ km }} km</span>
                     </div>
                     <div class="d-flex justify-content-between mb-3">
                         <span class="text-secondary fw-medium">Phí giao hàng:</span>
-                        <span class="fw-bold text-warning text-nowrap">{{ tienship|intcomma }} đ</span>
+                        <span class="fw-bold text-success">{{ tienship|intcomma }} đ</span>
                     </div>
                     {% else %}
-                    <div class="alert alert-light text-center border border-warning-subtle text-warning small fw-bold mb-3 rounded-3">
-                        Vui lòng nhập địa chỉ để tính phí giao hàng
+                    <div class="alert alert-warning text-center border-0 small fw-bold mb-3 rounded-3 py-2">
+                        <i class="bi bi-info-circle me-1"></i>Vui lòng chọn địa chỉ để tính phí ship
                     </div>
                     {% endif %}
 
                     <hr class="opacity-25 my-4">
 
                     <div class="d-flex justify-content-between mb-3 align-items-center">
-                        <span class="text-secondary fw-medium">Thanh toán:</span>
-                        <span class="fw-bold text-nowrap">Thanh toán khi nhận hàng (COD)</span>
+                        <span class="text-secondary fw-medium small">Hình thức:</span>
+                        <span class="fw-bold small">Thanh toán khi nhận hàng</span>
                     </div>
 
                     <div class="d-flex justify-content-between mb-4 align-items-center">
-                        <span class="fw-bold text-uppercase" style="font-size: 1.1rem;">Tổng thanh toán:</span>
-                        <span class="fw-bolder text-danger fs-3 text-nowrap">{{ tongtien|intcomma }} đ</span>
+                        <span class="fw-bold text-uppercase" style="font-size: 0.9rem;">Tổng cộng:</span>
+                        <span class="fw-bolder text-danger fs-3">{{ tongtien|intcomma }} đ</span>
                     </div>
 
                     <button type="submit" name="action" value="thanhtoan" class="btn btn-dark w-100 rounded-pill fw-bold text-uppercase py-3 shadow-sm transition-hover" style="letter-spacing: 1px;" {% if not tienship %}disabled{% endif %}>
-                        Xác nhận đặt hàng
+                        XÁC NHẬN ĐẶT HÀNG
                     </button>
+                    
+                    {% if not tienship %}
+                    <p class="text-center text-muted small mt-3 italic">* Vui lòng xác định vị trí trên bản đồ để kích hoạt nút đặt hàng.</p>
+                    {% endif %}
                 </div>
             </div>
         </div>
@@ -148,36 +192,42 @@
 </div>
 
 <script>
-    var map = L.map('map').setView([10.762622, 106.660172], 13);
+    // Khởi tạo bản đồ mặc định (TPHCM)
+    var initialLat = document.getElementById('lat').value || 10.762622;
+    var initialLon = document.getElementById('lon').value || 106.660172;
+    
+    var map = L.map('map').setView([parseFloat(initialLat), parseFloat(initialLon)], 13);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '© OpenStreetMap'
     }).addTo(map);
 
     var marker;
 
-    function buildAddressFromFields() {
-        var addressParts = [
-            document.getElementById('diachi_duong').value.trim(),
-            document.getElementById('diachi_phuong').value.trim(),
-            document.getElementById('diachi_thanhpho').value.trim()
-        ].filter(Boolean);
+    // Nếu đã có tọa độ cũ, vẽ marker
+    if (document.getElementById('lat').value && document.getElementById('lon').value) {
+        updateMarker(parseFloat(initialLat), parseFloat(initialLon), false);
+    }
 
-        var diachiHidden = document.getElementById('diachi');
+    function buildAddressFromFields() {
+        var duong = document.getElementById('diachi_duong').value.trim();
+        var phuong = document.getElementById('diachi_phuong').value.trim();
+        var thanhpho = document.getElementById('diachi_thanhpho').value.trim();
+        
+        var addressParts = [duong, phuong, thanhpho].filter(Boolean);
         var fullAddress = addressParts.join(', ');
-        if (!fullAddress) {
-            return diachiHidden.value.trim();
-        }
-        diachiHidden.value = fullAddress;
+        
+        document.getElementById('diachi').value = fullAddress;
         return fullAddress;
     }
 
     function searchAddress() {
         var address = buildAddressFromFields();
-        if (!address) return alert('Vui lòng nhập địa chỉ!');
+        if (!address) return alert('Vui lòng nhập địa chỉ để tìm kiếm!');
 
         var btnTim = document.getElementById('btn-search-address');
         var textGoc = btnTim.innerHTML;
-        btnTim.innerHTML = 'Đang tìm...';
+        btnTim.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>ĐANG TÌM...';
+        btnTim.disabled = true;
 
         fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address + ', Vietnam')}`)
             .then(res => res.json())
@@ -185,64 +235,48 @@
                 if (data.length > 0) {
                     var lat = data[0].lat;
                     var lon = data[0].lon;
-                    updateMap(lat, lon);
-                    document.querySelector("button[value='tinhship']").click();
+                    updateMarker(lat, lon, true);
                 } else {
-                    alert('Không tìm thấy tọa độ cho địa chỉ này! Vui lòng nhập chi tiết hơn.');
+                    alert('Không tìm thấy tọa độ cho địa chỉ này! Thử ghim thủ công trên bản đồ.');
                     btnTim.innerHTML = textGoc;
+                    btnTim.disabled = false;
                 }
             })
             .catch(() => {
-                alert('Lỗi kết nối mạng, vui lòng thử lại!');
+                alert('Lỗi kết nối khi tìm địa chỉ!');
                 btnTim.innerHTML = textGoc;
+                btnTim.disabled = false;
             });
     }
 
-    function updateMap(lat, lon) {
+    function updateMarker(lat, lon, triggerReload) {
+        lat = parseFloat(lat);
+        lon = parseFloat(lon);
+        
         document.getElementById('lat').value = lat;
         document.getElementById('lon').value = lon;
+        
         map.setView([lat, lon], 16);
 
         if (marker) map.removeLayer(marker);
         marker = L.marker([lat, lon], { draggable: true }).addTo(map);
 
-        marker.on('dragend', function () {
+        marker.on('dragend', function (e) {
             var newPos = marker.getLatLng();
             document.getElementById('lat').value = newPos.lat;
             document.getElementById('lon').value = newPos.lng;
-            buildAddressFromFields();
-            document.querySelector("button[value='tinhship']").click();
+            // Tự động tính lại ship khi kéo marker
+            document.getElementById('btn-tinhship').click();
         });
+
+        if (triggerReload) {
+            document.getElementById('btn-tinhship').click();
+        }
     }
 
     map.on('click', function (e) {
-        updateMap(e.latlng.lat, e.latlng.lng);
-        buildAddressFromFields();
-        document.querySelector("button[value='tinhship']").click();
+        updateMarker(e.latlng.lat, e.latlng.lng, true);
     });
-
-    document.querySelector('form[method="post"]').addEventListener('submit', function () {
-        buildAddressFromFields();
-    });
-
-    window.onload = function () {
-        buildAddressFromFields();
-        var savedLat = "{{ latkh|default:'' }}";
-        var savedLon = "{{ lonkh|default:'' }}";
-        if (savedLat !== '' && savedLon !== '') {
-            updateMap(parseFloat(savedLat), parseFloat(savedLon));
-        }
-    };
 </script>
-
-<style>
-    .transition-hover {
-        transition: all 0.3s ease;
-    }
-
-    .transition-hover:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, .15) !important;
-    }
-</style>
 {% endblock main-content %}
+

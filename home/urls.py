@@ -12,7 +12,10 @@ urlpatterns = [
     path('kichhoat/<uidb64>/<token>/', views.kichhoat, name='kichhoat'),
     
     # Quên mật khẩu
-    path('quen-mat-khau/', auth_views.PasswordResetView.as_view(template_name='password_reset.html'), name='password_reset'),
+    path('quen-mat-khau/', auth_views.PasswordResetView.as_view(
+        template_name='password_reset.html',
+        form_class=views.CustomPasswordResetForm
+    ), name='password_reset'),
     path('quen-mat-khau/da-gui/', auth_views.PasswordResetDoneView.as_view(template_name='password_reset_done.html'), name='password_reset_done'),
     path('dat-lai-mat-khau/<uidb64>/<token>/', auth_views.PasswordResetConfirmView.as_view(template_name='password_reset_confirm.html'), name='password_reset_confirm'),
     path('dat-lai-mat-khau/hoan-tat/', auth_views.PasswordResetCompleteView.as_view(template_name='password_reset_complete.html'), name='password_reset_complete'),
@@ -55,5 +58,8 @@ urlpatterns = [
     path('chinh-sach-bao-hanh/', views.chinhsachbaohanh, name='chinhsachbaohanh'),
     path('chinh-sach-doi-tra/', views.chinhsachdoitra, name='chinhsachdoitra'),
     path('dieu-khoan-su-dung/', views.dieukhoansudung, name='dieukhoansudung'),
+    path('export-inventory-template/', views.export_inventory_template, name='export_inventory_template'),
+    path('import-inventory-excel/', views.import_inventory_excel, name='import_inventory_excel'),
     path('export-lichsu-kho/', views.export_lichsukho_excel, name='export_lichsukho_excel'),
+    path('kich-hoat/<uidb64>/<token>/', views.kichhoat, name='kichhoat'),
 ]

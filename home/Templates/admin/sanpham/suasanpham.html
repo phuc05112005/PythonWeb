@@ -46,27 +46,24 @@
                     </div>
                 </div>
 
-                <div class="mb-4 p-3 border bg-white">
-                    <label class="form-label fw-bold small text-uppercase text-secondary d-block mb-2">Tồn kho theo size</label>
-                    <div class="row g-3">
-                        <div class="col-6 col-md-3">
-                            <label class="form-label small text-muted mb-1">Size S</label>
-                            <input type="number" name="ton_s" value="{{ tonkho_map.S }}" class="form-control rounded-0 border-0 bg-light px-3 py-3 shadow-none" min="0" required>
-                        </div>
-                        <div class="col-6 col-md-3">
-                            <label class="form-label small text-muted mb-1">Size M</label>
-                            <input type="number" name="ton_m" value="{{ tonkho_map.M }}" class="form-control rounded-0 border-0 bg-light px-3 py-3 shadow-none" min="0" required>
-                        </div>
-                        <div class="col-6 col-md-3">
-                            <label class="form-label small text-muted mb-1">Size L</label>
-                            <input type="number" name="ton_l" value="{{ tonkho_map.L }}" class="form-control rounded-0 border-0 bg-light px-3 py-3 shadow-none" min="0" required>
-                        </div>
-                        <div class="col-6 col-md-3">
-                            <label class="form-label small text-muted mb-1">Size XL</label>
-                            <input type="number" name="ton_xl" value="{{ tonkho_map.XL }}" class="form-control rounded-0 border-0 bg-light px-3 py-3 shadow-none" min="0" required>
+                <div class="mb-4">
+                    <label class="form-label fw-bold small text-uppercase text-primary d-block mb-3 border-bottom pb-2">Tồn kho theo cửa hàng</label>
+                    
+                    {% for item in tonkho_data %}
+                    <div class="p-3 mb-4 border rounded-3 bg-white shadow-sm">
+                        <h6 class="fw-bold text-dark mb-3"><i class="bi bi-shop me-2"></i> {{ item.store.ten }}</h6>
+                        <div class="row g-3">
+                            {% for inv in item.inventory_items %}
+                            <div class="col-6 col-md-3">
+                                <label class="form-label small text-muted mb-1">Size {{ inv.size }}</label>
+                                <input type="number" name="ton_{{ item.store.id }}_{{ inv.size|lower }}" value="{{ inv.soluong }}" class="form-control rounded-0 border-0 bg-light px-3 py-2 shadow-none" min="0" required>
+                            </div>
+                            {% endfor %}
                         </div>
                     </div>
-                    <div class="form-text">Tổng tồn hiện tại: {{ sanpham.soluong }}</div>
+                    {% endfor %}
+                    
+                    <div class="form-text mt-2">Tổng tồn hệ thống hiện tại: <span class="fw-bold text-dark">{{ sanpham.soluong }}</span></div>
                 </div>
 
                 <div class="mb-5 p-4 border rounded-0 bg-white">
@@ -133,3 +130,5 @@
     .btn-dark:hover { background-color: #1a1a1a; }
 </style>
 {% endblock main-content %}
+
+

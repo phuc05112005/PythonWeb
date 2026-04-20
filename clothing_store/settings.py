@@ -90,13 +90,16 @@ DATABASES = {
         'PORT': '5432',          
     }
 }
-EMAIL_HOST = 'sandbox.smtp.mailtrap.io'
-EMAIL_HOST_USER = '791895e9b49179'
-EMAIL_HOST_PASSWORD = 'd7e4eb4bc833e7'
-EMAIL_PORT = '2525'
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+
+EMAIL_HOST_USER = 'phuc052005@gmail.com'
+EMAIL_HOST_PASSWORD = 'vcphofxwpjjlbdnl'  
+
+DEFAULT_FROM_EMAIL = 'Shop Thời Trang Fashion Store <phuc052005@gmail.com>'
 
 # Password validation
 # https://docs.djangoproject.com/en/6.0/ref/settings/#auth-password-validators
@@ -127,7 +130,7 @@ DECIMAL_SEPARATOR = ','
 THOUSAND_SEPARATOR = '.'
 NUMBER_GROUPING = 3
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Asia/Ho_Chi_Minh'
 
 USE_I18N = True
 

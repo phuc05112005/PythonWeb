@@ -1,6 +1,6 @@
 ﻿from django.shortcuts import get_object_or_404, render
 from django.http import HttpResponse
-from openpyxl import Workbook
+from openpyxl import Workbook, load_workbook
 from datetime import datetime
 from .models import (
     SANPHAM,
@@ -17,7 +17,7 @@ from .models import (
     SIZE_CHOICES,
 )
 from django.shortcuts import redirect
-from .forms import UserRegisterForm, MailForm
+from .forms import UserRegisterForm, MailForm, CustomPasswordResetForm
 from django.contrib.auth.forms import PasswordChangeForm
 from django.contrib.auth.models import User
 from django.db.models import Q, Sum
@@ -76,15 +76,22 @@ def parse_non_negative_int(value, default=0):
     return max(value_int, 0)
 
 
-def ensure_tonkho_records(sanpham):
-    tonkho_map = {row.size: row for row in sanpham.tonkho_sizes.all()}
-    for size in SIZE_ORDER:
-        if size not in tonkho_map:
-            tonkho_map[size] = TONKHOSIZE.objects.create(sanpham=sanpham, size=size, soluong=0)
-    return tonkho_map
+def ensure_tonkho_records(sanpham, cuahang=None):
+    """Đảm bảo mọi size đều có bản ghi tồn kho cho cửa hàng cụ thể hoặc tất cả cửa hàng"""
+    if cuahang:
+        cuahangs = [cuahang]
+    else:
+        cuahangs = CUAHANG.objects.all()
+    
+    for ch in cuahangs:
+        tonkho_map = {row.size: row for row in sanpham.tonkho_sizes.filter(cuahang=ch)}
+        for size in SIZE_ORDER:
+            if size not in tonkho_map:
+                TONKHOSIZE.objects.create(sanpham=sanpham, cuahang=ch, size=size, soluong=0)
 
 
 def dong_bo_tong_ton_kho(sanpham):
+    """Tổng tồn kho của sản phẩm = tổng tồn của tất cả cửa hàng"""
     tong = TONKHOSIZE.objects.filter(sanpham=sanpham).aggregate(total=Sum('soluong'))['total'] or 0
     if sanpham.soluong != tong:
         sanpham.soluong = tong
@@ -92,25 +99,33 @@ def dong_bo_tong_ton_kho(sanpham):
     return tong
 
 
-def lay_ton_theo_size(sanpham, size):
-    tonkho = TONKHOSIZE.objects.filter(sanpham=sanpham, size=size).first()
-    if not tonkho:
-        tonkho = TONKHOSIZE.objects.create(sanpham=sanpham, size=size, soluong=0)
-    return tonkho.soluong
+def lay_ton_theo_size(sanpham, size, cuahang=None):
+    """Lấy tồn của 1 size tại 1 cửa hàng. Nếu không có cuahang, trả về tổng toàn hệ thống."""
+    query = TONKHOSIZE.objects.filter(sanpham=sanpham, size=size)
+    if cuahang:
+        tonkho = query.filter(cuahang=cuahang).first()
+        if not tonkho:
+            tonkho = TONKHOSIZE.objects.create(sanpham=sanpham, cuahang=cuahang, size=size, soluong=0)
+        return tonkho.soluong
+    else:
+        return query.aggregate(total=Sum('soluong'))['total'] or 0
 
 
-def doc_ton_kho_tu_post(post_data):
+def doc_ton_kho_tu_post(post_data, cuahang_id=None):
+    """Đọc dữ liệu tồn kho từ form. Nếu có cuahang_id, đọc ton_{ch_id}_{size}"""
+    prefix = f"ton_{cuahang_id}_" if cuahang_id else "ton_"
     return {
-        size: parse_non_negative_int(post_data.get(f'ton_{size.lower()}'), 0)
+        size: parse_non_negative_int(post_data.get(f'{prefix}{size.lower()}'), 0)
         for size in SIZE_ORDER
     }
 
 
-def ghi_lich_su_kho(sanpham, size, loai_biendong, so_luong, ton_truoc, ton_sau, user=None, ghichu=''):
+def ghi_lich_su_kho(sanpham, cuahang, size, loai_biendong, so_luong, ton_truoc, ton_sau, user=None, ghichu=''):
     if so_luong <= 0:
         return
     LICHSUKHO.objects.create(
         sanpham=sanpham,
+        cuahang=cuahang,
         size=size,
         loai_biendong=loai_biendong,
         soluong_thaydoi=so_luong,
@@ -136,15 +151,37 @@ def home(request, loai_id=None):
 
 def chitietsp(request, sanpham_id):
     sanpham = get_object_or_404(SANPHAM, id=sanpham_id)
-    tonkho_map = ensure_tonkho_records(sanpham)
+    cuahangs = CUAHANG.objects.all()
+    ensure_tonkho_records(sanpham)
     dong_bo_tong_ton_kho(sanpham)
-    cuahang = CUAHANG.objects.all()
+
+    # Tồn kho theo từng cửa hàng
+    tonkho_by_store = []
+    for ch in cuahangs:
+        inventory_items = []
+        for s in SIZE_ORDER:
+            item = sanpham.tonkho_sizes.filter(cuahang=ch, size=s).first()
+            if not item:
+                item = TONKHOSIZE.objects.create(sanpham=sanpham, cuahang=ch, size=s, soluong=0)
+            inventory_items.append(item)
+            
+        total_stock = sum(inv.soluong for inv in inventory_items)
+        tonkho_by_store.append({
+            'store': ch,
+            'inventory': inventory_items,
+            'total_stock': total_stock
+        })
+
+    # Tồn kho tổng hợp theo size (để chọn size)
+    tong_ton_size = sanpham.ton_theo_size
+    tonkho_list = [(size, tong_ton_size.get(size, 0)) for size in SIZE_ORDER]
+
     context = {
         'sanpham': sanpham,
-        'tonkho_size': {size: tonkho_map[size].soluong for size in SIZE_ORDER},
-        'tonkho_list': [(size, tonkho_map[size].soluong) for size in SIZE_ORDER],
+        'tonkho_by_store': tonkho_by_store,
+        'tonkho_list': tonkho_list,
         'size_order': SIZE_ORDER,
-        'cuahang': cuahang,
+        'cuahang': cuahangs,
     }
     return render(request, 'chitietsp.html', context)
 
@@ -280,15 +317,13 @@ def themgiohang(request, sanpham_id):
         return redirect('dangnhap')
 
     sanpham = get_object_or_404(SANPHAM, id=sanpham_id)
-    ensure_tonkho_records(sanpham)
     size = (request.POST.get('size') or 'M').upper()
-    if size not in SIZE_ORDER:
-        messages.error(request, "Size không hợp lệ.")
-        return redirect('chitiet', sanpham_id=sanpham_id)
-
     soluongmua = parse_non_negative_int(request.POST.get('soluong'), 1)
-    if soluongmua <= 0:
-        messages.error(request, "Số lượng mua phải lớn hơn 0.")
+
+    # Kiểm tra tổng tồn kho trước khi cho vào giỏ
+    tong_ton = lay_ton_theo_size(sanpham, size)
+    if soluongmua > tong_ton:
+        messages.error(request, f"Sản phẩm hiện chỉ còn tổng {tong_ton} cái cho size {size}.")
         return redirect('chitiet', sanpham_id=sanpham_id)
 
     giohang, _ = GIOHANG.objects.get_or_create(khachhang=request.user)
@@ -299,31 +334,15 @@ def themgiohang(request, sanpham_id):
         defaults={'soluong': soluongmua},
     )
 
-    ton_theo_size = lay_ton_theo_size(sanpham, size)
-    if created:
-        if soluongmua > ton_theo_size:
-            chitiet.delete()
-            messages.error(request, f"Kho size {size} chỉ còn {ton_theo_size} sản phẩm.")
+    if not created:
+        if (chitiet.soluong + soluongmua) > tong_ton:
+            messages.error(request, f"Bạn đã có {chitiet.soluong} trong giỏ, không thể thêm {soluongmua} vì tổng kho chỉ có {tong_ton}.")
             return redirect('chitiet', sanpham_id=sanpham_id)
-    else:
-        soluong_moi = chitiet.soluong + soluongmua
-        if soluong_moi > ton_theo_size:
-            messages.error(request, f"Kho size {size} chỉ còn {ton_theo_size} sản phẩm.")
-            return redirect('chitiet', sanpham_id=sanpham_id)
-        chitiet.soluong = soluong_moi
-        chitiet.save(update_fields=['soluong'])
-
-    next_url = request.POST.get('next')
-    if next_url and url_has_allowed_host_and_scheme(
-        url=next_url,
-        allowed_hosts={request.get_host()},
-        require_https=request.is_secure(),
-    ):
-        messages.success(request, "Đã thêm vào giỏ hàng.")
-        return redirect(next_url)
+        chitiet.soluong += soluongmua
+        chitiet.save()
 
     messages.success(request, "Đã thêm vào giỏ hàng.")
-    return redirect('home')
+    return redirect('giohang')
 
 
 def suagiohang(request, sanpham_id):
@@ -336,17 +355,16 @@ def suagiohang(request, sanpham_id):
         gio_hang = GIOHANG.objects.get(khachhang=request.user)
         chitiet = CHITIETGIOHANG.objects.get(giohang=gio_hang, sanpham_id=sanpham_id, size=size)
 
-        ton_theo_size = lay_ton_theo_size(chitiet.sanpham, size)
-        if soluongmoi <= 0:
-            chitiet.delete()
-            messages.success(request, "Đã xóa sản phẩm khỏi giỏ hàng.")
-            return redirect('giohang')
-        if soluongmoi > ton_theo_size:
-            messages.error(request, f"Kho size {size} chỉ còn {ton_theo_size} sản phẩm.")
+        tong_ton = lay_ton_theo_size(chitiet.sanpham, size)
+        if soluongmoi > tong_ton:
+            messages.error(request, f"Tổng kho chỉ còn {tong_ton} cái.")
             return redirect('giohang')
 
-        chitiet.soluong = soluongmoi
-        chitiet.save(update_fields=['soluong'])
+        if soluongmoi <= 0:
+            chitiet.delete()
+        else:
+            chitiet.soluong = soluongmoi
+            chitiet.save()
     return redirect('giohang')
 
 
@@ -357,14 +375,7 @@ def xoagiohang(request, sanpham_id):
     gio_hang = GIOHANG.objects.get(khachhang=request.user)
     size = request.GET.get('size')
 
-    chitiet_query = CHITIETGIOHANG.objects.filter(giohang=gio_hang, sanpham_id=sanpham_id)
-    if size:
-        chitiet_query = chitiet_query.filter(size=size)
-
-    chitiet = chitiet_query.first()
-    if chitiet:
-        chitiet.delete()
-
+    CHITIETGIOHANG.objects.filter(giohang=gio_hang, sanpham_id=sanpham_id, size=size).delete()
     return redirect('giohang')
 
 
@@ -375,7 +386,7 @@ def giohang(request):
     sanpham = CHITIETGIOHANG.objects.filter(giohang=gio_hang).select_related('sanpham')
     tongtien = 0
     for mon in sanpham:
-        mon.ton_size = lay_ton_theo_size(mon.sanpham, mon.size)
+        mon.tong_ton_size = lay_ton_theo_size(mon.sanpham, mon.size)
         tongtien += mon.sanpham.gia * mon.soluong
     context = {'sanpham': sanpham, 'tongtien': tongtien}
     return render(request, 'giohang.html', context)
@@ -384,159 +395,123 @@ def giohang(request):
 def thanhtoan(request):
     if not request.user.is_authenticated:
         return redirect('dangnhap')
+    
     gio_hang, created = GIOHANG.objects.get_or_create(khachhang=request.user)
-    san_pham = CHITIETGIOHANG.objects.filter(giohang=gio_hang).select_related('sanpham')
+    san_pham_gio = CHITIETGIOHANG.objects.filter(giohang=gio_hang).select_related('sanpham')
+    
+    if not san_pham_gio.exists():
+        return redirect('giohang')
+
+    tongtiendonhang = sum(mon.sanpham.gia * mon.soluong for mon in san_pham_gio)
+    
     tienship = 0
     km = 0
-    tongtiendonhang = 0
-    for mon in san_pham:
-        mon.ton_size = lay_ton_theo_size(mon.sanpham, mon.size)
-        tongtiendonhang += mon.sanpham.gia * mon.soluong
     tong = tongtiendonhang
 
     if request.method == 'POST':
-        tenkh = request.POST.get('ten')
-        sdtkh = request.POST.get('sdt')
-        diachi_duong = request.POST.get('diachi_duong', '').strip()
-        diachi_phuong = request.POST.get('diachi_phuong', '').strip()
-        diachi_thanhpho = request.POST.get('diachi_thanhpho', '').strip()
-        diachi_parts = [diachi_duong, diachi_phuong, diachi_thanhpho]
-        diachikh = request.POST.get('diachi', '').strip() or ", ".join(part for part in diachi_parts if part)
-        lat_raw = request.POST.get('lat', '').strip()
-        lon_raw = request.POST.get('lon', '').strip()
+        lat_raw = request.POST.get('lat')
+        lon_raw = request.POST.get('lon')
         action = request.POST.get('action')
-
-        if not diachikh:
-            messages.error(request, "Vui lòng nhập địa chỉ giao hàng.")
-            context = {
-                'tenkh': tenkh,
-                'sdtkh': sdtkh,
-                'diachikh': diachikh,
-                'diachi_duong': diachi_duong,
-                'diachi_phuong': diachi_phuong,
-                'diachi_thanhpho': diachi_thanhpho,
-                'sanpham': san_pham,
-                'tongtiendonhang': tongtiendonhang,
-                'tongtien': tongtiendonhang,
-            }
-            return render(request, 'thanhtoan.html', context)
 
         try:
             latkh = float(lat_raw) if lat_raw else None
             lonkh = float(lon_raw) if lon_raw else None
         except (TypeError, ValueError):
-            latkh = None
-            lonkh = None
+            latkh, lonkh = None, None
 
         if latkh is None or lonkh is None:
-            messages.error(request, "Địa chỉ không hợp lệ.")
-            context = {
-                'tenkh': tenkh,
-                'sdtkh': sdtkh,
-                'diachikh': diachikh,
-                'diachi_duong': diachi_duong,
-                'diachi_phuong': diachi_phuong,
-                'diachi_thanhpho': diachi_thanhpho,
-                'sanpham': san_pham,
-                'tongtiendonhang': tongtiendonhang,
-                'tongtien': tongtiendonhang,
-            }
-            return render(request, 'thanhtoan.html', context)
-
-        cuahang = CUAHANG.objects.all()
-        ch_gan_nhat, km = cuahanggannhat(latkh, lonkh, cuahang)
-        tienship = int(km * 15000)
-        tong = tongtiendonhang + tienship
-
-        if action == 'thanhtoan':
-            if not san_pham.exists():
-                messages.error(request, "Giỏ hàng đang trống.")
+            messages.error(request, "Vui lòng xác định vị trí để tìm cửa hàng gần nhất.")
+        else:
+            cuahangs = CUAHANG.objects.all()
+            if not cuahangs.exists():
+                messages.error(request, "Hệ thống hiện không có cửa hàng nào hoạt động.")
                 return redirect('giohang')
 
-            with transaction.atomic():
-                gio_hang = GIOHANG.objects.select_for_update().get(id=gio_hang.id)
-                cart_items = list(
-                    CHITIETGIOHANG.objects.select_related('sanpham').filter(giohang=gio_hang)
-                )
-
-                if not cart_items:
-                    messages.error(request, "Giỏ hàng đang trống.")
-                    return redirect('giohang')
-
-                tonkho_cache = {}
-                for item in cart_items:
-                    tonkho = TONKHOSIZE.objects.select_for_update().filter(
-                        sanpham=item.sanpham,
-                        size=item.size,
+            # 1. Tìm danh sách các cửa hàng có ĐỦ HÀNG cho toàn bộ giỏ hàng
+            cuahangs_hop_le = []
+            for ch in CUAHANG.objects.all():
+                du_hang = True
+                for item in san_pham_gio:
+                    tonkho = TONKHOSIZE.objects.filter(
+                        sanpham=item.sanpham, size=item.size, cuahang=ch
                     ).first()
-                    if not tonkho:
-                        messages.error(
-                            request,
-                            f"Sản phẩm {item.sanpham.ten} chưa có tồn kho cho size {item.size}.",
+                    if not tonkho or tonkho.soluong < item.soluong:
+                        du_hang = False
+                        break
+                if du_hang:
+                    cuahangs_hop_le.append(ch)
+
+            if not cuahangs_hop_le:
+                messages.error(request, "Rất tiếc, hiện không có cửa hàng đơn lẻ nào có đủ tất cả sản phẩm trong giỏ hàng của bạn. Vui lòng liên hệ hotline để được hỗ trợ ghép đơn!")
+                return redirect('giohang')
+
+            # 2. Tìm cửa hàng GẦN NHẤT trong số các cửa hàng CÓ HÀNG
+            ch_gan_nhat, km = cuahanggannhat(latkh, lonkh, cuahangs_hop_le)
+            tienship = int(km * 15000)
+            tong = tongtiendonhang + tienship
+
+            if action == 'thanhtoan':
+                with transaction.atomic():
+                    # Khóa bản ghi để tránh tranh chấp (Race condition)
+                    for item in san_pham_gio:
+                        TONKHOSIZE.objects.select_for_update().get(
+                            sanpham=item.sanpham, size=item.size, cuahang=ch_gan_nhat
                         )
-                        return redirect('giohang')
-                    if item.soluong > tonkho.soluong:
-                        messages.error(
-                            request,
-                            f"Sản phẩm {item.sanpham.ten} size {item.size} chỉ còn {tonkho.soluong}.",
+
+                    # Tạo đơn hàng
+                    don_hang = DONHANG.objects.create(
+                        khachhang=request.user,
+                        cuahang=ch_gan_nhat,
+                        ten=request.POST.get('ten'),
+                        sdt=request.POST.get('sdt'),
+                        diachi=request.POST.get('diachi'),
+                        lat=latkh,
+                        lon=lonkh,
+                        tongtien=tong,
+                    )
+
+                    for item in san_pham_gio:
+                        CHITIETDONHANG.objects.create(
+                            donhang=don_hang,
+                            sanpham=item.sanpham,
+                            size=item.size,
+                            soluong=item.soluong,
+                            dongia=item.sanpham.gia,
                         )
-                        return redirect('giohang')
-                    tonkho_cache[item.id] = tonkho
+                        # Trừ kho cửa hàng cụ thể
+                        tonkho = TONKHOSIZE.objects.get(sanpham=item.sanpham, size=item.size, cuahang=ch_gan_nhat)
+                        ton_truoc = tonkho.soluong
+                        tonkho.soluong -= item.soluong
+                        tonkho.save()
 
-                don_hang = DONHANG.objects.create(
-                    khachhang=request.user,
-                    ten=tenkh,
-                    sdt=sdtkh,
-                    diachi=diachikh,
-                    lat=latkh,
-                    lon=lonkh,
-                    tongtien=tong,
-                )
+                        ghi_lich_su_kho(
+                            sanpham=item.sanpham,
+                            cuahang=ch_gan_nhat,
+                            size=item.size,
+                            loai_biendong='xuat',
+                            so_luong=item.soluong,
+                            ton_truoc=ton_truoc,
+                            ton_sau=tonkho.soluong,
+                            user=request.user,
+                            ghichu=f'Xuất kho cho đơn hàng #{don_hang.id}'
+                        )
+                        dong_bo_tong_ton_kho(item.sanpham)
 
-                sanpham_anh_huong = {}
-                for item in cart_items:
-                    CHITIETDONHANG.objects.create(
-                        donhang=don_hang,
-                        sanpham=item.sanpham,
-                        size=item.size,
-                        soluong=item.soluong,
-                        dongia=item.sanpham.gia,
-                    )
-                    tonkho = tonkho_cache[item.id]
-                    ton_truoc = tonkho.soluong
-                    tonkho.soluong = ton_truoc - item.soluong
-                    tonkho.save(update_fields=['soluong'])
-                    ghi_lich_su_kho(
-                        sanpham=item.sanpham,
-                        size=item.size,
-                        loai_biendong='xuat',
-                        so_luong=item.soluong,
-                        ton_truoc=ton_truoc,
-                        ton_sau=tonkho.soluong,
-                        user=request.user,
-                        ghichu=f'Xuất kho theo đơn hàng #{don_hang.id}',
-                    )
-                    sanpham_anh_huong[item.sanpham_id] = item.sanpham
-
-                CHITIETGIOHANG.objects.filter(giohang=gio_hang).delete()
-
-                for sp in sanpham_anh_huong.values():
-                    dong_bo_tong_ton_kho(sp)
-
-            return render(request, 'camon.html')
+                    CHITIETGIOHANG.objects.filter(giohang=gio_hang).delete()
+                    return render(request, 'camon.html')
 
     context = {
-        'tenkh': request.POST.get('ten'),
+        'sanpham': san_pham_gio,
+        'tongtiendonhang': tongtiendonhang,
+        'tongtien': tong,
+        'km': km,
+        'tienship': tienship,
+        'tenkh': request.POST.get('ten') or f"{request.user.first_name} {request.user.last_name}",
         'sdtkh': request.POST.get('sdt'),
         'diachikh': request.POST.get('diachi'),
         'diachi_duong': request.POST.get('diachi_duong'),
         'diachi_phuong': request.POST.get('diachi_phuong'),
         'diachi_thanhpho': request.POST.get('diachi_thanhpho'),
-        'sanpham': san_pham,
-        'tongtiendonhang': tongtiendonhang,
-        'tongtien': tong,
-        'km': km,
-        'tienship': tienship,
         'latkh': request.POST.get('lat'),
         'lonkh': request.POST.get('lon'),
     }
@@ -688,9 +663,11 @@ def quanlysanpham(request):
         sp = sp.filter(soluong=0)
 
     for item in sp:
+        # Tồn kho theo size: tổng của tất cả cửa hàng
         tonkho_map = {size: 0 for size in SIZE_ORDER}
-        for ton in item.tonkho_sizes.all():
-            tonkho_map[ton.size] = ton.soluong
+        for size in SIZE_ORDER:
+            tonkho_map[size] = item.tonkho_sizes.filter(size=size).aggregate(total=Sum('soluong'))['total'] or 0
+        
         item.tonkho_map = tonkho_map
         item.tong_ton = sum(tonkho_map.values())
         if item.soluong != item.tong_ton:
@@ -720,7 +697,8 @@ def xoasanpham(request, sanpham_id):
 @admin_required
 def suasanpham(request, sanpham_id):
     sp = SANPHAM.objects.get(id=sanpham_id)
-    tonkho_map = ensure_tonkho_records(sp)
+    cuahangs = CUAHANG.objects.all()
+    ensure_tonkho_records(sp)
     loai = LOAI.objects.all()
 
     if request.method == 'POST':
@@ -735,37 +713,33 @@ def suasanpham(request, sanpham_id):
         if hinhmoi:
             sp.hinh = hinhmoi
 
-        ton_moi_theo_size = doc_ton_kho_tu_post(request.POST)
-        for size in SIZE_ORDER:
-            ton_row = tonkho_map[size]
-            ton_cu = ton_row.soluong
-            ton_moi = ton_moi_theo_size[size]
-            if ton_moi == ton_cu:
-                continue
-            if ton_moi > ton_cu:
+        # Cập nhật tồn kho cho TỪNG cửa hàng
+        ghichu_input = request.POST.get('ghichu_chung', '').strip()
+        final_ghichu = ghichu_input if ghichu_input else 'Cập nhật tồn kho khi sửa sản phẩm (đa cửa hàng)'
+
+        for ch in cuahangs:
+            ton_moi_theo_size = doc_ton_kho_tu_post(request.POST, cuahang_id=ch.id)
+            for size in SIZE_ORDER:
+                ton_row = TONKHOSIZE.objects.get(sanpham=sp, cuahang=ch, size=size)
+                ton_cu = ton_row.soluong
+                ton_moi = ton_moi_theo_size[size]
+                if ton_moi == ton_cu:
+                    continue
+                
+                loai_bd = 'dieuchinh_tang' if ton_moi > ton_cu else 'dieuchinh_giam'
                 ghi_lich_su_kho(
                     sanpham=sp,
+                    cuahang=ch,
                     size=size,
-                    loai_biendong='dieuchinh_tang',
-                    so_luong=ton_moi - ton_cu,
+                    loai_biendong=loai_bd,
+                    so_luong=abs(ton_moi - ton_cu),
                     ton_truoc=ton_cu,
                     ton_sau=ton_moi,
                     user=request.user,
-                    ghichu='Cập nhật tồn kho khi sửa sản phẩm',
+                    ghichu=final_ghichu,
                 )
-            else:
-                ghi_lich_su_kho(
-                    sanpham=sp,
-                    size=size,
-                    loai_biendong='dieuchinh_giam',
-                    so_luong=ton_cu - ton_moi,
-                    ton_truoc=ton_cu,
-                    ton_sau=ton_moi,
-                    user=request.user,
-                    ghichu='Cập nhật tồn kho khi sửa sản phẩm',
-                )
-            ton_row.soluong = ton_moi
-            ton_row.save(update_fields=['soluong'])
+                ton_row.soluong = ton_moi
+                ton_row.save(update_fields=['soluong'])
 
         anhxoa = request.POST.getlist('anhxoa')
         if anhxoa:
@@ -780,11 +754,27 @@ def suasanpham(request, sanpham_id):
         messages.success(request, "Cập nhật thành công.")
         return redirect('quanlysanpham')
 
+    # Chuẩn bị dữ liệu cho template
+    tonkho_data = []
+    for ch in cuahangs:
+        inventory_items = []
+        for s in SIZE_ORDER:
+            item = sp.tonkho_sizes.filter(cuahang=ch, size=s).first()
+            if not item:
+                item = TONKHOSIZE.objects.create(sanpham=sp, cuahang=ch, size=s, soluong=0)
+            inventory_items.append(item)
+            
+        tonkho_data.append({
+            'store': ch,
+            'inventory_items': inventory_items
+        })
+
     context = {
         'sanpham': sp,
         'dsloai': loai,
         'size_order': SIZE_ORDER,
-        'tonkho_map': {size: tonkho_map[size].soluong for size in SIZE_ORDER},
+        'tonkho_data': tonkho_data,
+        'cuahangs': cuahangs,
     }
     return render(request, 'admin/sanpham/suasanpham.html', context)
 
@@ -792,12 +782,13 @@ def suasanpham(request, sanpham_id):
 @admin_required
 def themsanpham(request):
     loaisp = LOAI.objects.all()
+    cuahangs = CUAHANG.objects.all()
+    
     if request.method == 'POST':
         tensp = request.POST.get('ten')
         motasp = request.POST.get('mota', '')
         loai = request.POST.get('loai')
         giasp = parse_non_negative_int(request.POST.get('gia'), 0)
-        ton_theo_size = doc_ton_kho_tu_post(request.POST)
         hinhsp = request.FILES.get('hinh')
         hinhchitietsp = request.FILES.getlist('hinhchitiet')
 
@@ -810,25 +801,25 @@ def themsanpham(request):
             hinh=hinhsp,
         )
 
-        tong_ton = 0
-        for size in SIZE_ORDER:
-            so_luong = ton_theo_size[size]
-            TONKHOSIZE.objects.create(sanpham=sp, size=size, soluong=so_luong)
-            tong_ton += so_luong
-            if so_luong > 0:
-                ghi_lich_su_kho(
-                    sanpham=sp,
-                    size=size,
-                    loai_biendong='nhap',
-                    so_luong=so_luong,
-                    ton_truoc=0,
-                    ton_sau=so_luong,
-                    user=request.user,
-                    ghichu='Nhập kho ban đầu khi tạo sản phẩm',
-                )
+        for ch in cuahangs:
+            ton_theo_size = doc_ton_kho_tu_post(request.POST, cuahang_id=ch.id)
+            for size in SIZE_ORDER:
+                so_luong = ton_theo_size[size]
+                TONKHOSIZE.objects.create(sanpham=sp, cuahang=ch, size=size, soluong=so_luong)
+                if so_luong > 0:
+                    ghi_lich_su_kho(
+                        sanpham=sp,
+                        cuahang=ch,
+                        size=size,
+                        loai_biendong='nhap',
+                        so_luong=so_luong,
+                        ton_truoc=0,
+                        ton_sau=so_luong,
+                        user=request.user,
+                        ghichu='Nhập kho ban đầu khi tạo sản phẩm',
+                    )
 
-        sp.soluong = tong_ton
-        sp.save(update_fields=['soluong'])
+        dong_bo_tong_ton_kho(sp)
 
         for file in hinhchitietsp:
             HINHANH.objects.create(sanpham=sp, hinh=file)
@@ -836,13 +827,13 @@ def themsanpham(request):
         messages.success(request, "Lưu thành công.")
         return redirect('quanlysanpham')
 
-    context = {'loai': loaisp}
+    context = {'loai': loaisp, 'cuahangs': cuahangs, 'size_order': SIZE_ORDER}
     return render(request, 'admin/sanpham/themsanpham.html', context)
 
 
 @admin_required
 def lichsukho(request):
-    lichsu = LICHSUKHO.objects.select_related('sanpham', 'nguoithuchien')
+    lichsu = LICHSUKHO.objects.select_related('sanpham', 'nguoithuchien', 'cuahang')
     danhsach_sanpham = SANPHAM.objects.all().order_by('ten')
 
     sanpham_id = request.GET.get('sanpham')
@@ -1245,8 +1236,91 @@ def dieukhoansudung(request):
     return render(request, 'dieukhoansudung.html')
 
 @admin_required
+def export_inventory_template(request):
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Mau Cap Nhat Kho"
+
+    # Header
+    headers = ["ID SP", "Ten San Pham", "ID Cua Hang", "Ten Cua Hang", "Size", "Ton Hien Tai", "So Luong Them", "Ghi Chu"]
+    ws.append(headers)
+
+    # Data
+    cuahangs = CUAHANG.objects.all()
+    sanphams = SANPHAM.objects.all().order_by('id')
+
+    for sp in sanphams:
+        ensure_tonkho_records(sp)
+        for ch in cuahangs:
+            for s in SIZE_ORDER:
+                ton = TONKHOSIZE.objects.filter(sanpham=sp, cuahang=ch, size=s).first()
+                ws.append([sp.id, sp.ten, ch.id, ch.ten, s, ton.soluong if ton else 0, 0, ""])
+
+    # Format
+    for cell in ws[1]:
+        cell.font = cell.font.copy(bold=True)
+
+    response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    response['Content-Disposition'] = 'attachment; filename="mau_cap_nhat_kho.xlsx"'
+    wb.save(response)
+    return response
+
+
+@admin_required
+def import_inventory_excel(request):
+    if request.method == 'POST' and request.FILES.get('excel_file'):
+        file = request.FILES['excel_file']
+        try:
+            wb = load_workbook(file)
+            ws = wb.active
+            
+            success_count = 0
+            # Duyệt từ dòng 2 (bỏ qua header)
+            for row in ws.iter_rows(min_row=2, values_only=True):
+                sp_id, _, ch_id, _, size, _, so_luong_them, ghichu = row
+                
+                if so_luong_them and int(so_luong_them) != 0:
+                    try:
+                        sp = SANPHAM.objects.get(id=sp_id)
+                        ch = CUAHANG.objects.get(id=ch_id)
+                        ton_row, _ = TONKHOSIZE.objects.get_or_create(sanpham=sp, cuahang=ch, size=size)
+                        
+                        ton_cu = ton_row.soluong
+                        so_luong_them = int(so_luong_them)
+                        ton_moi = ton_cu + so_luong_them
+                        
+                        if ton_moi < 0: ton_moi = 0 # Không để âm
+                        
+                        # Ghi lịch sử
+                        loai_bd = 'dieuchinh_tang' if so_luong_them > 0 else 'dieuchinh_giam'
+                        ghi_lich_su_kho(
+                            sanpham=sp,
+                            cuahang=ch,
+                            size=size,
+                            loai_biendong=loai_bd,
+                            so_luong=abs(so_luong_them),
+                            ton_truoc=ton_cu,
+                            ton_sau=ton_moi,
+                            user=request.user,
+                            ghichu=ghichu if ghichu else 'Cập nhật nhanh bằng Excel'
+                        )
+                        
+                        ton_row.soluong = ton_moi
+                        ton_row.save()
+                        dong_bo_tong_ton_kho(sp)
+                        success_count += 1
+                    except Exception:
+                        continue
+            
+            messages.success(request, f"Đã cập nhật thành công {success_count} bản ghi tồn kho.")
+        except Exception as e:
+            messages.error(request, f"Lỗi xử lý file Excel: {e}")
+            
+    return redirect('quanlysanpham')
+
+
 def export_lichsukho_excel(request):
-    lichsu = LICHSUKHO.objects.select_related('sanpham', 'nguoithuchien')
+    lichsu = LICHSUKHO.objects.select_related('sanpham', 'nguoithuchien', 'cuahang')
 
     # --- GIỐNG FILTER TRANG HTML ---
     sanpham_id = request.GET.get('sanpham')
@@ -1277,6 +1351,7 @@ def export_lichsukho_excel(request):
     ws.append([
         "Thời gian",
         "Sản phẩm",
+        "Cửa hàng",
         "Size",
         "Loại",
         "Số lượng",
@@ -1291,6 +1366,7 @@ def export_lichsukho_excel(request):
         ws.append([
             item.thoigian.strftime("%d/%m/%Y %H:%M:%S"),
             item.sanpham.ten,
+            item.cuahang.ten if item.cuahang else "-",
             item.size,
             item.get_loai_biendong_display(),
             item.soluong_thaydoi,

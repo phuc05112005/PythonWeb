@@ -1,6 +1,15 @@
 from django import forms
-from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth.forms import UserCreationForm, PasswordResetForm
 from django.contrib.auth.models import User
+from django.core.exceptions import ValidationError
+
+class CustomPasswordResetForm(PasswordResetForm):
+    def clean_email(self):
+        email = self.cleaned_data.get('email')
+        # Kiểm tra xem email có tồn tại và thuộc về một user đang hoạt động không
+        if not User.objects.filter(email__iexact=email, is_active=True).exists():
+            raise forms.ValidationError("Email này không tồn tại trong hệ thống. Vui lòng kiểm tra lại!")
+        return email
 
 class UserRegisterForm(UserCreationForm):
     email = forms.EmailField(required=True, label="Email")
