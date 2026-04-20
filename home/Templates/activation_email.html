@@ -1,0 +1,8 @@
+Chào {{ user.username }},
+
+Vui lòng nhấn vào link bên dưới để kích hoạt tài khoản của bạn trên {{ domain }}:
+
+http://{{ domain }}{% url 'kichhoat' uidb64=uid token=token %}
+
+Trân trọng,
+Đội ngũ hỗ trợ.

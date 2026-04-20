@@ -2,6 +2,7 @@
 {% load static %}
 
 {% block main-content %}
+
 <div class="container d-flex justify-content-center align-items-center py-5" style="min-height: 80vh;">
     <div class="bg-white p-4 p-md-5 rounded-4 shadow-sm border-0 w-100" style="max-width: 500px;">
         
@@ -12,17 +13,54 @@
 
         <form method="post" class="django-custom-form">
             {% csrf_token %}
-            
+
+            {# FIX: hidden fields tránh lỗi layout #}
+            {% for hidden in form.hidden_fields %}
+                {{ hidden }}
+            {% endfor %}
+
             {% if form.non_field_errors %}
                 <div class="alert alert-danger border-0 rounded-3 small py-2 mb-4 text-center">
                     {{ form.non_field_errors }}
                 </div>
             {% endif %}
 
-            {{ form.as_p }}
+            {% for field in form %}
+                <div class="mb-3">
+
+                    <label class="form-label fw-bold small text-secondary text-uppercase">
+                        {{ field.label }}
+                    </label>
+
+                    <div class="field-wrap">
+                        {{ field }}
+
+                        {% if 'password' in field.name %}
+                        <button type="button" class="pw-toggle">
+                            <svg class="eye-on" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+                                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                                <circle cx="12" cy="12" r="3"/>
+                            </svg>
+                        </button>
+                        {% endif %}
+                    </div>
+
+                    {% if field.help_text %}
+                        <small class="helptext d-block mt-1">
+                            {{ field.help_text|safe }}
+                        </small>
+                    {% endif %}
+
+                    {% for error in field.errors %}
+                        <div class="text-danger small fw-bold mt-1">⚠ {{ error }}</div>
+                    {% endfor %}
+
+                </div>
+            {% endfor %}
 
             <div class="mt-4 pt-2">
-                <button type="submit" class="btn btn-dark w-100 py-3 rounded-pill fw-bold text-uppercase transition-hover" style="letter-spacing: 1px;">
+                <button type="submit" class="btn btn-dark w-100 py-3 rounded-pill fw-bold text-uppercase transition-hover">
                     Tạo Tài Khoản
                 </button>
             </div>
@@ -30,83 +68,94 @@
 
         <div class="text-center mt-4">
             <span class="text-secondary small">Đã có tài khoản? </span>
-            <a href="{% url 'dangnhap' %}" class="text-dark fw-bold text-decoration-none transition-hover d-inline-block pb-1" style="border-bottom: 2px solid #000;">
+            <a href="{% url 'dangnhap' %}" class="text-dark fw-bold text-decoration-none">
                 Đăng nhập ngay
             </a>
         </div>
-        
+
     </div>
 </div>
 
 <style>
-    /* Hiệu ứng mượt mà */
-    .transition-hover {
-        transition: all 0.3s ease;
-    }
-    .transition-hover:hover {
-        transform: translateY(-3px);
-        opacity: 0.85;
-    }
-    
-    /* =========================================
-       CSS MA THUẬT DÀNH RIÊNG CHO {{ form.as_p }} 
-       ========================================= */
-    
-    /* Khoảng cách giữa các dòng */
-    .django-custom-form p {
-        margin-bottom: 1.25rem;
-    }
-    
-    /* Tùy chỉnh Tiêu đề (Label) */
-    .django-custom-form label {
-        display: block;
-        font-size: 0.875rem; 
-        font-weight: 700;   
-        color: #6c757d;     
-        text-transform: uppercase;
-        margin-bottom: 0.5rem;
-    }
-    
-    /* Tùy chỉnh Ô nhập liệu (Input) */
-    .django-custom-form input {
-        width: 100%;
-        padding: 0.75rem 1rem;
-        background-color: #f8f9fa; 
-        border: 1px solid transparent;
-        border-radius: 0.5rem; 
-        transition: all 0.2s;
-    }
-    
-    /* Hiệu ứng khi bấm vào ô nhập liệu */
-    .django-custom-form input:focus {
-        background-color: #ffffff;
-        border: 1px solid #000;
-        outline: none;
-        box-shadow: none;
-    }
-    
-    /* Tùy chỉnh Chữ hướng dẫn (Mật khẩu phải chứa ký tự đặc biệt...) */
-    .django-custom-form .helptext {
-        display: block;
-        font-size: 0.75rem;
-        color: #adb5bd;
-        margin-top: 0.4rem;
-        line-height: 1.4;
-    }
-    
-    /* Tùy chỉnh Chữ báo lỗi đỏ của Django */
-    .django-custom-form ul.errorlist {
-        list-style: none;
-        padding-left: 0;
-        margin-top: 0.5rem;
-        margin-bottom: 0;
-        color: #dc3545;
-        font-size: 0.85rem;
-        font-weight: 600;
-    }
-    /* Thêm icon tam giác cảnh báo trước dòng lỗi */
-    .django-custom-form ul.errorlist li::before {
-        content: "⚠ "; 
-    }
+/* ===== smooth hover ===== */
+.transition-hover {
+    transition: all 0.3s ease;
+}
+.transition-hover:hover {
+    transform: translateY(-3px);
+    opacity: 0.85;
+}
+
+/* ===== FIELD WRAP ===== */
+.field-wrap {
+    position: relative;
+}
+
+/* input Django */
+.django-custom-form input {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    padding-right: 45px;
+    background: #f8f9fa;
+    border: 1px solid transparent;
+    border-radius: 0.5rem;
+    transition: 0.2s;
+    box-sizing: border-box;
+}
+
+.django-custom-form input:focus {
+    background: #fff;
+    border: 1px solid #000;
+    outline: none;
+}
+
+/* ===== PASSWORD TOGGLE ===== */
+.pw-toggle {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    cursor: pointer;
+    display: flex;
+}
+
+.pw-toggle svg {
+    width: 20px;
+    height: 20px;
+    color: #666;
+}
+
+/* ===== HELP TEXT ===== */
+.helptext {
+    font-size: 0.75rem;
+    color: #6c757d;
+    line-height: 1.4;
+}
+
+.helptext ul {
+    margin: 5px 0 0;
+    padding-left: 18px;
+}
+
+.helptext li {
+    list-style: disc;
+}
+
+/* ===== ERROR LIST ===== */
+.errorlist {
+    list-style: none;
+    padding: 0;
+    margin-top: 6px;
+    color: #dc3545;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.errorlist li::before {
+    content: "⚠ ";
+}
 </style>
+
 {% endblock main-content %}

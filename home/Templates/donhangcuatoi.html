@@ -28,9 +28,9 @@
 
                     <div class="text-lg-end">
                         {% if dh.trangthai == 2 %}
-                        <span class="badge rounded-pill text-bg-success px-3 py-2 mb-3">Đã duyệt</span>
+                        <span class="badge rounded-pill text-bg-success px-3 py-2 mb-3">Đã xác nhận</span>
                         {% else %}
-                        <span class="badge rounded-pill text-bg-warning px-3 py-2 mb-3">Chờ duyệt</span>
+                        <span class="badge rounded-pill text-bg-warning px-3 py-2 mb-3">Chờ xác nhận</span>
                         {% endif %}
                         <div class="fw-bolder text-danger fs-5 mb-3">{{ dh.tongtien|intcomma }} đ</div>
                         <a href="{% url 'chitietdonhang_khach' dh.id %}" class="btn btn-dark rounded-pill px-4 fw-bold">

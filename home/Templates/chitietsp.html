@@ -161,7 +161,18 @@
         </div>
     </div>
 </div>
+<div class="contact-wrapper">
+    <div class="contact-tooltip">Liên hệ Zalo & Hotline của shop để được tư vấn và hỗ trợ</div>
 
+    <a href="https://zalo.me/0908178656" target="_blank" class="zalo-btn">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/9/91/Icon_of_Zalo.svg">
+    </a>
+
+    <a href="tel:0908178656" class="phone-btn">
+        <i class="fa-solid fa-phone"></i>
+        028 797 97979
+    </a>
+</div>
 <style>
     .transition-hover {
         transition: all 0.3s ease;
@@ -211,6 +222,54 @@
         object-fit: cover;
         border: 1px solid #dee2e6;
         border-radius: 10px;
+    }
+    .contact-wrapper {
+    position: fixed;
+    left: 25px;
+    bottom: 80px;
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    }
+    .contact-tooltip {
+        position: absolute;
+        left: 0;
+        bottom: auto;
+        top: 70px;
+        background: #fff;
+        padding: 10px 14px;
+        border-radius: 12px;
+        font-size: 13px;
+        color: #333;
+        box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        white-space: nowrap;
+        transform: translateX(0);
+        font-weight: bold;
+    }
+    .phone-btn {
+        background: linear-gradient(135deg, #00c853, #00e676);
+        color: #fff;
+        padding: 10px 14px;
+        border-radius: 30px;
+        font-size: 14px;
+        font-weight: 600;
+        text-decoration: none;
+        box-shadow: 0 6px 18px rgba(0,200,83,0.4);
+        transition: 0.3s;
+    }
+    .phone-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px rgba(0,200,83,0.5);
+    }
+    .zalo-btn img {
+        width: 55px;
+        animation: zaloPulse 1.5s infinite;
+    }
+    @keyframes zaloPulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.15); }
+        100% { transform: scale(1); }
     }
 </style>
 

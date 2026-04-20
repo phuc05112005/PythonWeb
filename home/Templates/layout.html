@@ -1,8 +1,9 @@
-﻿{% load static %}
+{% load static %}
 <!DOCTYPE html>
 <html>
   <head>
     <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -125,7 +126,9 @@
                 <span class="nav-greeting" style="font-weight: 500; margin-right: 15px;">
                   Xin chào {{ request.user.username }}!
                 </span>
-                <a href="{% url 'thongtintaikhoan' %}" class="btn btn-outline-primary btn-sm rounded-pill px-3 fw-bold me-2">
+                <a href="{% url 'thongtintaikhoan' %}" 
+                class="btn btn-outline-primary btn-sm rounded-pill px-3 fw-bold me-2
+                {% if request.resolver_match.url_name == 'thongtintaikhoan' %}btn-active-account{% endif %}">
                   Thông tin tài khoản
                 </a>
                 <form action="{% url 'dangxuat' %}" method="post" class="m-0">
@@ -355,7 +358,12 @@
     z-index: 9999;
     transition: 0.3s;
 }
-
+.btn-outline-primary:hover,
+.btn-active-account{
+color:#fff !important;
+background-color:#0d6efd !important;
+border-color:#0d6efd !important;
+}
 .feedback-btn:hover {
     transform: scale(1.2);
     background: #0056b3;

@@ -91,10 +91,12 @@ DATABASES = {
     }
 }
 EMAIL_HOST = 'sandbox.smtp.mailtrap.io'
-EMAIL_HOST_USER = 'd6fd04347e08b9'
-EMAIL_HOST_PASSWORD = '9b0d9c720788e2'
+EMAIL_HOST_USER = '791895e9b49179'
+EMAIL_HOST_PASSWORD = 'd7e4eb4bc833e7'
 EMAIL_PORT = '2525'
-
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_USE_TLS = True
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
 # Password validation
 # https://docs.djangoproject.com/en/6.0/ref/settings/#auth-password-validators

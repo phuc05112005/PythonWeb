@@ -8,23 +8,22 @@
 
         <!-- DANH MỤC -->
         <div class="col-md-3 mb-4" data-aos="fade-right">
-            <div class="bg-white p-4 shadow-sm rounded-4 border-0 category-box sticky-category">
+            <div class="bg-white p-3 p-md-4 shadow-sm rounded-4 border-0 category-box sticky-category">
                 <div class="border-bottom pb-2 mb-3">
                     <h5 class="fw-bold text-uppercase m-0" style="letter-spacing: 1px;">Danh Mục</h5>
                 </div>
-                <div>
-                    <div class="mb-2">
-                        <a href="{% url 'home' %}" class="category-item text-decoration-none d-block p-2 rounded-3 transition-hover {% if not loai_id %}active-category{% else %}text-dark{% endif %}">
-                            <h6 class="m-0 fw-semibold">Tất cả sản phẩm</h6>
+                <div class="d-flex flex-md-column flex-row flex-wrap gap-2">
+                    <div>
+                        <a href="{% url 'home' %}" class="category-item text-decoration-none d-block px-3 py-2 rounded-3 transition-hover {% if not loai_id %}active-category{% else %}text-dark{% endif %}">
+                            <h6 class="m-0 fw-semibold" style="white-space: nowrap;">Tất cả</h6>
                         </a>
                     </div>
-
                     {% for item in loai %}
-                    <div class="mb-2">
+                    <div>
                         <a href="{% url 'loai' item.id %}" 
-                           class="category-item text-decoration-none d-block p-2 rounded-3 transition-hover 
+                           class="category-item text-decoration-none d-block px-3 py-2 rounded-3 transition-hover 
                            {% if item.id == loai_id %}active-category{% else %}text-dark{% endif %}">
-                            <h6 class="m-0 fw-semibold">{{item.loai}}</h6>
+                            <h6 class="m-0 fw-semibold" style="white-space: nowrap;">{{item.loai}}</h6>
                         </a>
                     </div>
                     {% endfor %}
@@ -36,41 +35,33 @@
         <div class="col-md-9">
 
             <!-- BANNER -->
-            <div class="rounded-4 mb-5 text-center shadow-sm position-relative overflow-hidden banner">
+            <div class="rounded-4 mb-4 text-center shadow-sm position-relative overflow-hidden banner">
                 <div class="overlay"></div>
-
-                <div class="container h-100 d-flex flex-column justify-content-center align-items-center position-relative py-5 text-white z-1">
-                    <h1 class="display-4 fw-bolder mb-3 animate__animated animate__fadeInDown">BỘ SƯU TẬP 2026</h1>
-                    <p class="lead mb-4 fw-light animate__animated animate__fadeInUp">Cập nhật những xu hướng thời trang hiện đại và phong cách nhất.</p>
-                    <a class="btn btn-light btn-lg mt-2 rounded-pill px-5 fw-bold text-uppercase shadow transition-hover animate__animated animate__pulse animate__infinite" href="#san-pham">
+                <div class="container h-100 d-flex flex-column justify-content-center align-items-center position-relative py-4 py-md-5 text-white z-1">
+                    <h1 class="banner-title fw-bolder mb-2 mb-md-3 animate__animated animate__fadeInDown">BỘ SƯU TẬP 2026</h1>
+                    <p class="banner-sub mb-3 mb-md-4 fw-light animate__animated animate__fadeInUp">Cập nhật những xu hướng thời trang hiện đại và phong cách nhất.</p>
+                    <a class="btn btn-light btn-banner mt-1 rounded-pill fw-bold text-uppercase shadow transition-hover animate__animated animate__pulse animate__infinite" href="#san-pham">
                         Mua sắm ngay
                     </a>
                 </div>
             </div>
 
             <!-- SẢN PHẨM -->
-            <div class="row row-cols-1 row-cols-md-3 g-4" id="san-pham">
+            <div class="row row-cols-2 row-cols-md-3 g-3" id="san-pham">
                 {% for sp in sanpham %}
                 <div class="col" data-aos="fade-up" data-aos-delay="{{ forloop.counter0|add:'1' }}00">
                     <a href="{% url 'chitiet' sp.id %}" class="text-decoration-none text-dark">
                         <div class="card h-100 shadow-sm border-0 rounded-4 transition-hover overflow-hidden product-card">
-                            
-                            <!-- IMAGE -->
                             <div class="img-wrapper">
                                 <img src="{{sp.hinhurl}}" alt="{{sp.ten}}" class="card-img-top w-100">
-                                
-                                <!-- QUICK ACTION -->
                                 <div class="overlay-btn">
                                     <button class="btn btn-dark btn-sm rounded-pill px-3">Xem</button>
                                 </div>
                             </div>
-
-                            <!-- CONTENT -->
-                            <div class="p-3 text-center bg-white">
-                                <h6 class="mt-2 mb-2 fw-bold text-uppercase text-truncate text-secondary">{{sp.ten}}</h6>
-                                <h5 class="fw-bold text-danger mb-2">{{sp.gia}} VNĐ</h5>
+                            <div class="p-2 p-md-3 text-center bg-white">
+                                <h6 class="mt-1 mb-1 fw-bold text-uppercase text-truncate text-secondary product-name">{{sp.ten}}</h6>
+                                <h5 class="fw-bold text-danger mb-1 product-price">{{sp.gia}} VNĐ</h5>
                             </div>
-
                         </div>
                     </a>
                 </div>
@@ -79,9 +70,9 @@
         </div>
 
         <!-- PAGINATION -->
-        <div class="mt-5 w-100">
+        <div class="mt-4 w-100">
             <nav>
-                <ul class="pagination justify-content-center custom-pagination">
+                <ul class="pagination justify-content-center custom-pagination flex-wrap">
                     {% if sanpham.has_previous %}
                         <li class="page-item">
                             <a class="page-link shadow-sm border-0 rounded-start-pill" href="?page=1{% if loai_id %}&loai_id={{loai_id}}{% endif %}">
@@ -89,13 +80,11 @@
                             </a>
                         </li>
                     {% endif %}
-
                     <li class="page-item active">
                         <span class="page-link shadow-sm border-0 bg-dark text-white">
                             Trang {{ sanpham.number }} / {{ sanpham.paginator.num_pages }}
                         </span>
                     </li>
-
                     {% if sanpham.has_next %}
                         <li class="page-item">
                             <a class="page-link shadow-sm border-0 rounded-end-pill" href="?page={{ sanpham.next_page_number }}{% if loai_id %}&loai_id={{loai_id}}{% endif %}">
@@ -109,34 +98,26 @@
 
     </div>
 </div>
+
 <div id="scrollTopBtn"><i class="bi bi-arrow-up"></i></div>
 
 <div class="contact-wrapper">
-
-    <!-- BOX TEXT -->
-    <div class="contact-tooltip">Liên hệ Zalo & Hotline của shop để được tư vấn và hỗ trợ
-    </div>
-    <!-- ZALO -->
     <a href="https://zalo.me/0908178656" target="_blank" class="zalo-btn">
         <img src="https://upload.wikimedia.org/wikipedia/commons/9/91/Icon_of_Zalo.svg">
     </a>
-
-    <!-- PHONE -->
     <a href="tel:0908178656" class="phone-btn">
         <i class="fa-solid fa-phone"></i>
-        028 797 97979
+        <span class="phone-text">028 797 97979</span>
     </a>
-
+    <div class="contact-tooltip">Liên hệ Zalo & Hotline của shop để được tư vấn và hỗ trợ</div>
 </div>
-<!-- STYLE -->
+
 <style>
 body {
     background: linear-gradient(270deg, #484848, #433e38, #4d443a, #41382c);
     background-size: 800% 800%;
     animation: gradientMove 20s ease infinite;
 }
-
-/* hiệu ứng chuyển màu mượt */
 @keyframes gradientMove {
     0% { background-position: 0% 50%; }
     25% { background-position: 50% 100%; }
@@ -144,8 +125,6 @@ body {
     75% { background-position: 50% 0%; }
     100% { background-position: 0% 50%; }
 }
-
-/* lớp phủ glow hiện đại */
 body::before {
     pointer-events: none;
     content: "";
@@ -158,17 +137,18 @@ body::before {
     animation: glowMove 20s linear infinite;
     z-index: 0;
 }
-
 @keyframes glowMove {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
 }
+
+/* SCROLL TOP */
 #scrollTopBtn {
     position: fixed;
-    right: 25px;
-    bottom: 25px;
-    width: 50px;
-    height: 50px;
+    right: 15px;
+    bottom: 15px;
+    width: 44px;
+    height: 44px;
     background: #000;
     color: #fff;
     border-radius: 50%;
@@ -176,122 +156,131 @@ body::before {
     justify-content: center;
     align-items: center;
     cursor: pointer;
-    font-size: 20px;
+    font-size: 18px;
     z-index: 9999;
     transition: 0.3s;
 }
-#scrollTopBtn:hover {
-    transform: scale(1.2);
-}
+#scrollTopBtn:hover { transform: scale(1.2); }
 
-/* WRAPPER */
+/* CONTACT WRAPPER */
 .contact-wrapper {
     position: fixed;
-    left: 25px;
-    bottom: 80px;
+    left: 12px;
+    bottom: 70px;
     z-index: 9999;
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 8px;
 }
 
-/* TOOLTIP */
+/* TOOLTIP - mặc định hiện bình thường */
 .contact-tooltip {
     position: absolute;
-    left: 0; 
-    bottom: auto; 
-    top: 70px;  
+    left: 0;
+    top: 70px;
     background: #fff;
-    padding: 10px 14px;
+    padding: 8px 12px;
     border-radius: 12px;
-    font-size: 13px;
+    font-size: 12px;
     color: #333;
     box-shadow: 0 8px 25px rgba(0,0,0,0.15);
     white-space: nowrap;
-    transform: translateX(0); 
     font-weight: bold;
 }
 
-/* PHONE BUTTON */
 .phone-btn {
     background: linear-gradient(135deg, #00c853, #00e676);
     color: #fff;
-    padding: 10px 14px;
+    padding: 8px 12px;
     border-radius: 30px;
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 600;
     text-decoration: none;
     box-shadow: 0 6px 18px rgba(0,200,83,0.4);
     transition: 0.3s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
 }
-
 .phone-btn:hover {
     transform: translateY(-2px);
     box-shadow: 0 10px 25px rgba(0,200,83,0.5);
+    color: #fff;
 }
-
-/* ZALO */
 .zalo-btn img {
-    width: 55px;
+    width: 48px;
     animation: zaloPulse 1.5s infinite;
 }
-
-/* ANIMATION */
 @keyframes zaloPulse {
     0% { transform: scale(1); }
     50% { transform: scale(1.15); }
     100% { transform: scale(1); }
 }
 
-
+/* BANNER */
 .banner {
     background: url('https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?auto=format&fit=crop&w=1350&q=80') no-repeat center center;
     background-size: cover;
-    min-height: 350px;
+    min-height: 280px;
     transition: transform 0.5s ease;
 }
-.banner:hover {
-    transform: scale(1.02);
-}
+.banner:hover { transform: scale(1.01); }
 .overlay {
     position: absolute;
     width: 100%;
     height: 100%;
     background: rgba(0,0,0,0.4);
 }
+.banner-title { font-size: clamp(1.4rem, 5vw, 3rem); }
+.banner-sub {
+    font-size: clamp(0.85rem, 2vw, 1.15rem);
+    padding: 0 10px;
+}
+.btn-banner {
+    font-size: clamp(0.75rem, 2vw, 1rem);
+    padding: 8px 24px;
+}
 
 /* CATEGORY */
-.category-box {
-    transition: all 0.3s ease;
+.category-box { transition: all 0.3s ease; }
+.sticky-category {
+    position: sticky;
+    top: 80px;
+    z-index: 10;
 }
-.category-box:hover {
-    transform: translateY(-5px);
+.category-item { border: 1px solid transparent; }
+.active-category {
+    background-color: #000 !important;
+    color: #fff !important;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
 }
+.category-item:hover:not(.active-category) { background-color: #f8f9fa; }
+.transition-hover { transition: all 0.3s ease; }
 
-/* PRODUCT */
-.product-card {
-    transition: all 0.4s ease;
-}
+/* PRODUCT CARD */
+.product-card { transition: all 0.4s ease; }
 .product-card:hover {
-    transform: translateY(-10px) scale(1.02);
+    transform: translateY(-6px) scale(1.02);
     box-shadow: 0 1rem 2rem rgba(0,0,0,.2);
 }
 
-/* IMAGE */
+/* ẢNH SẢN PHẨM - hiển thị đầy đủ không bị khuyết */
 .img-wrapper {
     position: relative;
     overflow: hidden;
+    background: #f8f8f8;
+    aspect-ratio: 3 / 4;   /* tỉ lệ ổn định cho ảnh quần áo */
 }
 .img-wrapper img {
-    height: 280px;
-    object-fit: cover;
-    transition: 0.5s;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;        /* contain = hiện toàn bộ ảnh, không cắt */
+    object-position: center;
+    padding: 8px;               /* khoảng thở nhỏ quanh ảnh */
+    transition: transform 0.5s;
 }
-.product-card:hover img {
-    transform: scale(1.1);
-}
+.product-card:hover img { transform: scale(1.06); }
 
-/* OVERLAY BUTTON */
 .overlay-btn {
     position: absolute;
     bottom: 10px;
@@ -305,44 +294,47 @@ body::before {
     transform: translateX(-50%) translateY(0);
 }
 
-/* CATEGORY ITEM */
-.transition-hover { 
-    transition: all 0.3s ease; 
-}
-.transition-hover:hover { 
-    transform: translateX(5px); 
-}
-
-.category-item {
-    border: 1px solid transparent;
-}
-.active-category {
-    background-color: #000 !important;
-    color: #fff !important;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-}
-.category-item:hover:not(.active-category) {
-    background-color: #f8f9fa;
-}
+.product-name { font-size: clamp(0.7rem, 1.8vw, 0.875rem); }
+.product-price { font-size: clamp(0.85rem, 2vw, 1.1rem); }
 
 /* PAGINATION */
 .custom-pagination .page-link {
     color: #333;
-    margin: 0 3px;
+    margin: 0 2px;
     transition: 0.3s;
+    font-size: 14px;
 }
-.custom-pagination .page-link:hover {
-    transform: scale(1.1);
+.custom-pagination .page-link:hover { transform: scale(1.1); }
+
+/* TABLET */
+@media (max-width: 991px) {
+    .sticky-category { position: static; }
 }
-/* STICKY DANH MỤC */
-.sticky-category {
-    position: sticky;
-    top: 100px; /* tránh bị navbar che */
-    z-index: 10;
+
+/* MOBILE */
+@media (max-width: 575px) {
+    .banner { min-height: 200px; }
+
+    /* Tooltip hiện bên PHẢI các nút thay vì bên dưới để không bị cắt */
+    .contact-tooltip {
+        position: fixed;
+        left: 12px;
+        bottom: 20px;   /* phía trên 2 nút */
+        top: auto;
+        white-space: normal;
+        max-width: calc(100vw - 24px);
+        font-size: 11px;
+        line-height: 1.4;
+    }
+
+    .phone-text { display: none; }
+    .zalo-btn img { width: 42px; }
+    .phone-btn { padding: 8px 10px; border-radius: 50%; }
+    .contact-wrapper { bottom: 65px; left: 12px; }
+    #scrollTopBtn { width: 38px; height: 38px; font-size: 15px; right: 10px; bottom: 10px; }
 }
 </style>
 
-<!-- ANIME JS -->
 <script>
 anime({
     targets: '.product-card',

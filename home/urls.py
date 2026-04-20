@@ -1,15 +1,24 @@
 from django.contrib import admin
 from django.urls import path
-from django.contrib.auth import views as dangnhap
+from django.contrib.auth import views as auth_views
 from home import views
+from . import views
 urlpatterns = [
     path('', views.home, name="home"),
     path('loai/<int:loai_id>/', views.home, name="loai"),
     path('chitietsp/<int:sanpham_id>/', views.chitietsp, name="chitiet"),
     path('dangnhap/', views.dangnhap, name="dangnhap"),
     path('dangky/', views.dangky, name="dangky"),
+    path('kichhoat/<uidb64>/<token>/', views.kichhoat, name='kichhoat'),
+    
+    # Quên mật khẩu
+    path('quen-mat-khau/', auth_views.PasswordResetView.as_view(template_name='password_reset.html'), name='password_reset'),
+    path('quen-mat-khau/da-gui/', auth_views.PasswordResetDoneView.as_view(template_name='password_reset_done.html'), name='password_reset_done'),
+    path('dat-lai-mat-khau/<uidb64>/<token>/', auth_views.PasswordResetConfirmView.as_view(template_name='password_reset_confirm.html'), name='password_reset_confirm'),
+    path('dat-lai-mat-khau/hoan-tat/', auth_views.PasswordResetCompleteView.as_view(template_name='password_reset_complete.html'), name='password_reset_complete'),
+
     path('tai-khoan/', views.thongtintaikhoan, name='thongtintaikhoan'),
-    path('dangxuat/', dangnhap.LogoutView.as_view(next_page='home'), name="dangxuat"),
+    path('dangxuat/', auth_views.LogoutView.as_view(next_page='home'), name="dangxuat"),
     path('themgiohang/<int:sanpham_id>/', views.themgiohang, name="themgiohang"),
     path('suagiohang/<int:sanpham_id>/', views.suagiohang, name="suagiohang"),
     path('xoagiohang/<int:sanpham_id>/', views.xoagiohang, name="xoagiohang"),
@@ -46,4 +55,5 @@ urlpatterns = [
     path('chinh-sach-bao-hanh/', views.chinhsachbaohanh, name='chinhsachbaohanh'),
     path('chinh-sach-doi-tra/', views.chinhsachdoitra, name='chinhsachdoitra'),
     path('dieu-khoan-su-dung/', views.dieukhoansudung, name='dieukhoansudung'),
+    path('export-lichsu-kho/', views.export_lichsukho_excel, name='export_lichsukho_excel'),
 ]

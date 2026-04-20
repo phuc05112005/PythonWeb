@@ -112,7 +112,30 @@ box-shadow:0 8px 18px rgba(255,120,140,0.35);
 .btn-gray:active{
 transform:scale(0.95);
 }
+/* BUTTON ĐANG CHỌN */
 
+.btn-selected{
+background:linear-gradient(135deg,#ff6a00,#ff2d55) !important;
+box-shadow:0 10px 25px rgba(255,80,100,0.6) !important;
+transform:scale(1.05);
+}
+
+/* hiệu ứng click nảy nhẹ */
+.btn-map.clicked{
+animation:clickPop 0.25s ease;
+}
+
+@keyframes clickPop{
+0%{transform:scale(1);}
+50%{transform:scale(0.9);}
+100%{transform:scale(1.05);}
+}
+.btn-nearest{
+padding:9px 12px;       /* giảm ngang */
+min-width:auto;
+width:auto;
+white-space:nowrap;     /* không xuống dòng */
+}
 /* MAP */
 
 #map{
@@ -268,10 +291,13 @@ border-bottom:1px dashed #eee;
 
 <br>
 
-<button class="btn-map btn-blue" onclick="filterRadius(3)">3 km</button>
-<button class="btn-map btn-blue" onclick="filterRadius(5)">5 km</button>
-
-<button class="btn-map btn-blue" onclick="nearestStore()">Cửa hàng gần nhất</button>
+<button id="btn3km" class="btn-map btn-blue" onclick="selectButton(this); filterRadius(3)">3 km</button>
+<button id="btn5km" class="btn-map btn-blue" onclick="selectButton(this); filterRadius(5)">5 km</button>
+<button id="btnNearest" 
+class="btn-map btn-blue btn-nearest" 
+onclick="selectButton(this); nearestStore()">
+Cửa hàng gần nhất
+</button>
 
 <hr>
 
@@ -700,7 +726,13 @@ document.getElementById("openFilter").checked = false
 markers.forEach(m=>m.marker.addTo(map))
 
 renderShopList(stores)
+document.querySelectorAll('#btn3km, #btn5km, #btnNearest').forEach(b=>{
+    b.classList.remove('btn-selected')
+})
 
+document.querySelectorAll('.shop-box').forEach(box=>{
+    box.classList.remove('shop-active')
+})
 }
 
 /* ROUTE */
@@ -725,7 +757,7 @@ fetch(url)
 var route=data.routes[0]
 
 routeLayer=L.geoJSON(route.geometry,{
-style:{color:"#4a8cff",weight:5}
+style:{color:"#ff3b3b",weight:7}
 }).addTo(map)
 
 var km=(route.distance/1000).toFixed(2)
@@ -774,6 +806,23 @@ html+=`<div class="route-step">
 
 document.getElementById("routeSteps").innerHTML=html
 document.getElementById("routeBox").style.display="block"
+
+}
+function selectButton(btn){
+
+// Xóa trạng thái tất cả nút
+document.querySelectorAll('#btn3km, #btn5km, #btnNearest').forEach(b=>{
+    b.classList.remove('btn-selected')
+})
+
+// Thêm trạng thái cho nút được chọn
+btn.classList.add('btn-selected')
+
+// Hiệu ứng click nảy
+btn.classList.add('clicked')
+setTimeout(()=>{
+    btn.classList.remove('clicked')
+},250)
 
 }
 

@@ -1,4 +1,7 @@
 ﻿from django.shortcuts import get_object_or_404, render
+from django.http import HttpResponse
+from openpyxl import Workbook
+from datetime import datetime
 from .models import (
     SANPHAM,
     LOAI,
@@ -14,7 +17,8 @@ from .models import (
     SIZE_CHOICES,
 )
 from django.shortcuts import redirect
-from django.contrib.auth.forms import UserCreationForm, PasswordChangeForm
+from .forms import UserRegisterForm, MailForm
+from django.contrib.auth.forms import PasswordChangeForm
 from django.contrib.auth.models import User
 from django.db.models import Q, Sum
 from django.db import transaction
@@ -52,6 +56,14 @@ from django.core.serializers.json import DjangoJSONEncoder
 from datetime import datetime
 import calendar
 from django.utils.http import url_has_allowed_host_and_scheme
+
+from django.contrib.sites.shortcuts import get_current_site
+from django.template.loader import render_to_string
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+from django.utils.encoding import force_bytes, force_str
+from django.contrib.auth.tokens import default_token_generator
+from django.core.mail import send_mail
+from django.conf import settings
 
 SIZE_ORDER = [size for size, _ in SIZE_CHOICES]
 
@@ -150,16 +162,51 @@ def soluong(request):
 
 def dangky(request):
     if request.method == 'POST':
-        form = UserCreationForm(request.POST)
+        form = UserRegisterForm(request.POST)
         if form.is_valid():
-            form.save()
-            messages.success(request, "Đăng ký thành công!")
+            user = form.save()
+            user.is_active = False  # Chờ xác nhận email
+            user.save()
+
+            # Gửi email xác nhận
+            current_site = get_current_site(request)
+            subject = 'Kích hoạt tài khoản của bạn'
+            message = render_to_string('activation_email.html', {
+                'user': user,
+                'domain': current_site.domain,
+                'uid': urlsafe_base64_encode(force_bytes(user.pk)),
+                'token': default_token_generator.make_token(user),
+            })
+            
+            try:
+                send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [user.email])
+                messages.success(request, "Vui lòng kiểm tra email để kích hoạt tài khoản!")
+            except Exception as e:
+                messages.error(request, f"Không thể gửi email kích hoạt: {e}")
+            
             return redirect('dangnhap')
         else:
             messages.error(request, "Thông tin không hợp lệ!")
     else:
-        form = UserCreationForm()
+        form = UserRegisterForm()
     return render(request, 'dangky.html', {'form': form})
+
+
+def kichhoat(request, uidb64, token):
+    try:
+        uid = force_str(urlsafe_base64_decode(uidb64))
+        user = User.objects.get(pk=uid)
+    except (TypeError, ValueError, OverflowError, User.DoesNotExist):
+        user = None
+
+    if user is not None and default_token_generator.check_token(user, token):
+        user.is_active = True
+        user.save()
+        messages.success(request, "Tài khoản của bạn đã được kích hoạt thành công!")
+        return redirect('dangnhap')
+    else:
+        messages.error(request, "Link kích hoạt không hợp lệ hoặc đã hết hạn!")
+        return redirect('home')
 
 
 def dangnhap(request):
@@ -200,13 +247,25 @@ def thongtintaikhoan(request):
         return redirect('dangnhap')
 
     if request.method == 'POST':
-        password_form = PasswordChangeForm(request.user, request.POST)
-        if password_form.is_valid():
-            user = password_form.save()
-            update_session_auth_hash(request, user)
-            messages.success(request, "Đổi mật khẩu thành công.")
-            return redirect('thongtintaikhoan')
-        messages.error(request, "Vui lòng kiểm tra lại thông tin đổi mật khẩu.")
+        # Xử lý cập nhật Email
+        new_email = request.POST.get('email')
+        if new_email:
+            request.user.email = new_email
+            request.user.save()
+            messages.success(request, "Cập nhật email thành công.")
+
+        # Xử lý đổi mật khẩu
+        if 'old_password' in request.POST:
+            password_form = PasswordChangeForm(request.user, request.POST)
+            if password_form.is_valid():
+                user = password_form.save()
+                update_session_auth_hash(request, user)
+                messages.success(request, "Đổi mật khẩu thành công.")
+                return redirect('thongtintaikhoan')
+            else:
+                messages.error(request, "Vui lòng kiểm tra lại thông tin đổi mật khẩu.")
+        
+        return redirect('thongtintaikhoan')
     else:
         password_form = PasswordChangeForm(request.user)
 
@@ -864,8 +923,24 @@ def duyetdonhang(request, donhang_id):
 @admin_required
 def chitietdonhang(request, donhang_id):
     don_hang = DONHANG.objects.get(id=donhang_id)
-    chitiet = CHITIETDONHANG.objects.filter(donhang=don_hang)
-    context = {'chitiet': chitiet}
+    chitiet = CHITIETDONHANG.objects.filter(donhang=don_hang).select_related('sanpham')
+    tong_san_pham = sum(item.dongia * item.soluong for item in chitiet)
+    phi_giao_hang = max(don_hang.tongtien - tong_san_pham, 0)
+
+    # Tính km từ tọa độ đã lưu
+    km = None
+    cuahang = CUAHANG.objects.all()
+    if don_hang.lat and don_hang.lon and cuahang.exists():
+        _, km_float = cuahanggannhat(don_hang.lat, don_hang.lon, cuahang)
+        km = round(km_float, 2)
+
+    context = {
+        'chitiet': chitiet,
+        'donhang': don_hang,
+        'tong_san_pham': tong_san_pham,
+        'phi_giao_hang': phi_giao_hang,
+        'km': km,
+    }
     return render(request, 'admin/donhang/chitietdonhang.html', context)
 
 
@@ -1127,14 +1202,22 @@ def send_mailtrap(request):
     if request.method == 'POST':
         form = MailForm(request.POST)
         if form.is_valid():
-            subject = form.cleaned_data['subject']
-            message = form.cleaned_data['message']
+            email = request.POST.get('email')
+            subject = request.POST.get('subject')
+            message = request.POST.get('message')
             try:
+                full_message = f"""
+                Email khách: {email}
+
+                Nội dung:
+                {message}
+                """
+
                 send_mail(
                     subject,
-                    message,
+                    full_message,
                     settings.DEFAULT_FROM_EMAIL,
-                    ['phuc052005@gmail.com'],
+                    ['phuc052005@gmail.com'],  # mail bạn nhận
                     fail_silently=False
                 )
                 messages.success(request, 'Email đã gửi thành công!')
@@ -1160,3 +1243,69 @@ def chinhsachdoitra(request):
 
 def dieukhoansudung(request):
     return render(request, 'dieukhoansudung.html')
+
+@admin_required
+def export_lichsukho_excel(request):
+    lichsu = LICHSUKHO.objects.select_related('sanpham', 'nguoithuchien')
+
+    # --- GIỐNG FILTER TRANG HTML ---
+    sanpham_id = request.GET.get('sanpham')
+    size = (request.GET.get('size') or '').upper()
+    loai = request.GET.get('loai')
+    from_date = request.GET.get('from_date')
+    to_date = request.GET.get('to_date')
+
+    if sanpham_id:
+        lichsu = lichsu.filter(sanpham_id=sanpham_id)
+    if size in SIZE_ORDER:
+        lichsu = lichsu.filter(size=size)
+    if loai == 'tang':
+        lichsu = lichsu.filter(loai_biendong__in=['nhap', 'dieuchinh_tang'])
+    elif loai == 'giam':
+        lichsu = lichsu.filter(loai_biendong__in=['xuat', 'dieuchinh_giam'])
+    if from_date:
+        lichsu = lichsu.filter(thoigian__date__gte=from_date)
+    if to_date:
+        lichsu = lichsu.filter(thoigian__date__lte=to_date)
+
+    # --- TẠO FILE EXCEL ---
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "LichSuKho"
+
+    # Header
+    ws.append([
+        "Thời gian",
+        "Sản phẩm",
+        "Size",
+        "Loại",
+        "Số lượng",
+        "Tồn trước",
+        "Tồn sau",
+        "Người thao tác",
+        "Ghi chú"
+    ])
+
+    # Data
+    for item in lichsu:
+        ws.append([
+            item.thoigian.strftime("%d/%m/%Y %H:%M:%S"),
+            item.sanpham.ten,
+            item.size,
+            item.get_loai_biendong_display(),
+            item.soluong_thaydoi,
+            item.ton_truoc,
+            item.ton_sau,
+            item.nguoithuchien.username if item.nguoithuchien else "-",
+            item.ghichu or "-"
+        ])
+
+    # Response download
+    response = HttpResponse(
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
+    filename = f"lich_su_kho_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
+    response['Content-Disposition'] = f'attachment; filename="{filename}"'
+
+    wb.save(response)
+    return response

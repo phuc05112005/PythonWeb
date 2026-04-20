@@ -39,7 +39,7 @@
         }
 
         /* input + textarea mặc định đẹp */
-        .mail-form input[type="text"],
+        .mail-form input,
         .mail-form textarea {
             width: 100%;
             padding: 15px 20px;
@@ -116,7 +116,13 @@
     <!-- Form -->
     <form method="post">
         {% csrf_token %}
-        {{ form.as_p }}
+
+        <input type="text" name="subject" placeholder="Vấn đề bạn gặp phải" required>
+
+        <input type="email" name="email" placeholder="Email để shop phản hồi" required>
+
+        <textarea name="message" rows="4" placeholder="Nhập nội dung..." required></textarea>
+
         <button type="submit">
             <i class="fa-solid fa-paper-plane"></i> Gửi Phản Hồi
         </button>

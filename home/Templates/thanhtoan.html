@@ -42,13 +42,16 @@
                             <label class="form-label fw-bold small text-secondary text-uppercase">Địa chỉ giao hàng</label>
                         </div>
                         <div class="col-md-6">
-                            <input type="text" name="diachi_duong" id="diachi_duong" class="form-control rounded-pill bg-light border-0 shadow-none" value="{{ diachi_duong|default:'' }}" placeholder="Số nhà và tên đường...">
+                            <label class="form-label small text-muted mb-1">Số nhà & tên đường</label>
+                            <input type="text" name="diachi_duong" id="diachi_duong" class="form-control rounded-pill bg-light border-0 shadow-none" value="{{ diachi_duong|default:'' }}" placeholder="VD: 236 Lê Văn Sỹ">
                         </div>
                         <div class="col-md-3">
-                            <input type="text" name="diachi_phuong" id="diachi_phuong" class="form-control rounded-pill bg-light border-0 shadow-none" value="{{ diachi_phuong|default:'' }}" placeholder="Phường/Xã">
+                            <label class="form-label small text-muted mb-1">Phường / Xã</label>
+                            <input type="text" name="diachi_phuong" id="diachi_phuong" class="form-control rounded-pill bg-light border-0 shadow-none" value="{{ diachi_phuong|default:'' }}" placeholder="VD: Tân Sơn Hòa">
                         </div>
                         <div class="col-md-3">
-                            <input type="text" name="diachi_thanhpho" id="diachi_thanhpho" class="form-control rounded-pill bg-light border-0 shadow-none" value="{{ diachi_thanhpho|default:'' }}" placeholder="Tỉnh/Thành">
+                            <label class="form-label small text-muted mb-1">Tỉnh / Thành phố</label>
+                            <input type="text" name="diachi_thanhpho" id="diachi_thanhpho" class="form-control rounded-pill bg-light border-0 shadow-none" value="{{ diachi_thanhpho|default:'' }}" placeholder="VD: TP.HCM">
                         </div>
                         <div class="col-12">
                             <input type="hidden" name="diachi" id="diachi" value="{{ diachikh|default:'' }}">
