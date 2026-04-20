@@ -17,8 +17,17 @@
     <form method="get" class="row g-2 mb-4 align-items-center">
         <div class="col-md-2">
             <input type="text" name="keyword" class="form-control form-control-sm"
-                placeholder="Tìm tên khách hàng - SĐT"
+                placeholder="Tìm Mã Đơn - Tên KH - SĐT"
                 value="{{ request.GET.keyword }}">
+        </div>
+
+        <div class="col-md-2">
+            <select name="cuahang" class="form-select form-select-sm">
+                <option value="">-- Tất cả cửa hàng --</option>
+                {% for ch in cuahangs %}
+                <option value="{{ ch.id }}" {% if request.GET.cuahang == ch.id|stringformat:"s" %}selected{% endif %}>{{ ch.ten }}</option>
+                {% endfor %}
+            </select>
         </div>
 
         <div class="col-md-2">
@@ -69,6 +78,7 @@
                         <tr class="small text-uppercase">
                             <th class="ps-4 py-3 border-0">Mã đơn</th>
                             <th class="py-3 border-0">Khách hàng</th>
+                            <th class="py-3 border-0">Cửa hàng xử lý</th>
                             <th class="py-3 border-0">Địa chỉ giao hàng</th>
                             <th class="py-3 border-0">Số điện thoại</th>
                             <th class="py-3 border-0">Tổng tiền</th>
@@ -81,6 +91,11 @@
                         <tr class="bg-white border-bottom">
                             <td class="ps-4 fw-bold">#{{ dh.id }}</td>
                             <td>{{ dh.ten }}</td>
+                            <td>
+                                <span class="badge bg-light text-primary border border-primary-subtle rounded-pill px-3">
+                                    {{ dh.cuahang.ten|default:"Chưa rõ" }}
+                                </span>
+                            </td>
                             <td>{{ dh.diachi }}</td>
                             <td>{{ dh.sdt }}</td>
                             <td class="fw-bold text-danger">{{ dh.tongtien }} VNĐ</td>
@@ -130,6 +145,7 @@
                         <tr class="small text-uppercase text-secondary">
                             <th class="ps-4 py-3 border-0">Mã đơn</th>
                             <th class="py-3 border-0">Khách hàng</th>
+                            <th class="py-3 border-0">Cửa hàng xử lý</th>
                             <th class="py-3 border-0">Địa chỉ giao hàng</th>
                             <th class="py-3 border-0">Số điện thoại</th>
                             <th class="py-3 border-0">Tổng tiền</th>
@@ -142,6 +158,7 @@
                         <tr class="border-bottom text-muted">
                             <td class="ps-4 fw-bold">#{{ dh.id }}</td>
                             <td>{{ dh.ten }}</td>
+                            <td>{{ dh.cuahang.ten|default:"-" }}</td>
                             <td>{{ dh.diachi }}</td>
                             <td>{{ dh.sdt }}</td>
                             <td class="fw-bold text-danger">{{ dh.tongtien }} VNĐ</td>
@@ -154,7 +171,7 @@
                         </tr>
                         {% empty %}
                         <tr>
-                            <td colspan="7" class="text-center py-4 text-muted small">Chưa xác nhận đơn hàng nào.</td>
+                            <td colspan="8" class="text-center py-4 text-muted small">Chưa xác nhận đơn hàng nào.</td>
                         </tr>
                         {% endfor %}
                     </tbody>

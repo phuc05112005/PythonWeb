@@ -276,10 +276,71 @@ border-bottom:1px dashed #eee;
     50% { transform: scale(1.15); }
     100% { transform: scale(1); }
 }
+/* =========================
+   SIDEBAR TOGGLE (APP STYLE)
+========================= */
+
+/* NÚT MỞ */
+.toggle-sidebar{
+    position: fixed;
+    top: 50%;
+    left: 0;
+    transform: translateY(-50%);
+    background: #4a8cff;
+    color: white;
+    padding: 10px 12px;
+    border-radius: 0 10px 10px 0;
+    cursor: pointer;
+    z-index: 1500;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+}
+
+/* ICON XOAY */
+.toggle-sidebar i{
+    transition: 0.3s;
+}
+
+/* =========================
+   RESPONSIVE: ẨN SIDEBAR
+========================= */
+.toggle-sidebar{
+    display: none; /* ẨN MẶC ĐỊNH */
+}
+@media (max-width: 1024px){
+
+    /* HIỆN NÚT KHI MÀN NHỎ */
+    .toggle-sidebar{
+        display: block;
+    }
+
+    .sidebar{
+        position: fixed;
+        top: 75px;
+        left: -360px; /* ẨN */
+        height: calc(100vh - 75px);
+        z-index: 1400;
+        transition: 0.3s;
+        box-shadow: 5px 0 20px rgba(0,0,0,0.15);
+    }
+
+    .sidebar.active{
+        left: 0;
+    }
+
+    #map{
+        width:100%;
+    }
+
+    .toggle-sidebar.active i{
+        transform: rotate(180deg);
+    }
+}
 </style>
 
 <div class="map-wrapper">
-
+<div id="toggleSidebar" class="toggle-sidebar">
+    <i class="fa-solid fa-chevron-right"></i>
+</div>
 <div class="sidebar">
 
 <h3>Hệ thống cửa hàng</h3>
@@ -825,7 +886,24 @@ setTimeout(()=>{
 },250)
 
 }
+const toggleBtn = document.getElementById("toggleSidebar");
+const sidebar = document.querySelector(".sidebar");
 
+toggleBtn.addEventListener("click", () => {
+    sidebar.classList.toggle("active");
+    toggleBtn.classList.toggle("active");
+
+    // Fix map resize khi mở sidebar
+    setTimeout(() => {
+        map.invalidateSize();
+    }, 300);
+});
+map.on("click", function(){
+    if(window.innerWidth <= 1024){
+        sidebar.classList.remove("active");
+        toggleBtn.classList.remove("active");
+    }
+});
 </script>
 {% block footer %}{% endblock %}
 

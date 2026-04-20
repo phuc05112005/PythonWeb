@@ -478,24 +478,6 @@ def thanhtoan(request):
                             soluong=item.soluong,
                             dongia=item.sanpham.gia,
                         )
-                        # Trừ kho cửa hàng cụ thể
-                        tonkho = TONKHOSIZE.objects.get(sanpham=item.sanpham, size=item.size, cuahang=ch_gan_nhat)
-                        ton_truoc = tonkho.soluong
-                        tonkho.soluong -= item.soluong
-                        tonkho.save()
-
-                        ghi_lich_su_kho(
-                            sanpham=item.sanpham,
-                            cuahang=ch_gan_nhat,
-                            size=item.size,
-                            loai_biendong='xuat',
-                            so_luong=item.soluong,
-                            ton_truoc=ton_truoc,
-                            ton_sau=tonkho.soluong,
-                            user=request.user,
-                            ghichu=f'Xuất kho cho đơn hàng #{don_hang.id}'
-                        )
-                        dong_bo_tong_ton_kho(item.sanpham)
 
                     CHITIETGIOHANG.objects.filter(giohang=gio_hang).delete()
                     return render(request, 'camon.html')
@@ -865,7 +847,8 @@ def lichsukho(request):
 
 @admin_required
 def quanlydonhang(request):
-    donhang = DONHANG.objects.all()
+    donhang = DONHANG.objects.select_related('cuahang', 'khachhang').all().order_by('-ngaydat')
+    cuahangs = CUAHANG.objects.all()
 
     keyword = request.GET.get('keyword')
     from_date = request.GET.get('from_date')
@@ -873,11 +856,13 @@ def quanlydonhang(request):
     min_price = request.GET.get('min_price')
     max_price = request.GET.get('max_price')
     status = request.GET.get('status')
+    cuahang_id = request.GET.get('cuahang')
 
     if keyword:
         donhang = donhang.filter(
             Q(ten__icontains=keyword) |
-            Q(sdt__icontains=keyword)
+            Q(sdt__icontains=keyword) |
+            Q(id__icontains=keyword)
         )
     if from_date:
         donhang = donhang.filter(ngaydat__date__gte=from_date)
@@ -887,6 +872,9 @@ def quanlydonhang(request):
         donhang = donhang.filter(tongtien__gte=min_price)
     if max_price:
         donhang = donhang.filter(tongtien__lte=max_price)
+    if cuahang_id:
+        donhang = donhang.filter(cuahang_id=cuahang_id)
+        
     if status == "0":
         donhang = donhang.filter(trangthai=1)  # chưa duyệt
     elif status == "1":
@@ -898,16 +886,57 @@ def quanlydonhang(request):
     return render(request, 'admin/donhang/index.html', {
         'donhang1': donhang1,
         'donhang2': donhang2,
+        'cuahangs': cuahangs,
     })
 
 
 @admin_required
 def duyetdonhang(request, donhang_id):
     if request.method == 'POST':
-        dh = DONHANG.objects.get(id=donhang_id)
-        dh.trangthai = 2
-        dh.save()
-        messages.success(request, "Cập nhật thành công.")
+        with transaction.atomic():
+            dh = DONHANG.objects.select_for_update().get(id=donhang_id)
+            if dh.trangthai == 2:
+                messages.warning(request, "Đơn hàng này đã được duyệt trước đó.")
+                return redirect('quanlydonhang')
+
+            chitiet = CHITIETDONHANG.objects.filter(donhang=dh)
+            ch_xuly = dh.cuahang
+
+            if not ch_xuly:
+                messages.error(request, "Đơn hàng chưa có thông tin cửa hàng xử lý!")
+                return redirect('quanlydonhang')
+
+            # 1. Kiểm tra tồn kho lần cuối trước khi trừ
+            for item in chitiet:
+                tonkho = TONKHOSIZE.objects.filter(sanpham=item.sanpham, size=item.size, cuahang=ch_xuly).first()
+                if not tonkho or tonkho.soluong < item.soluong:
+                    messages.error(request, f"Cửa hàng {ch_xuly.ten} không đủ hàng cho {item.sanpham.ten} (Size {item.size}).")
+                    return redirect('quanlydonhang')
+
+            # 2. Thực hiện trừ kho và ghi lịch sử
+            for item in chitiet:
+                tonkho = TONKHOSIZE.objects.select_for_update().get(sanpham=item.sanpham, size=item.size, cuahang=ch_xuly)
+                ton_truoc = tonkho.soluong
+                tonkho.soluong -= item.soluong
+                tonkho.save()
+
+                ghi_lich_su_kho(
+                    sanpham=item.sanpham,
+                    cuahang=ch_xuly,
+                    size=item.size,
+                    loai_biendong='xuat',
+                    so_luong=item.soluong,
+                    ton_truoc=ton_truoc,
+                    ton_sau=tonkho.soluong,
+                    user=request.user,  # Lưu tên Admin/Quản lý duyệt đơn
+                    ghichu=f'Xuất kho bán hàng - Đơn hàng #{dh.id}'
+                )
+                dong_bo_tong_ton_kho(item.sanpham)
+
+            dh.trangthai = 2
+            dh.save()
+            messages.success(request, f"Đã xác nhận đơn hàng #{dh.id} và trừ kho thành công.")
+            
     return redirect('quanlydonhang')
 
 
