@@ -1,7 +1,6 @@
 from django.contrib import admin
 from django.urls import path
 from django.contrib.auth import views as auth_views
-from home import views
 from . import views
 urlpatterns = [
     path('', views.home, name="home"),
@@ -61,5 +60,6 @@ urlpatterns = [
     path('export-inventory-template/', views.export_inventory_template, name='export_inventory_template'),
     path('import-inventory-excel/', views.import_inventory_excel, name='import_inventory_excel'),
     path('export-lichsu-kho/', views.export_lichsukho_excel, name='export_lichsukho_excel'),
-    path('kich-hoat/<uidb64>/<token>/', views.kichhoat, name='kichhoat'),
+    path('quantri/about/', views.admin_about, name='admin_about'),
+    path('gioithieu/', views.gioithieu, name='about'),
 ]

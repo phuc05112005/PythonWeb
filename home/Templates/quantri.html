@@ -1,5 +1,6 @@
 {% extends 'layoutadmin.html' %}
 {% load static %}
+{% load l10n %}
 
 {% block main-content %}
 <div class="container-fluid mt-4 mb-5">
@@ -171,20 +172,39 @@
                             </div>
 
                             <form method="get" action="{% url 'quantri' %}" class="row g-2 align-items-end mb-3">
-                                <input type="hidden" name="month" value="{{ selected_month_date|date:'Y-m' }}">
-                                <div class="col-sm-4">
+                                <div class="col-sm-3">
+                                    <label class="form-label small text-muted mb-1">Tháng</label>
+                                    <select name="month_value" class="form-select">
+                                        {% for m in month_options %}
+                                        <option value="{{ m|unlocalize }}" {% if selected_month_value == m %}selected{% endif %}>Tháng {{ m }}</option>
+                                        {% empty %}
+                                        <option value="" disabled>Không có dữ liệu</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="col-sm-3">
+                                    <label class="form-label small text-muted mb-1">Năm</label>
+                                    <select name="year_value" class="form-select">
+                                        {% for y in revenue_years %}
+                                        <option value="{{ y|unlocalize }}" {% if selected_year_value == y %}selected{% endif %}>{{ y|unlocalize }}</option>
+                                        {% empty %}
+                                        <option value="{{ selected_year_value|unlocalize }}">{{ selected_year_value|unlocalize }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="col-sm-2">
                                     <label class="form-label small text-muted mb-1">Từ ngày</label>
-                                    <input type="number" name="day_from" min="1" max="{{ max_day }}" value="{{ day_from_value }}" class="form-control" placeholder="VD: 1">
+                                    <input type="number" name="day_from" min="1" max="{{ max_day }}" value="{{ day_from_value }}" class="form-control">
                                 </div>
-                                <div class="col-sm-4">
+                                <div class="col-sm-2">
                                     <label class="form-label small text-muted mb-1">Đến ngày</label>
-                                    <input type="number" name="day_to" min="1" max="{{ max_day }}" value="{{ day_to_value }}" class="form-control" placeholder="VD: {{ max_day }}">
+                                    <input type="number" name="day_to" min="1" max="{{ max_day }}" value="{{ day_to_value }}" class="form-control">
                                 </div>
-                                <div class="col-sm-4 d-flex gap-2">
+                                <div class="col-sm-2 d-flex gap-2">
                                     <button type="submit" class="btn btn-primary w-100">
                                         Lọc
                                     </button>
-                                    <a href="{% url 'quantri' %}?month={{ selected_month_date|date:'Y-m' }}" class="btn btn-outline-secondary w-100">
+                                    <a href="{% url 'quantri' %}?month_value={{ selected_month_value }}&year_value={{ selected_year_value }}" class="btn btn-outline-secondary w-100">
                                         Bỏ lọc
                                     </a>
                                 </div>

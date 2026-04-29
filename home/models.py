@@ -2,6 +2,8 @@ from django.contrib.auth.models import User
 from django.db import models
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+from django.db import models
+
 
 SIZE_CHOICES = [
     ('S', 'S'),
@@ -173,3 +175,17 @@ def tao_taikhoan(sender, instance, created, **kwargs):
 class HINHANH(models.Model):
     sanpham = models.ForeignKey(SANPHAM, on_delete=models.CASCADE, related_name='hinhanh')
     hinh = models.ImageField(null=True, blank=True)
+
+
+class About(models.Model):
+    title = models.CharField(max_length=255)
+    description = models.TextField()
+
+    su_menh = models.TextField()
+    cam_ket = models.TextField()
+    tam_nhin = models.TextField()
+
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.title

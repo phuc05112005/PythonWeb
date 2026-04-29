@@ -2,6 +2,8 @@
 from django.http import HttpResponse
 from openpyxl import Workbook, load_workbook
 from datetime import datetime
+from django.shortcuts import render, redirect
+from .models import About
 from .models import (
     SANPHAM,
     LOAI,
@@ -285,8 +287,12 @@ def thongtintaikhoan(request):
 
     if request.method == 'POST':
         # Xử lý cập nhật Email
-        new_email = request.POST.get('email')
+        new_email = (request.POST.get('email') or '').strip().lower()
         if new_email:
+            is_email_taken = User.objects.filter(email__iexact=new_email).exclude(id=request.user.id).exists()
+            if is_email_taken:
+                messages.error(request, "Email này đã tồn tại trong hệ thống.")
+                return redirect('thongtintaikhoan')
             request.user.email = new_email
             request.user.save()
             messages.success(request, "Cập nhật email thành công.")
@@ -553,13 +559,50 @@ def quantri(request):
     )
 
     selected_month = request.GET.get('month')
-    selected_month_date = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+    selected_month_value = request.GET.get('month_value')
+    selected_year_value = request.GET.get('year_value')
 
-    if selected_month:
+    revenue_months = [item['month'] for item in monthly_revenue if item.get('month')]
+    available_year_months = {}
+    for m in revenue_months:
+        available_year_months.setdefault(m.year, set()).add(m.month)
+    revenue_years = sorted(available_year_months.keys(), reverse=True)
+
+    selected_year = None
+    selected_month_num = None
+
+    if selected_month_value and selected_year_value:
         try:
-            selected_month_date = datetime.strptime(selected_month, '%Y-%m')
+            selected_year = int(selected_year_value)
+            selected_month_num = int(selected_month_value)
+        except (TypeError, ValueError):
+            selected_year = None
+            selected_month_num = None
+    elif selected_month:
+        try:
+            legacy_month = datetime.strptime(selected_month, '%Y-%m')
+            selected_year = legacy_month.year
+            selected_month_num = legacy_month.month
         except ValueError:
-            selected_month_date = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+            selected_year = None
+            selected_month_num = None
+
+    if revenue_years:
+        if selected_year not in revenue_years:
+            selected_year = revenue_years[0]
+        month_options = sorted(available_year_months.get(selected_year, []))
+        if selected_month_num not in month_options:
+            selected_month_num = month_options[-1]
+    else:
+        selected_year = now.year
+        month_options = [now.month]
+        selected_month_num = now.month
+
+    selected_month_date = datetime(
+        year=selected_year,
+        month=selected_month_num,
+        day=1
+    )
 
     max_day = calendar.monthrange(selected_month_date.year, selected_month_date.month)[1]
     day_from = request.GET.get('day_from')
@@ -616,6 +659,10 @@ def quantri(request):
         'day_from_value': day_from_value,
         'day_to_value': day_to_value,
         'max_day': max_day,
+        'selected_month_value': selected_month_date.month,
+        'selected_year_value': selected_month_date.year,
+        'revenue_years': revenue_years,
+        'month_options': month_options,
     }
     return render(request, 'quantri.html', context)
 
@@ -823,6 +870,8 @@ def lichsukho(request):
     loai = request.GET.get('loai')
     from_date = request.GET.get('from_date')
     to_date = request.GET.get('to_date')
+    cuahang_id = request.GET.get('cuahang')
+    nguoiky_id = request.GET.get('nguoiky')
 
     if sanpham_id:
         lichsu = lichsu.filter(sanpham_id=sanpham_id)
@@ -836,11 +885,17 @@ def lichsukho(request):
         lichsu = lichsu.filter(thoigian__date__gte=from_date)
     if to_date:
         lichsu = lichsu.filter(thoigian__date__lte=to_date)
+    if cuahang_id:
+        lichsu = lichsu.filter(cuahang_id=cuahang_id)
+    if nguoiky_id:
+        lichsu = lichsu.filter(nguoithuchien_id=nguoiky_id)
 
     context = {
         'lichsu': lichsu,
         'danhsach_sanpham': danhsach_sanpham,
         'size_order': SIZE_ORDER,
+        'danhsach_cuahang': CUAHANG.objects.all(),
+        'danhsach_nguoiky': User.objects.filter(lichsukho__isnull=False).distinct(),
     }
     return render(request, 'admin/kho/lichsu.html', context)
 
@@ -1249,9 +1304,6 @@ def send_mailtrap(request):
     return render(request, 'send_mailtrap.html', {'form': form})
 
 
-def gioithieu(request):
-    return render(request, 'gioithieu.html')
-
 
 def chinhsachbaohanh(request):
     return render(request, 'chinhsachbaohanh.html')
@@ -1299,48 +1351,87 @@ def export_inventory_template(request):
 def import_inventory_excel(request):
     if request.method == 'POST' and request.FILES.get('excel_file'):
         file = request.FILES['excel_file']
+        if not file.name.lower().endswith('.xlsx'):
+            messages.error(request, "File không đúng định dạng .xlsx, không thể cập nhật kho.")
+            return redirect('quanlysanpham')
         try:
             wb = load_workbook(file)
             ws = wb.active
-            
+
+            valid_sizes = set(SIZE_ORDER)
+            updates = []
+
+            for row_index, row in enumerate(ws.iter_rows(min_row=2, values_only=True), start=2):
+                if not row:
+                    continue
+
+                padded_row = list(row) + [None] * (8 - len(row))
+                sp_id, _, ch_id, _, size, _, so_luong_them, ghichu = padded_row[:8]
+
+                if so_luong_them in [None, '']:
+                    continue
+
+                try:
+                    so_luong_them = int(so_luong_them)
+                except (TypeError, ValueError):
+                    messages.error(request, f"Dòng {row_index}: 'Số lượng thêm' phải là số nguyên. Hệ thống không cập nhật dữ liệu.")
+                    return redirect('quanlysanpham')
+
+                if so_luong_them == 0:
+                    continue
+
+                try:
+                    sp_id_int = int(sp_id)
+                    ch_id_int = int(ch_id)
+                except (TypeError, ValueError):
+                    messages.error(request, f"Dòng {row_index}: ID sản phẩm hoặc ID cửa hàng không hợp lệ. Hệ thống không cập nhật dữ liệu.")
+                    return redirect('quanlysanpham')
+
+                size_value = str(size).strip().upper() if size is not None else ''
+                if size_value not in valid_sizes:
+                    messages.error(request, f"Dòng {row_index}: Size '{size}' không hợp lệ. Hệ thống không cập nhật dữ liệu.")
+                    return redirect('quanlysanpham')
+
+                sp = SANPHAM.objects.filter(id=sp_id_int).first()
+                ch = CUAHANG.objects.filter(id=ch_id_int).first()
+                if not sp or not ch:
+                    messages.error(request, f"Dòng {row_index}: Không tìm thấy sản phẩm hoặc cửa hàng. Hệ thống không cập nhật dữ liệu.")
+                    return redirect('quanlysanpham')
+
+                updates.append((sp, ch, size_value, so_luong_them, ghichu))
+
             success_count = 0
-            # Duyệt từ dòng 2 (bỏ qua header)
-            for row in ws.iter_rows(min_row=2, values_only=True):
-                sp_id, _, ch_id, _, size, _, so_luong_them, ghichu = row
-                
-                if so_luong_them and int(so_luong_them) != 0:
-                    try:
-                        sp = SANPHAM.objects.get(id=sp_id)
-                        ch = CUAHANG.objects.get(id=ch_id)
-                        ton_row, _ = TONKHOSIZE.objects.get_or_create(sanpham=sp, cuahang=ch, size=size)
-                        
-                        ton_cu = ton_row.soluong
-                        so_luong_them = int(so_luong_them)
-                        ton_moi = ton_cu + so_luong_them
-                        
-                        if ton_moi < 0: ton_moi = 0 # Không để âm
-                        
-                        # Ghi lịch sử
-                        loai_bd = 'dieuchinh_tang' if so_luong_them > 0 else 'dieuchinh_giam'
-                        ghi_lich_su_kho(
-                            sanpham=sp,
-                            cuahang=ch,
-                            size=size,
-                            loai_biendong=loai_bd,
-                            so_luong=abs(so_luong_them),
-                            ton_truoc=ton_cu,
-                            ton_sau=ton_moi,
-                            user=request.user,
-                            ghichu=ghichu if ghichu else 'Cập nhật nhanh bằng Excel'
-                        )
-                        
-                        ton_row.soluong = ton_moi
-                        ton_row.save()
-                        dong_bo_tong_ton_kho(sp)
-                        success_count += 1
-                    except Exception:
-                        continue
-            
+            with transaction.atomic():
+                for sp, ch, size_value, so_luong_them, ghichu in updates:
+                    ton_row, _ = TONKHOSIZE.objects.select_for_update().get_or_create(
+                        sanpham=sp,
+                        cuahang=ch,
+                        size=size_value,
+                    )
+
+                    ton_cu = ton_row.soluong
+                    ton_moi = ton_cu + so_luong_them
+                    if ton_moi < 0:
+                        ton_moi = 0
+
+                    loai_bd = 'dieuchinh_tang' if so_luong_them > 0 else 'dieuchinh_giam'
+                    ghi_lich_su_kho(
+                        sanpham=sp,
+                        cuahang=ch,
+                        size=size_value,
+                        loai_biendong=loai_bd,
+                        so_luong=abs(so_luong_them),
+                        ton_truoc=ton_cu,
+                        ton_sau=ton_moi,
+                        user=request.user,
+                        ghichu=ghichu if ghichu else 'Cập nhật nhanh bằng Excel'
+                    )
+
+                    ton_row.soluong = ton_moi
+                    ton_row.save()
+                    dong_bo_tong_ton_kho(sp)
+                    success_count += 1
+
             messages.success(request, f"Đã cập nhật thành công {success_count} bản ghi tồn kho.")
         except Exception as e:
             messages.error(request, f"Lỗi xử lý file Excel: {e}")
@@ -1414,3 +1505,41 @@ def export_lichsukho_excel(request):
 
     wb.save(response)
     return response
+
+def error_404_view(request, exception=None):
+    return render(request, '404.html', status=404)
+
+@admin_required
+def admin_about(request):
+    about = About.objects.first()
+
+    if request.method == "POST":
+        title = request.POST.get("title")
+        description = request.POST.get("description")
+        su_menh = request.POST.get("su_menh")
+        cam_ket = request.POST.get("cam_ket")
+        tam_nhin = request.POST.get("tam_nhin")
+
+        if about:
+            about.title = title
+            about.description = description
+            about.su_menh = su_menh
+            about.cam_ket = cam_ket
+            about.tam_nhin = tam_nhin
+            about.save()
+        else:
+            About.objects.create(
+                title=title,
+                description=description,
+                su_menh=su_menh,
+                cam_ket=cam_ket,
+                tam_nhin=tam_nhin
+            )
+
+        messages.success(request, "Cập nhật trang giới thiệu thành công!")
+        return redirect("about")  # quay về trang khách (UX tốt hơn)
+
+    return render(request, "admin/about_manage.html", {"about": about})
+def gioithieu(request):
+    about = About.objects.first()
+    return render(request, 'gioithieu.html', {'about': about})

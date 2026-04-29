@@ -1,0 +1,42 @@
+{% extends 'layout.html' %}
+
+{% block main-content %}
+<div class="container py-5" style="max-width: 800px;">
+    <div class="bg-white p-4 rounded-4 shadow-sm">
+        <h3 class="fw-bold mb-4">Chỉnh sửa trang Giới thiệu</h3>
+
+        <form method="POST">
+            {% csrf_token %}
+
+            <div class="mb-3">
+                <label class="form-label">Tiêu đề</label>
+                <input type="text" name="title" class="form-control" value="{{ about.title }}">
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Mô tả</label>
+                <textarea name="description" class="form-control" rows="3">{{ about.description }}</textarea>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Sứ mệnh</label>
+                <textarea name="su_menh" class="form-control">{{ about.su_menh }}</textarea>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Cam kết</label>
+                <textarea name="cam_ket" class="form-control">{{ about.cam_ket }}</textarea>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Tầm nhìn</label>
+                <textarea name="tam_nhin" class="form-control">{{ about.tam_nhin }}</textarea>
+            </div>
+
+            <button type="submit" class="btn btn-dark rounded-pill px-4">
+                Lưu thay đổi
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock %}

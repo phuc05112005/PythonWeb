@@ -35,7 +35,26 @@
                 {% endfor %}
             </select>
         </div>
+        <div class="col-md-3">
+        <label class="form-label small text-muted mb-1">Cửa hàng</label>
+        <select name="cuahang" class="form-select form-select-sm">
+            <option value="">Tất cả</option>
+            {% for ch in danhsach_cuahang %}
+            <option value="{{ ch.id }}" {% if request.GET.cuahang == ch.id|stringformat:"s" %}selected{% endif %}>{{ ch.ten }}</option>
+            {% endfor %}
+        </select>
+    </div>
 
+    <!-- ✅ THÊM MỚI: Lọc theo người ký -->
+    <div class="col-md-3">
+        <label class="form-label small text-muted mb-1">Người ký</label>
+        <select name="nguoiky" class="form-select form-select-sm">
+            <option value="">Tất cả</option>
+            {% for user in danhsach_nguoiky %}
+            <option value="{{ user.id }}" {% if request.GET.nguoiky == user.id|stringformat:"s" %}selected{% endif %}>{{ user.username }}</option>
+            {% endfor %}
+        </select>
+    </div>
         <div class="col-md-3">
             <label class="form-label small text-muted mb-1">Loại biến động</label>
             <select name="loai" class="form-select form-select-sm">

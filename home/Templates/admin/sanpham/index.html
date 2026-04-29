@@ -3,12 +3,12 @@
 
 {% block main-content %}
 <div class="container-fluid mt-4 mb-5">
-    <div class="d-flex justify-content-between align-items-center mb-4">
+    <div class="d-flex justify-content-between align-items-start align-items-md-center flex-column flex-md-row gap-3 mb-4">
         <div>
             <h3 class="fw-bolder m-0 text-uppercase" style="letter-spacing: 1px;">Danh Sách Sản Phẩm</h3>
             <p class="text-muted small mt-1 mb-0">Quản lý tồn kho theo size, cập nhật giá và thông tin sản phẩm.</p>
         </div>
-        <div class="d-flex gap-2">
+        <div class="d-flex gap-2 flex-wrap w-100 justify-content-start justify-content-md-end ms-md-auto">
             <!-- New Excel Buttons -->
             <div class="btn-group">
                 <a href="{% url 'export_inventory_template' %}" class="btn btn-outline-success rounded-start-pill fw-bold px-3 py-2">
@@ -67,10 +67,10 @@
 
     <form method="GET" class="mb-4">
         <div class="row g-2">
-            <div class="col-md-2">
+            <div class="col-12 col-sm-6 col-lg-2">
                 <input type="text" name="keyword" class="form-control" placeholder="Nhập tìm sản phẩm" value="{{ request.GET.keyword }}">
             </div>
-            <div class="col-md-2">
+            <div class="col-12 col-sm-6 col-lg-2">
                 <select name="loai" class="form-select">
                     <option value="">-- Loại --</option>
                     {% for l in loai %}
@@ -78,23 +78,23 @@
                     {% endfor %}
                 </select>
             </div>
-            <div class="col-md-2">
+            <div class="col-12 col-sm-6 col-lg-2">
                 <input type="number" name="min_price" class="form-control" placeholder="Giá từ" value="{{ request.GET.min_price }}">
             </div>
-            <div class="col-md-2">
+            <div class="col-12 col-sm-6 col-lg-2">
                 <input type="number" name="max_price" class="form-control" placeholder="Giá đến" value="{{ request.GET.max_price }}">
             </div>
-            <div class="col-md-2">
+            <div class="col-12 col-sm-6 col-lg-2">
                 <select name="tonkho" class="form-select">
                     <option value="">-- Tồn kho --</option>
                     <option value="con" {% if request.GET.tonkho == "con" %}selected{% endif %}>Còn hàng</option>
                     <option value="het" {% if request.GET.tonkho == "het" %}selected{% endif %}>Hết hàng</option>
                 </select>
             </div>
-            <div class="col-md-1 d-flex gap-1">
+            <div class="col-6 col-sm-3 col-lg-1 d-flex gap-1">
                 <button type="submit" class="btn btn-dark w-100">Lọc</button>
             </div>
-            <div class="col-md-1 d-grid">
+            <div class="col-6 col-sm-3 col-lg-1 d-grid">
                 <a href="{% url 'quanlysanpham' %}" class="btn btn-outline-secondary btn-sm">Bỏ lọc</a>
             </div>
         </div>
@@ -173,5 +173,29 @@
 
     .action-btn:hover { transform: scale(1.1); }
     .table-hover tbody tr:hover { background-color: #f8f9fa; }
+
+    @media (max-width: 991.98px) {
+        .btn-group {
+            width: 100%;
+        }
+        .btn-group .btn {
+            flex: 1 1 auto;
+        }
+    }
+
+    @media (max-width: 767.98px) {
+        .table-responsive {
+            border-radius: 1rem;
+        }
+        table.table th,
+        table.table td {
+            white-space: nowrap;
+            font-size: 0.9rem;
+        }
+        .action-btn {
+            width: 30px;
+            height: 30px;
+        }
+    }
 </style>
 {% endblock main-content %}

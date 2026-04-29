@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-j8+)*)$3fh!(ap3dw1#b@-02w*9bpl$j+l#w#1i@sgu2=15!^3
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -51,6 +51,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'home.middleware.Custom404Middleware',
 ]
 
 ROOT_URLCONF = 'clothing_store.urls'
@@ -66,6 +67,8 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 'home.views.soluong',
+                'django.template.context_processors.request',
+
             ],
             'builtins': [
                 'django.contrib.humanize.templatetags.humanize',
@@ -140,7 +143,7 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
 import os
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'static')

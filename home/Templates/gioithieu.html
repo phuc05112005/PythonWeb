@@ -2,37 +2,39 @@
 
 {% block main-content %}
 <section class="container py-5">
-    <div class="mx-auto bg-white shadow-sm rounded-4 p-4 p-md-5" style="max-width: 960px;">
+    <div class="mx-auto bg-white shadow-sm rounded-4 p-4 p-md-5 position-relative" style="max-width: 960px;">
+
+        {% if request.user.is_authenticated and request.user.taikhoan and request.user.taikhoan.role in 'admin,quanly' %}
+        <a href="{% url 'admin_about' %}" 
+           class="btn btn-dark btn-sm rounded-pill position-absolute"
+           style="top: 20px; right: 20px;">
+            <i class="fa fa-pen me-1"></i> Chỉnh sửa
+        </a>
+        {% endif %}
+
         <span class="badge text-bg-dark rounded-pill px-3 py-2 mb-3">FASHION SHOP</span>
-        <h1 class="fw-bold mb-3">Giới thiệu</h1>
+        <h1 class="fw-bold mb-3">{{ about.title }}</h1>
         <p class="text-secondary mb-4">
-            Fashion Shop là chuỗi hệ thống cửa hàng thời trang theo phong cách trẻ trung, hiện đại và dễ ứng dụng trong cuộc sống hằng ngày.
-            Chúng tôi tập trung vào trải nghiệm mua sắm đơn giản, sản phẩm được chọn lọc kỹ và dịch vụ hỗ trợ nhanh chóng.
+            {{ about.description }}
         </p>
 
         <div class="row g-4">
             <div class="col-md-4">
                 <div class="h-100 border rounded-4 p-4 bg-light">
                     <h5 class="fw-bold">Sứ mệnh</h5>
-                    <p class="mb-0 text-secondary">
-                        Mang đến những lựa chọn thời trang dễ mặc, hợp xu hướng và phù hợp nhiều nhu cầu sử dụng.
-                    </p>
+                    <p>{{ about.su_menh }}</p>
                 </div>
             </div>
             <div class="col-md-4">
                 <div class="h-100 border rounded-4 p-4 bg-light">
                     <h5 class="fw-bold">Cam kết</h5>
-                    <p class="mb-0 text-secondary">
-                        Minh bạch thông tin sản phẩm, hỗ trợ khách hàng tận tâm và xử lý đơn hàng nhanh chóng.
-                    </p>
+                    <p>{{ about.cam_ket }}</p>
                 </div>
             </div>
             <div class="col-md-4">
                 <div class="h-100 border rounded-4 p-4 bg-light">
                     <h5 class="fw-bold">Tầm nhìn</h5>
-                    <p class="mb-0 text-secondary">
-                        Xây dựng hệ thống mua sắm trực tuyến thân thiện, tiện lợi và đáng tin cậy cho khách hàng.
-                    </p>
+                    <p>{{ about.tam_nhin }}</p>
                 </div>
             </div>
         </div>
