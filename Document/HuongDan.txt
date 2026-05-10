@@ -1,0 +1,110 @@
+HUONG DAN CHAY DU AN TREN MAY MOI (WINDOWS)
+
+Dieu kien ban dau:
+1. Da cai Python (khuyen nghi 3.13) va da add vao PATH.
+2. Da cai PostgreSQL + pgAdmin.
+3. Da cai VS Code.
+4. Da co source code du an (clone/paste thu muc PythonWeb).
+
+==================================================
+A. MO DU AN TREN MAY MOI
+==================================================
+1. Mo VS Code -> Open Folder -> chon thu muc PythonWeb.
+2. Mo Terminal trong VS Code (Terminal > New Terminal).
+3. Di chuyen vao thu muc goc du an (neu chua dung cho):
+   cd d:\Class\GIS_Progamming\gisweb\PythonWeb
+
+==================================================
+B. TAO MOI TRUONG AO VA CAI THU VIEN TU requirements.txt
+==================================================
+1. Tao virtual environment:
+   py -3.13 -m venv .venv
+
+2. Kich hoat virtual environment:
+   .\.venv\Scripts\activate
+
+3. Nang cap pip:
+   python -m pip install --upgrade pip
+
+4. Cai tat ca thu vien cua du an:
+   pip install -r requirements.txt
+
+==================================================
+C. TAO DATABASE POSTGRESQL
+==================================================
+Du an dang dung thong so DB nhu sau (trong clothing_store/settings.py):
+- DB NAME: shopthoitrang
+- USER: postgres
+- PASSWORD: 123
+- HOST: 127.0.0.1
+- PORT: 5432
+
+Cach tao trong pgAdmin:
+1. Dang nhap server PostgreSQL.
+2. Right click Databases -> Create -> Database...
+3. Dat ten: shopthoitrang
+4. Save.
+
+Sau do mo Query Tool va chay:
+   CREATE EXTENSION IF NOT EXISTS unaccent;
+
+Luu y:
+- EXTENSION unaccent bat buoc can co de chuc nang tim kiem hoat dong.
+
+==================================================
+D. CHAY MIGRATION + TAO ADMIN
+==================================================
+1. Chay migration:
+   python manage.py migrate
+
+2. Tao tai khoan admin:
+   python manage.py createsuperuser
+
+Nhap username/password/email theo huong dan tren man hinh.
+
+==================================================
+E. CHAY DU AN
+==================================================
+1. Bat server:
+   python manage.py runserver
+
+2. Mo trinh duyet:
+- Trang chu: http://127.0.0.1:8000/
+- Django admin: http://127.0.0.1:8000/admin/
+
+==================================================
+F. CAC LOI THUONG GAP
+==================================================
+1. Loi "ModuleNotFoundError":
+- Chua kich hoat .venv hoac chua pip install -r requirements.txt.
+
+2. Loi ket noi PostgreSQL:
+- Sai user/password/port.
+- PostgreSQL service chua chay.
+- Chua tao database shopthoitrang.
+
+3. Loi tim kiem co "unaccent":
+- Chua chay: CREATE EXTENSION IF NOT EXISTS unaccent;
+
+4. Loi upload anh:
+- Kiem tra da cai Pillow trong requirements.
+
+==================================================
+G. LENH NHANH DE QUAY VIDEO (COPY-PASTE)
+==================================================
+py -3.13 -m venv .venv
+.\.venv\Scripts\activate
+python -m pip install --upgrade pip
+pip install -r requirements.txt
+python manage.py migrate
+python manage.py createsuperuser
+python manage.py runserver
+
+==================================================
+THAM KHAO TAI LIEU/FILE BO SUNG
+==================================================
+Backup DB:
+Document\shopthoitrang.backup
+
+Link video demo:
+https://drive.google.com/drive/folders/17hsbRsOesXrzo1L3eelljun-6asyVsRO?usp=sharing
